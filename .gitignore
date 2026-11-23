@@ -1,0 +1,39 @@
+# Gizli anahtarlar — ASLA git'e gitmez
+.env
+rclone.conf
+
+# Ajan logları
+*.log
+
+# Hafıza veritabanı (konuşmalar ve eylem logları)
+*.db
+*.db-journal
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Editör / OS
+.vscode/
+.idea/
+Thumbs.db
+
+# Ajan ikilileri (VirtualDesktopAccessor.dll repoya girmez; README: indirme + SHA256)
+*.dll
+
+# Android: Vosk model binary'leri (büyük dosyalar; uygulama ilk açılışta indirir)
+android/app/src/main/assets/model/
+
+# Android build çıktıları
+android/.gradle/
+android/app/.cxx/
+android/build/
+android/app/build/
+
+# Android: makineye ozel SDK yolu
+android/local.properties
+
+# Dondurulmus log dosyalari
+*.log.1
