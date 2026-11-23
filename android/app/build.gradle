@@ -43,5 +43,5 @@ dependencies {
     // Vosk: offline wake word + STT
     implementation("com.alphacephei:vosk-android:0.3.47")
     // HTTP (Render /dinle endpoint)
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:okhttp:5.5.1")
 }
