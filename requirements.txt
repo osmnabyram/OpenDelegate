@@ -11,6 +11,6 @@ trafilatura>=1.12,<3
 # Kalıcı hafıza: Neon Postgres (DATABASE_URL). Binary paket: derleyici gerekmez.
 psycopg[binary]>=3.2,<4
 # PDF metni (Telegram belge anlama). Saf Python, bağımlılıksız, ~4 MB; sadece Render (PC ayak izi 0).
-pypdf>=4.0,<7
+pypdf>=7.1.1,<8
 # Sesli cevap (Türkçe TTS): Microsoft Edge sinir ağı sesleri; ücretsiz, key yok, saf Python. Sadece Render.
 edge-tts>=7.0,<8
