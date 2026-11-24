@@ -54,6 +54,8 @@ available in English ([docs/KURULUM.en.md](docs/KURULUM.en.md)) and Turkish ([do
 
 <p align="center"><img src="docs/assets/uygulama.jpg" width="260" alt="Vekil Android app"/></p>
 
+<p align="center"><img src="docs/assets/zihin_haritasi.jpg" width="760" alt="Vekil 3D mind map"/><br/><sub>3D mind map: every memory entry sits around a planet for its type.</sub></p>
+
 ## How does it work?
 
 ```mermaid

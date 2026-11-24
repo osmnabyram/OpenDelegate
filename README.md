@@ -51,6 +51,8 @@ uygulama açar, mesaj okur, alarm kurar. Teknik bilgi gerekmez: komut yok, menü
 
 <p align="center"><img src="docs/assets/uygulama.jpg" width="260" alt="Vekil Android uygulaması"/></p>
 
+<p align="center"><img src="docs/assets/zihin_haritasi.jpg" width="760" alt="Vekil 3B zihin haritası"/><br/><sub>3B zihin haritası: hafızadaki her kayıt, türüne göre bir gezegenin çevresinde durur.</sub></p>
+
 ## Nasıl çalışır?
 
 ```mermaid
