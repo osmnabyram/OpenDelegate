@@ -67,7 +67,7 @@ class KaraDelik @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, ow: Int, oh: Int) {
         val r = minOf(w, h) / 2f
         hale = RadialGradient(w / 2f, h / 2f, r,
-            intArrayOf(Color.argb(150, 120, 6, 6), Color.argb(60, 80, 4, 4), Color.argb(0, 40, 0, 0)),
+            intArrayOf(Color.argb(150, 100, 106, 114), Color.argb(60, 70, 75, 82), Color.argb(0, 40, 42, 46)),
             floatArrayOf(0.30f, 0.62f, 1f), Shader.TileMode.CLAMP)
     }
 
@@ -114,7 +114,7 @@ class KaraDelik @JvmOverloads constructor(
         val halka = ufuk * 1.16f
         for ((kalin, alfa) in listOf(10f to 22, 6f to 45, 3f to 90, 1.4f to 235)) {
             boya.strokeWidth = kalin * dp
-            boya.color = Color.argb((alfa * (0.8f + 0.2f * yogun) * (1f - 0.5f * uyku)).toInt().coerceIn(0, 255), 255, (40 + 50 * yogun).toInt(), 20)
+            boya.color = Color.argb((alfa * (0.8f + 0.2f * yogun) * (1f - 0.5f * uyku)).toInt().coerceIn(0, 255), (150 + 60 * yogun).toInt(), (156 + 60 * yogun).toInt(), (166 + 60 * yogun).toInt())
             canvas.drawCircle(cx, cy, halka, boya)
         }
         boya.style = Paint.Style.FILL
@@ -144,7 +144,7 @@ class KaraDelik @JvmOverloads constructor(
             val sicak = (1f - p.yaricap).coerceIn(0f, 1f)           // içeri doğru daha sıcak
             val onPlan = if (onde) 1f else 0.55f
             val alfa = (255 * p.parlak * onPlan * (0.55f + 0.45f * enerji) * (1f - 0.5f * uyku)).toInt().coerceIn(0, 255)
-            cizgi.color = Color.argb(alfa, (150 + 105 * sicak).toInt(), (10 + 70 * sicak * sicak).toInt(), 12)
+            cizgi.color = Color.argb(alfa, (110 + 100 * sicak).toInt(), (116 + 100 * sicak).toInt(), (126 + 100 * sicak).toInt())
             cizgi.strokeWidth = p.boy * dp
             canvas.drawLine(x2, y2, x, y, cizgi)
         }

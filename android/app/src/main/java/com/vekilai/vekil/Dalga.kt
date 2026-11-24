@@ -55,7 +55,7 @@ class Dalga @JvmOverloads constructor(
 
             val h = (boy[i] * height).coerceAtLeast(genislik)
             val x = ara + i * (genislik + ara)
-            boya.color = if (mod == Mod.DUR) 0xFF3A1414.toInt() else 0xFFCC1111.toInt()
+            boya.color = if (mod == Mod.DUR) 0xFF2A2C30.toInt() else 0xFF8A909A.toInt()
             boya.alpha = (140 + 115 * merkezYakin).toInt()
             canvas.drawRoundRect(x, orta - h / 2, x + genislik, orta + h / 2,
                 genislik / 2, genislik / 2, boya)

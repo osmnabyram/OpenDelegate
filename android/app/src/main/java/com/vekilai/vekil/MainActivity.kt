@@ -178,7 +178,7 @@ class MainActivity : AppCompatActivity() {
         anahtarKodla = false
         swServis.text = servisMetin
         swServis.setTextColor(getColor(if (swServis.isChecked) R.color.accent else R.color.fg2))
-        // Başlarken yuvarlak soluk kırmızı; hazır olunca tam kırmızı (renk seçicideki "açık" rengi).
+        // Başlarken yuvarlak soluk gri; hazır olunca açık gri (renk seçicideki "açık" rengi).
         swServis.thumbTintList = if (durum == VekilService.Durum.BASLATILIYOR)
             android.content.res.ColorStateList.valueOf(getColor(R.color.accent_dim))
         else

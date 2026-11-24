@@ -10,7 +10,7 @@ import android.util.AttributeSet
 import android.widget.FrameLayout
 
 /**
- * Panelin kartı: koyu dolgu + kenarında dönen kırmızı ışıltı (Gemini'nin
+ * Panelin kartı: koyu dolgu + kenarında dönen gri ışıltı (Gemini'nin
  * renkli kenar ışığının Vekil tonları). Işıltı padding alanına taşar;
  * çocuklar padding'in içinde kalır. [guc] 0..1: dinlerken sese göre parlar.
  */
@@ -29,8 +29,8 @@ class Isilti @JvmOverloads constructor(
     private var parlaklik = 0.35f
 
     private val renkler = intArrayOf(
-        0xFFFF2A1A.toInt(), 0xFF4A0000.toInt(), 0xFFCC1111.toInt(),
-        0xFFFF6A3D.toInt(), 0xFF5A0000.toInt(), 0xFFFF2A1A.toInt()
+        0xFFB4BAC4.toInt(), 0xFF2A2C30.toInt(), 0xFF8A909A.toInt(),
+        0xFFC9CED6.toInt(), 0xFF33363B.toInt(), 0xFFB4BAC4.toInt()
     )
     private var supurme: SweepGradient? = null
 

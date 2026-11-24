@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Açma/kapama anahtarının yuvarlağı: açıkken kırmızı, kapalıyken gri. -->
+<!-- Açma/kapama anahtarının yuvarlağı: açıkken açık gri, kapalıyken koyu gri. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_checked="true" android:color="@color/accent" />
     <item android:color="@color/fg2" />
