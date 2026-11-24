@@ -1,0 +1,45 @@
+# Veri ve gizlilik / Data and privacy
+
+[Türkçe](#türkçe) | [English](#english)
+
+## Türkçe
+
+Vekil sizin sunucunuzda çalışır; bizim (geliştiricinin) hiçbir sunucumuz yoktur ve verileriniz bize gelmez. Ama Vekil çalışırken bazı dış hizmetleri kullanır. Hangi veri nereye gider:
+
+| Veri | Nerede durur | Dışarı giden |
+|---|---|---|
+| Konuşmalar, hafıza, eylem kayıtları, hatırlatmalar | Sizin Neon veritabanınız (`DATABASE_URL` boşsa geçici dosya) | Mesajlar, cevap üretmek için model sağlayıcısına gider (varsayılan DeepSeek) |
+| Sesli mesajlar | Saklanmaz | Yazıya çevirmek için Groq'a gider (kullanırsanız) |
+| İnternet aramaları | Saklanmaz | Arama metni Tavily'ye gider (kullanırsanız) |
+| Ekran görüntüleri | Diske ve veritabanına yazılmaz; sonuç yalnızca metin olarak kalır | Anlamak için görsel model sağlayıcısına gider |
+| Kimlik, kart, IBAN gibi değerler | Hafızaya ve diske yazılmaz | Belge ve fotoğraflarda maskelenir |
+| Telefon bildirimleri | Yalnızca telefonun belleğinde (son 30), diske yazılmaz | Vekil'e sorduğunuzda içeriği model sağlayıcısına gider |
+| Telefon kilit PIN'i | Yalnızca telefonda, Android Keystore ile şifreli | Sunucuya gitmez |
+| Anahtarlar ve sırlar | Render ortam değişkenleri / yerel `.env` | Log'larda maskelenir; koda yazılmaz |
+
+Yani verileriniz **sizin hesaplarınızda** durur; ama konuşma içeriği model sağlayıcısının (varsayılan DeepSeek) politikalarına tabidir. Bu sizin için sorunsa modeli `DEEPSEEK_BASE_URL` / `DEEPSEEK_MODEL` ile değiştirebilirsiniz ([SSS](SSS.md)).
+
+Silmek için: `/unut`, `/sifirla` komutları ya da Neon projenizi silmek. Sunucuyu kapatırsanız Vekil durur, veri Neon'da kalır.
+
+Bu sayfa kodun mevcut davranışını anlatır; hukuki taahhüt değildir. Kullandığınız hizmetlerin (Render, Neon, DeepSeek, Groq, Tavily, Telegram, Twilio) kendi gizlilik politikaları geçerlidir.
+
+## English
+
+Vekil runs on your server; the developer has no servers and your data does not come to us. But Vekil uses some outside services while running. Which data goes where:
+
+| Data | Where it stays | What leaves |
+|---|---|---|
+| Conversations, memory, action logs, reminders | Your Neon database (a temporary file if `DATABASE_URL` is empty) | Messages go to the model provider to produce answers (DeepSeek by default) |
+| Voice messages | Not stored | Sent to Groq for transcription (if you use it) |
+| Web searches | Not stored | The query goes to Tavily (if you use it) |
+| Screenshots | Not written to disk or the database; only the text result stays | Sent to the vision model provider to be understood |
+| ID, card, IBAN values | Not written to memory or disk | Masked in documents and photos |
+| Phone notifications | Only in the phone's memory (last 30), never written to disk | Their content goes to the model provider when you ask Vekil |
+| Phone lock PIN | Only on the phone, encrypted with Android Keystore | Never sent to the server |
+| Keys and secrets | Render environment variables / local `.env` | Masked in logs; never written in code |
+
+So your data stays **in your own accounts**, but conversation content is subject to the model provider's policies (DeepSeek by default). If that is a problem you can switch the model with `DEEPSEEK_BASE_URL` / `DEEPSEEK_MODEL` ([FAQ](SSS.md)).
+
+To delete: the `/unut` and `/sifirla` commands, or delete your Neon project. If you shut down the server Vekil stops and the data stays in Neon.
+
+This page describes the current behaviour of the code; it is not a legal commitment. The privacy policies of the services you use (Render, Neon, DeepSeek, Groq, Tavily, Telegram, Twilio) apply.

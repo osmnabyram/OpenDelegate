@@ -1,0 +1,23 @@
+# Render Blueprint: README'deki "Deploy to Render" butonu bu dosyayı okur.
+# Gizli değerler (sync: false) kurulum sırasında Render'ın formuna elle girilir; depoya yazılmaz.
+services:
+  - type: web
+    name: vekil
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: DATABASE_URL # Neon Postgres; boş bırakırsanız hafıza geçici olur
+        sync: false
+      - key: WEBHOOK_SECRET
+        generateValue: true
+      - key: AJAN_SECRET
+        generateValue: true
+      - key: SESLI_TOKEN
+        generateValue: true

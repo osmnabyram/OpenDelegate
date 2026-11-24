@@ -47,6 +47,10 @@ uygulama açar, mesaj okur, alarm kurar. Teknik bilgi gerekmez: komut yok, menü
 | **Uzaktan PC uyandırma** | Akıllı priz ve BIOS ayarıyla kapalı bilgisayar açılır, Vekil ajanın bağlanmasını bekler |
 | **Güvenlik** | Ödeme ve banka işlemleri kodda engellenir; sabit zamanlı token, sır maskeleme, hız sınırı, kill switch ([SECURITY.md](SECURITY.md)) |
 
+## Görünüm
+
+<p align="center"><img src="docs/assets/uygulama.jpg" width="260" alt="Vekil Android uygulaması"/></p>
+
 ## Nasıl çalışır?
 
 ```mermaid
@@ -89,6 +93,10 @@ Sihirbaz `.env` dosyasını oluşturur, bot anahtarınızı doğrular ve sohbet 
 Elle kurmak isterseniz [`.env.example`](.env.example) dosyasını `.env` olarak kopyalayıp doldurun.
 
 ### Buluta almak (Render)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/osmnabyram/VekilAi)
+
+Düğme `render.yaml` dosyasını okur ve servisi hazırlar; formda `DEEPSEEK_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` ve (önerilir) `DATABASE_URL` sorulur. Rastgele anahtarları Render kendisi üretir. Elle kurmak isterseniz:
 
 1. *New → Web Service →* bu depo → **Language: Docker** → *Health Check Path* `/health`.
 2. Environment: `DEEPSEEK_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `WEBHOOK_SECRET`, `AJAN_SECRET`.
@@ -184,6 +192,8 @@ kodda reddedilir, tüm uçlar sabit zamanlı anahtarla korunur, loglarda sırlar
 ```bash
 python -m unittest discover -s tests -t . -q       # testler (gerçek anahtar gerekmez)
 ```
+
+Sık sorulanlar: [docs/SSS.md](docs/SSS.md) · Veri ve gizlilik: [docs/GIZLILIK.md](docs/GIZLILIK.md) · [Yol haritası](ROADMAP.md) · [Değişiklikler](CHANGELOG.md)
 
 Kod Türkçe adlandırılmıştır. Mimari harita ve geliştirici notları: [CLAUDE.md](CLAUDE.md).
 

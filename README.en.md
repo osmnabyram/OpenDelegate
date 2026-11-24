@@ -50,6 +50,10 @@ available in English ([docs/KURULUM.en.md](docs/KURULUM.en.md)) and Turkish ([do
 | **Remote PC wake-up** | A smart plug plus a BIOS setting turns on a powered-off computer; Vekil waits for the agent to connect |
 | **Security** | Payments and banking are blocked in code; constant-time tokens, secret masking, rate limits, kill switch ([SECURITY.md](SECURITY.md)) |
 
+## Screenshot
+
+<p align="center"><img src="docs/assets/uygulama.jpg" width="260" alt="Vekil Android app"/></p>
+
 ## How does it work?
 
 ```mermaid
@@ -92,6 +96,10 @@ The wizard writes `.env`, checks your bot token and finds your chat id itself.
 To set up by hand, copy [`.env.example`](.env.example) to `.env` and fill it in.
 
 ### Deploy to the cloud (Render)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/osmnabyram/VekilAi)
+
+The button reads `render.yaml` and prepares the service; the form asks for `DEEPSEEK_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` and (recommended) `DATABASE_URL`. Render generates the random keys itself. To set it up by hand:
 
 1. *New → Web Service →* this repo → **Language: Docker** → *Health Check Path* `/health`.
 2. Environment: `DEEPSEEK_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `WEBHOOK_SECRET`, `AJAN_SECRET`.
@@ -186,6 +194,8 @@ Details and how to report a vulnerability: [SECURITY.md](SECURITY.md).
 ```bash
 python -m unittest discover -s tests -t . -q       # tests (no real keys needed)
 ```
+
+FAQ: [docs/SSS.md](docs/SSS.md) (bilingual) · Data and privacy: [docs/GIZLILIK.md](docs/GIZLILIK.md) (bilingual) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
 
 The code uses Turkish naming. Architecture map and developer notes: [CLAUDE.md](CLAUDE.md).
 
