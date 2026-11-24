@@ -4,6 +4,10 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/). Sürümler [Releases](h
 
 ## [Yayınlanmadı / Unreleased]
 
+## [1.1.0] - 2026-11-24
+
+Android uygulaması 1.0.1 ile aynı; yalnızca sunucu tarafı değişti. / The Android app is the same as 1.0.1; only the server side changed.
+
 ### Eklendi / Added
 - `/yedek`: kalıcı hafızayı JSON dosyası olarak dışa aktarır. / `/yedek`: exports the persistent memory as a JSON file.
 - `DIL=en` ayarı: asistan cevapları, sesli okuma ve konuşma tanıma İngilizce. / `DIL=en` setting: English answers, spoken output and speech recognition.
