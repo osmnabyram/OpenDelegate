@@ -32,8 +32,8 @@ reads messages and sets alarms. No technical knowledge needed: no commands, no m
 
 > Even for someone who is not comfortable with technology: say what you want, Vekil does the rest.
 
-The assistant talks to its user in Turkish. This page and the code comments are partly Turkish; the setup guide
-([docs/KURULUM.md](docs/KURULUM.md)) is currently Turkish only.
+The assistant talks to its user in Turkish. This page and the code comments are partly Turkish; the setup guide is
+available in English ([docs/KURULUM.en.md](docs/KURULUM.en.md)) and Turkish ([docs/KURULUM.md](docs/KURULUM.md)).
 
 ## What can it do?
 
@@ -75,7 +75,7 @@ flowchart LR
 
 ## Quick start
 
-> **Setting it up for someone with no technical background?** Step-by-step guide (Turkish): [docs/KURULUM.md](docs/KURULUM.md)
+> **Setting it up for someone with no technical background?** Step-by-step guide: [docs/KURULUM.en.md](docs/KURULUM.en.md)
 
 You need: Python 3.12, a Telegram account, a [DeepSeek](https://platform.deepseek.com) API key.
 

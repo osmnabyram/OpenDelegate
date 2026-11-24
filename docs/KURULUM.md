@@ -1,3 +1,5 @@
+<p align="center"><b>Türkçe</b> &nbsp;|&nbsp; <a href="KURULUM.en.md">English</a></p>
+
 # Adım adım kurulum rehberi (sıfırdan 100'e)
 
 Bu rehber, Vekil'i bir kullanıcıya (müşteriye) **sıfırdan** kuran kişi içindir. Kullanıcının teknolojiyle hiç
@@ -108,6 +110,8 @@ Hepsini kullanıcının e-postasıyla, tarayıcıda birlikte açın. Anahtarlar�
 Ajan yalnızca bilgisayar **açık ve internete bağlıyken** çalışır.
 
 ## 5. Telefon uygulaması (APK) üretimi
+
+> **Kısayol:** APK içine adres ve anahtar gömmeniz gerekmiyorsa [Releases](https://github.com/osmnabyram/VekilAi/releases) sayfasındaki hazır imzalı APK'yı indirip 6. adıma geçin; kullanıcı adresi ve `SESLI_TOKEN`'ı ilk açılışta uygulamaya girer.
 
 Kurulumu yapan kişinin bilgisayarında, kullanıcının Render adresi ve `SESLI_TOKEN`'ı hazırken:
 
