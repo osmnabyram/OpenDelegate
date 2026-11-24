@@ -5,7 +5,7 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0d1117,100:30363d&height=140&section=header&text=Vekil&fontColor=ffffff&fontSize=56&animation=fadeIn" width="100%" alt=""/>
 
 <a href="https://github.com/osmnabyram/VekilAi">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=19&pause=1600&color=8B949E&center=true&vCenter=true&width=640&lines=Yazın+ya+da+konuşun%2C+Vekil+halletsin;Bilgisayarınız+ve+telefonunuz+tek+sohbetten+yönetilsin;Açık+kaynak+%C2%B7+kendi+sunucunuzda+%C2%B7+verileriniz+sizde" alt="Vekil"/>
+  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=19&pause=1600&color=8B949E&center=true&vCenter=true&width=640&lines=Yaz%C4%B1n+ya+da+konu%C5%9Fun%2C+Vekil+halletsin;Bilgisayar%C4%B1n%C4%B1z+ve+telefonunuz+tek+sohbetten+y%C3%B6netilsin;A%C3%A7%C4%B1k+kaynak+%C2%B7+kendi+sunucunuzda+%C2%B7+verileriniz+sizde" alt="Vekil"/>
 </a>
 
 <br/>
