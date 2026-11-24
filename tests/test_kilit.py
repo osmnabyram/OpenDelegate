@@ -117,5 +117,37 @@ class Kapi(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(await kilit.yukle())
 
 
+def sahte_kurtarma_ozet(kod):
+    return hashlib.pbkdf2_hmac("sha256", kod.upper().encode(), kilit._KURTARMA_TUZ, kilit._TUR)
+
+
+class KurtarmaKodu(unittest.TestCase):
+    """Şifreden bağımsız, o kuruluma özel kurtarma kodu. Gerçek kod testte YOK: sahte özetle denenir."""
+
+    def test_ayarli_degilse_her_zaman_yanlis(self):
+        with mock.patch.object(kilit, "_KURTARMA_OZET", b""):
+            self.assertFalse(kilit.kurtarma_kodu_dogru("HERHANGI-BIR-KOD"))
+
+    def test_dogru_kod_acar_sifreden_bagimsiz(self):
+        ozet = sahte_kurtarma_ozet("ABCDE-FGHIJ-KLMNO-PQRST")
+        with mock.patch.object(kilit, "_KURTARMA_OZET", ozet), mock.patch.object(kilit, "_OZET", b""):
+            self.assertTrue(kilit.kurtarma_kodu_dogru("ABCDE-FGHIJ-KLMNO-PQRST"))
+            self.assertTrue(kilit.sifre_dogru("ABCDE-FGHIJ-KLMNO-PQRST"))  # şifre hiç ayarlı olmasa bile açar
+            self.assertFalse(kilit.kurtarma_kodu_dogru("BASKA-BIR-KOD-DEGIL"))
+
+    def test_buyuk_kucuk_harf_duyarsiz_ama_sifre_duyarli(self):
+        ozet = sahte_kurtarma_ozet("ABCDE-FGHIJ-KLMNO-PQRST")
+        with mock.patch.object(kilit, "_KURTARMA_OZET", ozet):
+            self.assertTrue(kilit.kurtarma_kodu_dogru("abcde-fghij-klmno-pqrst"))
+        with mock.patch.object(kilit, "_OZET", sahte_ozet("Sifre123")):
+            self.assertFalse(kilit.sifre_dogru("sifre123"))  # şifre büyük/küçük harf duyarlı kalır
+
+    def test_her_kurulumda_farkli_degerler_birbirini_acmaz(self):
+        # Bu testte gerçek kurulumların kodu YOK; sadece iki bağımsız sahte kurulumun birbirini açmadığını gösterir.
+        a = sahte_kurtarma_ozet("KURULUM-BIR-KODU-XXXX")
+        with mock.patch.object(kilit, "_KURTARMA_OZET", a):
+            self.assertFalse(kilit.kurtarma_kodu_dogru("KURULUM-IKI-KODU-YYYY"))
+
+
 if __name__ == "__main__":
     unittest.main()

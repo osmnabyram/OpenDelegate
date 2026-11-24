@@ -64,6 +64,10 @@ KULLANICI_ADI = os.getenv("KULLANICI_ADI", "").strip() or "efendim"  # brifing: 
 KILIT_TUZ = os.getenv("KILIT_TUZ", "").strip()
 KILIT_OZET = os.getenv("KILIT_OZET", "").strip()
 KILIT_OZET_SADE = os.getenv("KILIT_OZET_SADE", "").strip()
+# Kurtarma kodu: şifreden bağımsız, o kuruluma özel yedek açma yolu (kurulum sihirbazı üretir, bir kez gösterir).
+# Ortak/sabit bir anahtar DEĞİLDİR; her kurulumda farklı, boşsa devre dışı.
+KILIT_KURTARMA_TUZ = os.getenv("KILIT_KURTARMA_TUZ", "").strip()
+KILIT_KURTARMA_OZET = os.getenv("KILIT_KURTARMA_OZET", "").strip()
 PROFIL = os.getenv("PROFIL", "").strip()  # kurulum sihirbazının yazdığı kullanıcı profili (hafızaya bir kez girer)
 SEHIR_AD = os.getenv("SEHIR_AD", "İstanbul").strip()  # hava durumu / brifing varsayılan şehri
 SEHIR_LAT = float(os.getenv("SEHIR_LAT", "41.0082"))

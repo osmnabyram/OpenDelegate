@@ -67,11 +67,21 @@ SAYFALAR: list[dict[str, Any]] = [
     {"baslik": "Acil durdurma şifresi",
      "metin": "Telegram'a sadece \"kys\" yazarsanız Vekil kendini tamamen kilitler; yalnızca bu şifreyle açılır. "
               "Şifrenin kendisi hiçbir yerde saklanmaz, sadece doğrulama özeti .env dosyasına yazılır. "
-              "ŞİFRENİZİ UNUTMAYIN: bir yere not edin. Şifrenin kendisi saklanmadığı için geri getirilemez; "
-              "unutursanız sihirbazı tekrar çalıştırıp yeni şifre belirler ve Render'daki KILIT_* değerlerini güncellersiniz.",
+              "ŞİFRENİZİ UNUTMAYIN, bir yere not edin: geri getirilemez.\n\n"
+              "Sonraki sayfada, bu şifreyi unutursanız kullanabileceğiniz AYRI bir kurtarma kodu göstereceğiz.",
      "alanlar": [("KILIT_SIFRE", "Şifre (en az 8 karakter)", "gizli", ""),
                  ("KILIT_SIFRE2", "Şifre (tekrar)", "gizli", "")],
      "dogrula": "kilit"},
+    {"baslik": "Kurtarma kodunuz",
+     "metin": lambda d: (
+         "Şifrenizi unutursanız bu kodla da kilidi açabilirsiniz. Şifreden TAMAMEN BAĞIMSIZDIR, yalnızca bu "
+         "kuruluma özeldir (başka hiçbir kurulumda işe yaramaz) ve bir daha gösterilmeyecektir. Güvenli bir "
+         "yere (kağıt, şifre yöneticisi) yazın.\n\n"
+         "Kurulumu sizin için yapan kişiye bir kopyasını vermek isterseniz destek için saklayabilir; "
+         "istemezseniz kimseyle paylaşmayın."),
+     "ozel": "kurtarma",
+     "alanlar": [("KURTARMA_ONAY", "Kurtarma kodunu güvenli bir yere kaydettim.", "onay", "")],
+     "dogrula": "kurtarma_onay"},
     {"baslik": "İsteğe bağlı servisler",
      "metin": "Hepsini boş bırakabilirsiniz; sonradan .env dosyasına eklenebilir.",
      "alanlar": [("GROQ_API_KEY", "Groq anahtarı (sesli mesajlar için, console.groq.com)", "gizli", ""),
@@ -153,18 +163,39 @@ def kilit_ozetleri(sifre: str, tuz: bytes | None = None) -> dict[str, str]:
             "KILIT_OZET_SADE": hashlib.pbkdf2_hmac("sha256", sade.encode("utf-8"), tuz, 600_000).hex()}
 
 
+# 0/O, 1/I/L karışmasın diye çıkarıldı; elle okuyup yazmak kolay olsun diye büyük harf + rakam.
+_KURTARMA_ALFABE = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+
+
+def kurtarma_kodu_uret() -> str:
+    """Şifreden TAMAMEN bağımsız, o kuruluma özel kurtarma kodu (~100 bit entropi). Hiçbir kurulumda ortak değildir."""
+    grup = lambda: "".join(secrets.choice(_KURTARMA_ALFABE) for _ in range(5))
+    return "-".join(grup() for _ in range(4))
+
+
+def kurtarma_ozetleri(kod: str, tuz: bytes | None = None) -> dict[str, str]:
+    """Kurtarma kodu özeti: kilit_ozetleri ile aynı yöntem, ama şifreden bağımsız ayrı tuz/özet çiftinde."""
+    tuz = tuz or secrets.token_bytes(16)
+    return {"KILIT_KURTARMA_TUZ": tuz.hex(),
+            "KILIT_KURTARMA_OZET": hashlib.pbkdf2_hmac("sha256", kod.strip().encode("utf-8"), tuz, 600_000).hex()}
+
+
 def env_metni(d: dict[str, str]) -> str:
     """Boş olmayan değerleri .env satırlarına çevirir (gruplu)."""
     d = dict(d)
     d["PROFIL"] = profil_metni(d)
     if d.get("KILIT_SIFRE"):
         d.update(kilit_ozetleri(d["KILIT_SIFRE"]))
+    if d.get("_KURTARMA_KODU"):
+        d.update(kurtarma_ozetleri(d["_KURTARMA_KODU"]))
     d["SEHIR_AD"] = "" if d.get("sehir", "İstanbul") == "İstanbul" else _temiz(d.get("sehir", ""))
     d["KULLANICI_ADI"] = _temiz(d.get("KULLANICI_ADI", ""))
     gruplar = [
         ("Zorunlu", ["DEEPSEEK_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"]),
         ("Güvenlik anahtarları (rastgele üretildi)", ["WEBHOOK_SECRET", "AJAN_SECRET", "SESLI_TOKEN"]),
         ("Acil durdurma (kys) şifre özeti; şifrenin kendisi saklanmaz", ["KILIT_TUZ", "KILIT_OZET", "KILIT_OZET_SADE"]),
+        ("Kurtarma kodu özeti; şifreden bağımsız, bu kuruluma özel, kodun kendisi saklanmaz",
+         ["KILIT_KURTARMA_TUZ", "KILIT_KURTARMA_OZET"]),
         ("Kişiselleştirme", ["KULLANICI_ADI", "SEHIR_AD", "PROFIL"]),
         ("İsteğe bağlı servisler", ["GROQ_API_KEY", "TAVILY_API_KEY", "DATABASE_URL"]),
     ]
@@ -194,6 +225,10 @@ def dogrula(tur: str, d: dict[str, str]) -> str | None:
             return "Şifre en az 8 karakter olmalı."
         if d.get("KILIT_SIFRE") != d.get("KILIT_SIFRE2"):
             return "İki şifre aynı değil."
+        d.setdefault("_KURTARMA_KODU", kurtarma_kodu_uret())  # bir kez üretilir, geri/ileri gidince değişmez
+    elif tur == "kurtarma_onay":
+        if not d.get("KURTARMA_ONAY"):
+            return "Devam etmeden önce kurtarma kodunu kaydettiğinizi onaylayın."
     elif tur == "sohbet":
         if not d.get("TELEGRAM_CHAT_ID", "").lstrip("-").isdigit():
             return "Sohbet kimliği bir sayı olmalı. \"Sohbetimi bul\" düğmesini deneyin."
@@ -249,7 +284,7 @@ def pencere() -> int:
     ARKA, PANEL, METIN, SOLUK, VURGU, HATA = "#0d1117", "#161b22", "#e6edf3", "#8b949e", "#2f81f7", "#f85149"
     kok = tk.Tk()
     kok.title("Vekil Kurulum")
-    kok.geometry("860x540")
+    kok.geometry("860x600")
     kok.resizable(False, False)
     kok.configure(bg=ARKA)
 
@@ -302,6 +337,8 @@ def pencere() -> int:
         for anahtar, v in degiskenler.items():
             if isinstance(v, list):
                 d[anahtar] = ", ".join(ad for ad, var in v if var.get())
+            elif isinstance(v, tk.BooleanVar):
+                d[anahtar] = "1" if v.get() else ""
             else:
                 d[anahtar] = v.get().strip()
 
@@ -325,7 +362,8 @@ def pencere() -> int:
         degiskenler.clear()
         hata.config(text="", fg=HATA)
         baslik.config(text=s["baslik"])
-        metin.config(text=BITIS if s.get("son") else s["metin"])
+        s_metin = s["metin"](d) if callable(s.get("metin")) else s.get("metin", "")
+        metin.config(text=BITIS if s.get("son") else s_metin)
         adim_etiketi.config(text=f"Adım {durum['i'] + 1} / {len(SAYFALAR)}")
         geri.config(state="normal" if durum["i"] > 0 and not s.get("son") else "disabled")
         ileri.config(text="Kur ›" if durum["i"] == len(SAYFALAR) - 2 else "Kapat" if s.get("son") else "İleri ›")
@@ -338,9 +376,16 @@ def pencere() -> int:
             kutu.insert("1.0", kurulacaklar_metni())
             kutu.config(state="disabled")
             kutu.pack(fill="both", expand=True, pady=6)
+        if s.get("ozel") == "kurtarma":
+            tk.Label(alan_cercevesi, text="Kurtarma kodunuz (seçip kopyalayabilirsiniz):", fg=METIN, bg=ARKA,
+                     font=("Segoe UI", 10, "bold"), anchor="w").pack(fill="x", pady=(0, 4))
+            kod_var = tk.StringVar(value=d.get("_KURTARMA_KODU", ""))
+            tk.Entry(alan_cercevesi, textvariable=kod_var, state="readonly", readonlybackground=PANEL, fg=VURGU,
+                     relief="flat", font=("Consolas", 14, "bold"), justify="center").pack(fill="x", ipady=10, pady=(0, 10))
         for anahtar, etiket, tur, ek in s["alanlar"]:
-            tk.Label(alan_cercevesi, text=etiket, fg=METIN, bg=ARKA, font=("Segoe UI", 10), anchor="w",
-                     wraplength=470, justify="left").pack(fill="x", pady=(8, 2))
+            if tur != "onay":
+                tk.Label(alan_cercevesi, text=etiket, fg=METIN, bg=ARKA, font=("Segoe UI", 10), anchor="w",
+                         wraplength=470, justify="left").pack(fill="x", pady=(8, 2))
             onceki = d.get(anahtar, "")
             if tur in ("yazi", "gizli"):
                 var = tk.StringVar(value=onceki or (ek if tur == "yazi" else ""))
@@ -367,6 +412,12 @@ def pencere() -> int:
                                    font=("Segoe UI", 10)).pack(fill="x")
                     liste.append((ad, var))
                 degiskenler[anahtar] = liste
+            elif tur == "onay":
+                var = tk.BooleanVar(value=bool(onceki))
+                tk.Checkbutton(alan_cercevesi, text=etiket, variable=var, bg=ARKA, fg=METIN, selectcolor=PANEL,
+                               activebackground=ARKA, activeforeground=METIN, anchor="w", wraplength=440,
+                               justify="left", font=("Segoe UI", 10)).pack(fill="x", pady=(4, 0))
+                degiskenler[anahtar] = var
         if ilk_girdi:
             ilk_girdi.focus_set()
 
@@ -411,7 +462,10 @@ def terminal() -> int:
     for s in SAYFALAR:
         if s.get("son"):
             break
-        print(f"\n== {s['baslik']} ==\n{s['metin']}\n")
+        s_metin = s["metin"](d) if callable(s.get("metin")) else s.get("metin", "")
+        print(f"\n== {s['baslik']} ==\n{s_metin}\n")
+        if s.get("ozel") == "kurtarma":
+            print(f"KURTARMA KODUNUZ: {d.get('_KURTARMA_KODU', '')}\n")
         while True:
             for anahtar, etiket, tur, ek in s["alanlar"]:
                 if tur == "secim":
@@ -422,6 +476,9 @@ def terminal() -> int:
                     print(etiket + ": " + " / ".join(f"{i + 1}) {x}" for i, x in enumerate(ek)))
                     sec = input("Numaralar (virgülle, boş = hiçbiri): ").replace(" ", "")
                     d[anahtar] = ", ".join(ek[int(n) - 1] for n in sec.split(",") if n.isdigit() and 0 < int(n) <= len(ek))
+                elif tur == "onay":
+                    sec = input(f"{etiket} (e/h): ").strip().lower()
+                    d[anahtar] = "1" if sec == "e" else ""
                 else:
                     gir = getpass.getpass if tur == "gizli" else input
                     d[anahtar] = gir(f"{etiket}" + (f" [{ek}]" if ek else "") + ": ").strip() or ek

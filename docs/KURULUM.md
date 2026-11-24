@@ -65,7 +65,11 @@ Hepsini kullanıcının e-postasıyla, tarayıcıda birlikte açın. Anahtarlar�
    isim, işi, kullanım alanları, cihazlar, şehir; sonra DeepSeek anahtarı ve Telegram bot anahtarı.
    - **"Sohbetimi bul":** kullanıcı Telegram'dan botuna bir mesaj atar, sihirbaz sohbet kimliğini kendisi bulur.
    - **Acil durdurma şifresi:** kullanıcı `kys` şifresini belirler (en az 8 karakter). Sihirbaz şifrenin kendisini değil,
-     yalnızca doğrulama özetini `.env`'e yazar.
+     yalnızca doğrulama özetini `.env`'e yazar. ŞİFRENİN NOT EDİLMESİ GEREKTİĞİNİ kullanıcıya hatırlatın.
+   - **Kurtarma kodu:** sonraki sayfa, şifreden bağımsız, bu kuruluma özel rastgele bir kod gösterir (yalnızca bir
+     kez). Kullanıcı bunu güvenli bir yere yazmalı. İsterse size (kurulumu yapana) de bir kopyasını bırakabilir —
+     zorunlu değil, kullanıcının tercihi. Siz bıraktıysa kendi özel kaydınıza (ör. müşteri adıyla, ayrı bir not
+     dosyasında) yazın; **hiçbir ortak/sabit anahtar yoktur**, her kurulumun kodu farklıdır.
    - Son sayfada Groq, Tavily, Neon (`DATABASE_URL`) varsa yapıştırın. **Kur** düğmesi `.env` dosyasını oluşturur.
 5. **Yerelde deneyin:** `python vekil\main.py` → Telegram'da bota "merhaba" yazın, cevap gelmeli. `Ctrl+C` ile durdurun.
    Bu yalnızca deneme; gerçek çalışma Render'da, bilgisayar kapalıyken de sürer.
@@ -80,7 +84,7 @@ Hepsini kullanıcının e-postasıyla, tarayıcıda birlikte açın. Anahtarlar�
 3. **Environment** bölümüne `.env` içindeki şu değerleri tek tek girin:
    `DEEPSEEK_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `WEBHOOK_SECRET`, `AJAN_SECRET`, `SESLI_TOKEN`,
    `KULLANICI_ADI`, `SEHIR_AD`, `PROFIL`, `KILIT_TUZ`, `KILIT_OZET`, `KILIT_OZET_SADE`,
-   ve varsa `DATABASE_URL`, `GROQ_API_KEY`, `TAVILY_API_KEY`.
+   `KILIT_KURTARMA_TUZ`, `KILIT_KURTARMA_OZET`, ve varsa `DATABASE_URL`, `GROQ_API_KEY`, `TAVILY_API_KEY`.
    `WEBHOOK_URL`'yi **girmeyin**; Render adresi kendisi veriyor.
 4. **Create Web Service.** İlk derleme 5-10 dakika sürer. Loglarda `Webhook kayıtlı` görünmeli.
 5. **Kontrol:** tarayıcıda `https://<servis-adı>.onrender.com/health` → `ok`. Telegram'dan bota yazın, cevap gelmeli.
@@ -158,7 +162,8 @@ Hepsi geçmeden ayrılmayın:
 
 - Vekil'e Telegram'dan yazabilir ya da telefona "vekil, bir bakar mısın" diyebilir.
 - Ödeme, banka ve para işlemlerine Vekil dokunmaz; bunu kod engelliyor. Şifre alanlarına da yazmaz.
-- **Acil durdurma:** Telegram'a yalnızca `kys` yazmak Vekil'i kilitler. Kurulumda belirlediği şifreyle açılır.
+- **Acil durdurma:** Telegram'a yalnızca `kys` yazmak Vekil'i kilitler. Kurulumda belirlediği şifreyle ya da
+  kurulumda gösterilen kurtarma koduyla açılır.
 - "dur" yazarsa yaptığı iş kesilir.
 - Anahtarlar (`.env`) gizlidir; kimseyle paylaşılmaz. Sızarsa yenileri üretilir.
 - Güncelleme gerekirse Render'da ve (gerekirse) telefonda yeni APK ile yapılır. APK aynı imza anahtarıyla
@@ -173,6 +178,6 @@ Hepsi geçmeden ayrılmayın:
 | Telefon "vekil" deyince uyanmıyor | Pil kısıtlaması, mikrofon izni, erişilebilirlik açık mı; Vosk modeli indi mi. |
 | Hafıza kayboluyor | `DATABASE_URL` (Neon) girilmemiş. |
 | Render ilk istekte yavaş | Ücretsiz plan uyumuş; UptimeRobot 5 dk'da bir bakmalı. |
-| `kys` şifresi unutuldu | Şifre saklanmadığı için geri getirilemez. `python kurulum.py` ile yeni şifre belirleyin, `.env` içindeki `KILIT_*` değerlerini Render'daki aynı değişkenlere yapıştırıp servisi yeniden başlatın. |
+| `kys` şifresi unutuldu | Kullanıcı kurtarma kodunu sakladıysa (ya da size bıraktıysa) onunla açılır. İkisi de yoksa: şifre saklanmadığı için geri getirilemez; `python kurulum.py` ile yeni şifre+kurtarma kodu belirleyin, `.env` içindeki `KILIT_*` değerlerini Render'daki aynı değişkenlere yapıştırıp servisi yeniden başlatın. |
 | `kys` işe yaramıyor | `KILIT_*` değerleri `.env`'de var mı ve Render'da da girilmiş mi? Yoksa kill switch kapalıdır. |
 | Yeni APK kurulmuyor ("paket çakışıyor") | İmza anahtarı farklı demektir; eski uygulamayı silip yenisini kurun. İmza anahtarını asla kaybetmeyin ya da değiştirmeyin. |

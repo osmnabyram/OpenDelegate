@@ -157,6 +157,7 @@ Hepsi ortam değişkenidir; gizli değerler koda yazılmaz. Başlıcaları:
 | `TAVILY_API_KEY` | Web arama |
 | `AJAN_SECRET`, `VEKIL_URL` | PC ajanı kimliği ve sunucu adresi |
 | `KILIT_TUZ`, `KILIT_OZET`, `KILIT_OZET_SADE` | Kill switch (`kys`) şifre özeti; sihirbaz üretir, şifrenin kendisi saklanmaz. Boşsa `kys` kapalıdır |
+| `KILIT_KURTARMA_TUZ`, `KILIT_KURTARMA_OZET` | Şifreden bağımsız, o kuruluma özel kurtarma kodu özeti (bkz. [SECURITY.md](SECURITY.md)) |
 | `SESLI_TOKEN` | Android uygulaması anahtarı (boşsa bot anahtarından türetilir; ayrı rastgele değer önerilir) |
 | `TWILIO_*`, `KULLANICI_TELEFON` | Telefonla arama (isteğe bağlı) |
 

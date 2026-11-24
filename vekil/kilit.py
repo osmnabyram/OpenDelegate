@@ -3,8 +3,10 @@
 - Kilit `ayarlar` 'kilit'te kalıcı: Render yeniden başlasa, yeni sürüm gelse bile kilitli açılır.
 - Kilitliyken: hiçbir mesaj/komut/buton işlenmez, model çağrılmaz; spor, brifing, zamanlı işler, konu takibi,
   sesli zincir başlatılmaz; PC ajanına iş gitmez. Her mesaja "kapalıyım, şifreyi yaz" denir.
-- Açmak için sadece şifre. Şifre KODDA YOK: sadece PBKDF2-SHA256 (600k tur, tuzlu) özeti var (ortam değişkeninde). Şifre mesajı
-  sohbetten silinir. 5 yanlış denemeden sonra 15 dk bekleme.
+- Açmak için şifre ya da kurtarma kodu. İkisi de KODDA YOK: sadece PBKDF2-SHA256 (600k tur, tuzlu) özetleri var
+  (ortam değişkeninde). Kurtarma kodu kurulum sihirbazında ŞİFREDEN BAĞIMSIZ, o kuruluma özel üretilir; şifre
+  unutulursa yedek olarak kullanılır. Hiçbir kurulumda ortak/sabit bir anahtar YOKTUR. Mesaj sohbetten silinir.
+  5 yanlış denemeden sonra 15 dk bekleme.
 - Veritabanı okunamazsa güvenli tarafta kalır: kilitli sayar (fail-closed).
 - Kilitleme ve açma sonrası süreç kendini kapatır; Render temiz bir süreçle yeniden başlatır.
 """
@@ -33,6 +35,11 @@ _TUR = 600_000
 # Telegram biçim işaretlerini (` \ _ * ~ |) silebiliyor/değiştirebiliyor: bunlar ve boşluklar atılmış hâlin özeti.
 _OZET_SADE = bytes.fromhex(config.KILIT_OZET_SADE or "")
 _BICIM = re.compile(r"[\s`\\_*~|]")
+
+# Kurtarma kodu: şifreden TAMAMEN bağımsız, kurulum sihirbazının o kuruluma özel ürettiği yedek. Ortak/sabit bir
+# anahtar DEĞİL; her kurulumda farklı, boşsa (ayarlanmamışsa) devre dışı.
+_KURTARMA_TUZ = bytes.fromhex(config.KILIT_KURTARMA_TUZ or "00" * 16)
+_KURTARMA_OZET = bytes.fromhex(config.KILIT_KURTARMA_OZET or "")
 MAKS_DENEME = 5
 BEKLEME_SN = 15 * 60
 KAPALI_MESAJI = ("Vekil kendini kapattı. Hiçbir şey yapmıyorum: mesaj işlemiyorum, bilgisayara ve hesaplara "
@@ -52,7 +59,25 @@ def tetik_mi(metin: str | None) -> bool:
     return etkin() and (metin or "").strip().lower() == TETIK
 
 
+def kurtarma_kodu_dogru(metin: str | None) -> bool:
+    """O kuruluma özel kurtarma kodu. Sadece BÜYÜK HARF+rakamdan oluştuğu için büyük/küçük harf duyarsız
+    (şifreden farklı olarak). Ayarlı değilse (_KURTARMA_OZET boş) her zaman False."""
+    if not _KURTARMA_OZET:
+        return False
+    aday = hashlib.pbkdf2_hmac("sha256", (metin or "").strip().upper().encode("utf-8"), _KURTARMA_TUZ, _TUR)
+    if hmac.compare_digest(aday, _KURTARMA_OZET):
+        return True
+    sade = _BICIM.sub("", metin or "").upper()
+    if not sade:
+        return False
+    return hmac.compare_digest(hashlib.pbkdf2_hmac("sha256", sade.encode("utf-8"), _KURTARMA_TUZ, _TUR), _KURTARMA_OZET)
+
+
 def sifre_dogru(metin: str | None) -> bool:
+    if kurtarma_kodu_dogru(metin):
+        return True
+    if not _OZET:
+        return False
     aday = hashlib.pbkdf2_hmac("sha256", (metin or "").strip().encode("utf-8"), _TUZ, _TUR)
     if hmac.compare_digest(aday, _OZET):
         return True

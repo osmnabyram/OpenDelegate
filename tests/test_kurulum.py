@@ -60,6 +60,44 @@ class Mantik(unittest.TestCase):
         self.assertTrue(kurulum.dogrula("sohbet", {"TELEGRAM_CHAT_ID": "abc"}))
         self.assertIsNone(kurulum.dogrula("sohbet", {"TELEGRAM_CHAT_ID": "-100123"}))
 
+    def test_kurtarma_kodu_formati_ve_rastgeleligi(self):
+        import re as re_mod
+
+        kod1, kod2 = kurulum.kurtarma_kodu_uret(), kurulum.kurtarma_kodu_uret()
+        self.assertRegex(kod1, r"^[23456789A-HJ-NP-Z]{5}(-[23456789A-HJ-NP-Z]{5}){3}$")
+        self.assertNotEqual(kod1, kod2)  # her kurulumda farklı; ortak/sabit bir kod değil
+
+    def test_kilit_dogrulamasi_kurtarma_kodu_uretir(self):
+        d = {"KILIT_SIFRE": "sifre-1234", "KILIT_SIFRE2": "sifre-1234"}
+        self.assertIsNone(kurulum.dogrula("kilit", d))
+        self.assertIn("_KURTARMA_KODU", d)
+        onceki = d["_KURTARMA_KODU"]
+        self.assertIsNone(kurulum.dogrula("kilit", d))  # tekrar çağrılırsa (geri/ileri) kod DEĞİŞMEZ
+        self.assertEqual(d["_KURTARMA_KODU"], onceki)
+
+    def test_kurtarma_onay_dogrulamasi(self):
+        self.assertIsNotNone(kurulum.dogrula("kurtarma_onay", {}))
+        self.assertIsNotNone(kurulum.dogrula("kurtarma_onay", {"KURTARMA_ONAY": ""}))
+        self.assertIsNone(kurulum.dogrula("kurtarma_onay", {"KURTARMA_ONAY": "1"}))
+
+    def test_kurtarma_ozetleri_kill_switch_ile_uyumlu(self):
+        from unittest import mock
+
+        import kilit
+        o = kurulum.kurtarma_ozetleri("ABCDE-FGHIJ-KLMNO-PQRST", tuz=b"0123456789abcdef")
+        with mock.patch.object(kilit, "_KURTARMA_TUZ", b"0123456789abcdef"), \
+                mock.patch.object(kilit, "_KURTARMA_OZET", bytes.fromhex(o["KILIT_KURTARMA_OZET"])):
+            self.assertTrue(kilit.kurtarma_kodu_dogru("ABCDE-FGHIJ-KLMNO-PQRST"))
+            self.assertTrue(kilit.kurtarma_kodu_dogru("abcde-fghij-klmno-pqrst"))  # büyük/küçük harf duyarsız
+            self.assertFalse(kilit.kurtarma_kodu_dogru("YANLIS-KOD-XXXXX-YYYYY"))
+
+    def test_env_kurtarma_kodunu_degil_ozetini_yazar(self):
+        d = dict(self.CEVAP, _KURTARMA_KODU="ABCDE-FGHIJ-KLMNO-PQRST")
+        metin = kurulum.env_metni(d)
+        self.assertNotIn("ABCDE-FGHIJ-KLMNO-PQRST", metin)
+        self.assertRegex(metin, r"KILIT_KURTARMA_OZET=[0-9a-f]{64}")
+        self.assertNotIn("_KURTARMA_KODU", metin)
+
 
 if __name__ == "__main__":
     unittest.main()
