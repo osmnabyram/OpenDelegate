@@ -4,6 +4,11 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/). Sürümler [Releases](h
 
 ## [Yayınlanmadı / Unreleased]
 
+## [1.2.0] - 2026-11-24
+
+### Değişti / Changed
+- Android uygulaması: kırmızı vurgu yerine siyah ve koyu gri tema, vurgu rengi `#8A909A`. / Android app: black and dark grey theme instead of red, accent colour `#8A909A`.
+
 ### Eklendi / Added
 - Yönetim sayfası (`/yonetim`): durum, hafıza sayıları, PC ajanı, son işler; gizli bağlantı, salt okuma. / Admin page (`/yonetim`): status, memory counts, PC agent, recent jobs; secret link, read-only.
 
