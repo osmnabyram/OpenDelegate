@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vekil</string>
+    <string name="channel_id">vekil_dinleme</string>
+    <string name="channel_name">Vekil Dinleme</string>
+    <string name="erisim_adi">Vekil telefonu kullansın</string>
+    <string name="erisim_aciklama">Vekil, senin istediğin işleri telefonda ekrandan yapar: uygulama açar, dokunur, yazar, kaydırır (WhatsApp mesajı, alarm silme, ayar değiştirme gibi). Sadece sen bir iş istediğinde çalışır; şifre alanlarının içeriğini okumaz, ödeme adımında durup sana sorar.</string>
+</resources>

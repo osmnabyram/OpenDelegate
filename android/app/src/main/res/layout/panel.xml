@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Gemini tarzı alt panel. Dış FrameLayout ışıltının taşacağı alanı verir. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:paddingHorizontal="2dp"
+    android:paddingBottom="2dp">
+
+    <com.vekilai.vekil.Isilti
+        android:id="@+id/pKart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="14dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="16dp">
+
+            <!-- Üst satır: durum + kapat -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/pDurum"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.18"
+                    android:text="DINLIYORUM"
+                    android:textColor="@color/accent"
+                    android:textSize="11sp" />
+
+                <ImageView
+                    android:id="@+id/pKapat"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Kapat"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_kapat"
+                    android:tint="@color/fg2" />
+            </LinearLayout>
+
+            <!-- Konuşma: dinlerken canlı akar, metin uzadıkça alan büyür -->
+            <TextView
+                android:id="@+id/pSoru"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="start"
+                android:hint="Dinliyorum, konuşabilirsin"
+                android:textColor="@color/fg"
+                android:textColorHint="@color/fg2"
+                android:textSize="19sp" />
+
+            <!-- Cevap -->
+            <TextView
+                android:id="@+id/pCevap"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:lineSpacingExtra="3dp"
+                android:textColor="#C4C4C4"
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+            <!-- Alt satır: ses dalgası + mikrofon/durdur butonu -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Sesli / yazılı geçişi (Gemini gibi) -->
+                <ImageView
+                    android:id="@+id/pKlavye"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Yazarak sor"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_klavye"
+                    android:tint="@color/fg2" />
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp"
+                    android:layout_weight="1">
+
+                    <com.vekilai.vekil.Dalga
+                        android:id="@+id/pDalga"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp" />
+
+                    <EditText
+                        android:id="@+id/pYazi"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/yazi_bg"
+                        android:hint="Vekil'e yaz"
+                        android:importantForAutofill="no"
+                        android:minHeight="46dp"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="10dp"
+                        android:textColor="@color/fg"
+                        android:textColorHint="@color/fg2"
+                        android:textCursorDrawable="@null"
+                        android:textSize="16sp"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/pMic"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/mic_dolu"
+                    android:clickable="true"
+                    android:contentDescription="Konuş / durdur"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:id="@+id/pMicIkon"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_stop" />
+                </FrameLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </com.vekilai.vekil.Isilti>
+</FrameLayout>

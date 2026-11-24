@@ -1,0 +1,78 @@
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+}
+
+// İmza bilgisi android/keystore.properties dosyasından okunur (imza_olustur.py yazar, git'e girmez).
+def imzaDosyasi = rootProject.file("keystore.properties")
+def imza = new Properties()
+if (imzaDosyasi.exists()) {
+    imzaDosyasi.withInputStream { imza.load(it) }
+}
+
+android {
+    namespace = "com.vekilai.vekil"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.vekilai.vekil"
+        minSdk = 26
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+        // Müşteriye özel yapı: ./gradlew assembleRelease -PsunucuUrl=https://... [-PsesliToken=...] (musteri_apk.py yapar)
+        buildConfigField "String", "VARSAYILAN_URL", "\"${(findProperty('sunucuUrl') ?: '').toString().replace('"', '')}\""
+        buildConfigField "String", "VARSAYILAN_TOKEN", "\"${(findProperty('sesliToken') ?: '').toString().replace('"', '')}\""
+    }
+
+    signingConfigs {
+        release {
+            if (imzaDosyasi.exists()) {
+                storeFile rootProject.file(imza["storeFile"])
+                storePassword imza["storePassword"]
+                keyAlias imza["keyAlias"]
+                keyPassword imza["keyPassword"]
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // keystore.properties yoksa imzasız çıkar (kurulamaz); önce imza_olustur.py çalıştır.
+            if (imzaDosyasi.exists()) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    lint {
+        // lintVital bu Kotlin/AGP sürümünde çöküyor ve release APK'yı engelliyor (kod hatası değil).
+        checkReleaseBuilds false
+    }
+
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
+    }
+}
+
+dependencies {
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    // Vosk: offline wake word + STT
+    implementation("com.alphacephei:vosk-android:0.3.47")
+    // HTTP (Render /dinle endpoint)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+}

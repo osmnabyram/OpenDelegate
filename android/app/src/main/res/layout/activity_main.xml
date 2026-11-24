@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <!-- Bilinç: kara delik animasyonu (ringOuter sadece yerleşim çapası) -->
+    <View
+        android:id="@+id/ringOuter"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:visibility="invisible"
+        app:layout_constraintVertical_bias="0.10"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.vekilai.vekil.KaraDelik
+        android:id="@+id/btnMic"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintBottom_toBottomOf="@id/ringOuter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/ringOuter" />
+
+    <!-- Durum metni -->
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="> BEKLIYOR"
+        android:textColor="@color/fg2"
+        android:textSize="12sp"
+        android:fontFamily="monospace"
+        android:letterSpacing="0.15"
+        app:layout_constraintTop_toBottomOf="@id/ringOuter"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp" />
+
+    <!-- Konuşma dökümü -->
+    <ScrollView
+        android:id="@+id/svGecmis"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        android:paddingHorizontal="24dp"
+        app:layout_constraintTop_toBottomOf="@id/tvStatus"
+        app:layout_constraintBottom_toTopOf="@id/tvErisim"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:id="@+id/tvGecmis"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/fg"
+            android:textSize="13sp"
+            android:fontFamily="monospace"
+            android:lineSpacingExtra="4dp"
+            android:background="@null" />
+    </ScrollView>
+
+    <!-- Telefonu kullanma izni (erişilebilirlik) kapalıysa görünür; dokununca ayarı açar -->
+    <TextView
+        android:id="@+id/tvErisim"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="> TELEFONU KULLANMA IZNI KAPALI — ACMAK ICIN DOKUN"
+        android:textColor="@color/accent"
+        android:textSize="10sp"
+        android:fontFamily="monospace"
+        android:letterSpacing="0.08"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/tvTelegram"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Vekil'in Telegram sohbetini açar -->
+    <TextView
+        android:id="@+id/tvTelegram"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="VEKIL - BOT"
+        android:textColor="@color/fg"
+        android:textSize="12sp"
+        android:fontFamily="monospace"
+        android:letterSpacing="0.25"
+        android:background="@drawable/hap"
+        android:paddingHorizontal="26dp"
+        android:paddingVertical="12dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="22dp" />
+
+    <!-- Konuşma dökümünü temizler: bilerek silik ve küçük -->
+    <TextView
+        android:id="@+id/tvTemizle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TEMIZLE"
+        android:textColor="@color/fg2"
+        android:textSize="9sp"
+        android:fontFamily="monospace"
+        android:letterSpacing="0.2"
+        android:alpha="0.7"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintBottom_toTopOf="@id/swServis"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="8dp" />
+
+    <!-- Ayarlar -->
+    <TextView
+        android:id="@+id/tvAyarlar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AYARLAR"
+        android:textColor="@color/accent"
+        android:textSize="11sp"
+        android:fontFamily="monospace"
+        android:letterSpacing="0.2"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="32dp"
+        android:layout_marginEnd="24dp" />
+
+    <!-- Servis durumu -->
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/swServis"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="KAPALI"
+        android:textColor="@color/fg2"
+        android:textSize="10sp"
+        android:fontFamily="monospace"
+        android:thumbTint="@color/anahtar_ibre"
+        android:trackTint="@color/anahtar_iz"
+        app:switchPadding="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="28dp"
+        android:layout_marginStart="24dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
