@@ -167,6 +167,7 @@ All settings are environment variables; secrets are never written in code. The m
 | `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL` | Model key and name (default `deepseek-flash`) |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Bot and the single authorized chat |
 | `KULLANICI_ADI`, `SEHIR_AD`, `SEHIR_LAT`, `SEHIR_LON` | Briefing greeting and weather city |
+| `DIL` | Assistant language: `tr` (default) or `en`. With `en`, answers, spoken output and speech recognition are English; built-in command messages such as `/durum` stay Turkish |
 | `DATABASE_URL` | Persistent memory (Neon Postgres) |
 | `GROQ_API_KEY` | Voice message and phone speech recognition |
 | `TAVILY_API_KEY` | Web search |

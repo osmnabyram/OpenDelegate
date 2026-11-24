@@ -165,6 +165,7 @@ Hepsi ortam değişkenidir; gizli değerler koda yazılmaz. Başlıcaları:
 | `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL` | Model anahtarı ve adı (varsayılan `deepseek-flash`) |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Bot ve tek yetkili sohbet |
 | `KULLANICI_ADI`, `SEHIR_AD`, `SEHIR_LAT`, `SEHIR_LON` | Brifing selamı ve hava durumu şehri |
+| `DIL` | Asistanın dili: `tr` (varsayılan) ya da `en`. `en` iken cevaplar, sesli okuma ve konuşma tanıma İngilizce olur; `/durum` gibi yerleşik komut mesajları Türkçe kalır |
 | `DATABASE_URL` | Kalıcı hafıza (Neon Postgres) |
 | `GROQ_API_KEY` | Sesli mesaj ve telefon konuşma tanıma |
 | `TAVILY_API_KEY` | Web arama |

@@ -101,7 +101,16 @@ SESLI_TOKEN = os.getenv("SESLI_TOKEN", "").strip() or hashlib.sha256(
 STT_MODEL = os.getenv("STT_MODEL", "whisper-large-v3-turbo")
 # Telefon uygulaması: kısa komutlar, turbo'dan daha isabetli tam model (Groq'ta ikisi de ücretsiz katmanda).
 STT_TELEFON_MODEL = os.getenv("STT_TELEFON_MODEL", "whisper-large-v3")
-STT_DIL = os.getenv("STT_DIL", "tr").strip()  # boş bırakılırsa dil otomatik algılanır
+# Asistanın konuşma dili: "tr" (varsayılan) ya da "en". "en" iken cevaplar, sesli okuma ve tanıma İngilizce olur;
+# yerleşik komut mesajları (/durum gibi) Türkçe kalır.
+DIL = os.getenv("DIL", "tr").strip().lower()
+if DIL not in ("tr", "en"):
+    DIL = "tr"
+DIL_TALIMATI = "" if DIL == "tr" else (
+    "\n\nLANGUAGE RULE (overrides every rule above that says to speak Turkish or to address the user as 'efendim'): "
+    "always reply to the user in clear, natural English, short and polite. Address the user as 'sir' or by name."
+)
+STT_DIL = os.getenv("STT_DIL", "en" if DIL == "en" else "tr").strip()  # boş bırakılırsa dil otomatik algılanır
 MAKS_SES = 20 * 1024 * 1024  # Telegram bot API'si de en fazla 20 MB indirtir
 
 # --- Telefon araması (Twilio deneme hesabı; dördü de doluysa açık) ---

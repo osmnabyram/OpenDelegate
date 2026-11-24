@@ -27,6 +27,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Awaitable, Callable
 
+import config
 import zamanlayici
 from zamanlayici import TR
 
@@ -38,7 +39,7 @@ ZINCIR_ANAHTAR = "acil_zincir"
 # Değiştirilemez; sadece mod ve hız ayarlanır.
 # 15.11 gece: Giuseppe (çok dilli) telefonda dile kaydı (Azeri/İngilizce okudu); kullanıcı telefonda Ahmet'i duyup
 # "her yerde aynı ses olsun" dedi. Artık TEK ses Ahmet: sadece Türkçe, kayma yok.
-SES = "tr-TR-AhmetNeural"
+SES = "tr-TR-AhmetNeural" if config.DIL == "tr" else "en-US-GuyNeural"
 TELEFON_SES = SES
 VARSAYILAN = {"ses": SES, "mod": "kapali", "hiz": "+0%"}
 MODLAR = ("kapali", "sesliye_sesli", "hepsi")

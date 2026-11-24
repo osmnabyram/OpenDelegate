@@ -431,6 +431,27 @@ def _bilgileri_oku() -> list[dict[str, str]]:
     )
 
 
+_YEDEK_GIZLI_AYAR = ("kilit", "token", "secret", "sifre", "parola", "password")  # yedeğe girmeyen ayar anahtarları
+
+
+@_sessiz(None)
+def yedek_olustur() -> dict[str, Any] | None:
+    """Kalıcı hafızanın (bilgiler, özetler, ayarlar) dışa aktarımı. Kilit/anahtar ayarları ve sır biçimleri dışarıda kalır."""
+    bilgi = _calistir(
+        "SELECT tur, anahtar, deger, olusturuldu, guncellendi FROM bilgiler ORDER BY id", sonuc="hepsi")
+    ozet = _calistir("SELECT zaman, ozet FROM ozetler ORDER BY id", sonuc="hepsi")
+    ayar = _calistir("SELECT anahtar, deger FROM ayarlar ORDER BY anahtar", sonuc="hepsi")
+    ayar = [a for a in ayar if not any(g in a["anahtar"].lower() for g in _YEDEK_GIZLI_AYAR)]
+    temiz = lambda satirlar: [s for s in satirlar if not _SIR.search(" ".join(str(v) for v in s.values()))]  # noqa: E731
+    return {
+        "surum": 1,
+        "tarih": _simdi(),
+        "bilgiler": temiz(bilgi),
+        "ozetler": temiz(ozet),
+        "ayarlar": temiz(ayar),
+    }
+
+
 async def bilgiler() -> list[dict[str, str]]:
     """Tüm kalıcı bilgiler (en yeni önce). Yazmaya kadar bellekte tutulur."""
     if "hepsi" not in _bilgi_onbellegi:

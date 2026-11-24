@@ -113,7 +113,7 @@ def cevap_coz(mesaj: Any) -> dict[str, Any]:
 
 def istem(gorev: str, ekran: str, gecmis: list[str]) -> list[dict[str, Any]]:
     yapilanlar = "\n".join(f"- {g}" for g in gecmis) or "(henüz bir şey yapılmadı)"
-    return [{"role": "system", "content": SISTEM},
+    return [{"role": "system", "content": SISTEM + config.DIL_TALIMATI},
             {"role": "user", "content": f"GÖREV: {gorev}\n\nYAPILANLAR:\n{yapilanlar}\n\nŞU ANKİ EKRAN:\n{ekran}"}]
 
 

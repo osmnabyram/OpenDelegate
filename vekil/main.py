@@ -438,6 +438,7 @@ KOMUT_MENUSU = [
     BotCommand("durum", "PC ajanı, OneDrive, hafıza durumu"),
     BotCommand("zihin", "Zihin haritası"),
     BotCommand("hafiza", "Kalıcı hafızamda ne var"),
+    BotCommand("yedek", "Hafızayı dosya olarak indir"),
     BotCommand("kuyruk", "PC kapalıyken sıraya alınan işler"),
     BotCommand("grind", "Son 20 geliştirme"),
     BotCommand("ara", "Vekil seni telefonla arasın"),
@@ -1290,6 +1291,7 @@ async def ajan_turu(bot: Bot, chat_id: int, gecmis: list[dict[str, Any]]) -> Non
             blok = await _hafiza_blogu(chat_id)
         sistem = (
             SYSTEM_PROMPT + ("\n" + blok + "\n" if blok else "") + "\n" + ordu.prompt_satiri() + "\n" + _durum_satiri()
+            + config.DIL_TALIMATI
             + ("\n\n" + bilinen if bilinen else "")
         )
         bas = time.monotonic()
@@ -1692,6 +1694,7 @@ START_METNI = (
     "/sifirla — konuşma geçmişini temizle (kalıcı hafıza kalır)\n"
     "/gecmis — son 10 eylemi göster\n"
     "/hafiza — kalıcı hafızamda ne var\n"
+    "/yedek — hafızamı dosya olarak indir\n"
     "/unut <anahtar> — hafızadan bir bilgiyi sil\n"
     "/zihin (ya da /harita) — zihin haritası (hafızamın 3B evreni; Telegram içinde ya da tarayıcıda)\n"
     "/kuyruk — PC kapalıyken sıraya alınan işler (/kuyruk iptal <id>)\n"
@@ -1967,6 +1970,22 @@ async def komut_hafiza(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await _gonder(context.bot, update.effective_chat.id, "\n".join(satirlar))
 
 
+async def komut_yedek(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/yedek: kalıcı hafızayı tek JSON dosyası olarak gönderir (dışa aktarma)."""
+    if not _yetkili(update):
+        return
+    veri = await hafiza.yedek_olustur()
+    if veri is None:
+        await update.message.reply_text("Hafızaya şu an ulaşamadım efendim, biraz sonra tekrar deneyin.")
+        return
+    ham = json.dumps(veri, ensure_ascii=False, indent=2).encode("utf-8")
+    ad = f"vekil-hafiza-{datetime.now().strftime('%Y-%m-%d')}.json"
+    await context.bot.send_document(
+        update.effective_chat.id, document=io.BytesIO(ham), filename=ad,
+        caption=f"Hafıza yedeği: {len(veri['bilgiler'])} bilgi, {len(veri['ozetler'])} özet. Güvenli bir yerde saklayın.",
+    )
+
+
 async def komut_unut(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not _yetkili(update):
         return
@@ -2179,6 +2198,7 @@ def uygulama_kur() -> Application:
     app.add_handler(CommandHandler("sifirla", komut_sifirla))
     app.add_handler(CommandHandler("gecmis", komut_gecmis))
     app.add_handler(CommandHandler("hafiza", komut_hafiza))
+    app.add_handler(CommandHandler("yedek", komut_yedek))
     app.add_handler(CommandHandler("unut", komut_unut))
     app.add_handler(CommandHandler("ogrendiklerim", komut_ogrendiklerim))
     app.add_handler(CommandHandler(["harita", "zihin"], komut_harita))

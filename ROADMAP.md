@@ -4,11 +4,10 @@ Planlananlar; sıra ve tarih garanti değildir. / Planned items; order and dates
 
 ## Sırada / Next
 
-- **Eklenti klasörü / Plugin folder:** müşteriye özel araçlar ana koda dokunmadan eklensin. / Customer-specific tools without touching the core code.
-- **Asistan dili ayarı / Assistant language setting:** Vekil'in Türkçe dışında (ör. İngilizce) konuşabilmesi. / Let Vekil speak languages other than Turkish.
+- **Tam çok dillilik / Full localization:** yerleşik komut ve bildirim mesajlarının da çevrilmesi (`DIL=en` şu an yalnızca asistanın cevaplarını, sesi ve tanımayı çevirir). / Translate built-in command and notification messages too (`DIL=en` currently covers only the assistant's answers, voice and recognition).
+- **Hafıza geri yükleme / Memory restore:** `/yedek` dosyasını geri yükleme. / Restore from a `/yedek` file.
 - **Takvim ve e-posta / Calendar and email:** Google Calendar ve Gmail bağlantısı (izinler dikkatle). / Google Calendar and Gmail (with careful permissions).
 - **Yönetim sayfası / Admin page:** durum, aylık model maliyeti, hafıza, son işler. / Status, monthly model cost, memory, recent jobs.
-- **Hafıza yedeği / Memory backup:** tek komutla dışa aktarma. / One-command export.
 - **Model seçimi / Model choice:** farklı sağlayıcılarla denenmiş ve belgelenmiş ayarlar. / Tested and documented settings for other providers.
 
 ## Sonra / Later

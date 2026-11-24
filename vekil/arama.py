@@ -43,6 +43,7 @@ from typing import Any, Awaitable, Callable
 from urllib.parse import parse_qs, parse_qsl, urlsplit, urlunsplit
 from xml.sax.saxutils import escape
 
+import config
 import guvenlik
 import zamanlayici
 from zamanlayici import TR
@@ -366,7 +367,7 @@ def _soyle(ses_url: str) -> str:
 def twiml_dinle(ses_url: str | None, action: str) -> str:
     """Söyle + dinle. Konuşmazsa da action'a boş sonuçla gelir (actionOnEmptyResult). Ses yoksa sadece dinler."""
     return ('<?xml version="1.0" encoding="UTF-8"?><Response>'
-            f'<Gather input="speech" language="tr-TR" speechTimeout="2" timeout="7" actionOnEmptyResult="true" '
+            f'<Gather input="speech" language="{"tr-TR" if config.DIL == "tr" else "en-US"}" speechTimeout="2" timeout="7" actionOnEmptyResult="true" '
             f'hints="{escape(IPUCLARI)}" '
             f'action="{escape(action)}" method="POST">{_soyle(ses_url) if ses_url else ""}</Gather></Response>')
 
@@ -591,7 +592,7 @@ class Arama:
             return twiml_kapat(self._ses_uret("Vekil şu an konuşamıyor, Telegram'dan yazacağım."))
         gor.basladi = True
         gor.iz.append(f"{self._sn(gor)}s açtın")
-        sistem = TELEFON_SISTEMI + f"\nŞu an: {self.simdi():%Y-%m-%d %H:%M} (Türkiye).\nBu aramanın sebebi: {gor.neden}"
+        sistem = TELEFON_SISTEMI + f"\nŞu an: {self.simdi():%Y-%m-%d %H:%M} (Türkiye).\nBu aramanın sebebi: {gor.neden}" + config.DIL_TALIMATI
         try:  # Twilio ~5 sn bekler: hafıza (telefon çalarken okunmaya başladı) hazır değilse hafızasız konuş
             gorev = gor.sistem_gorevi or asyncio.ensure_future(self.sistem())
             ek = await asyncio.wait_for(asyncio.shield(gorev), 1.0)
@@ -793,7 +794,7 @@ class Arama:
         telefonda iş yapabilen sürümse) telefonda_yap da açılır; model çağırdıkça eylemler listeye eklenir.
         """
         simdi = self.simdi()
-        sistem = UYGULAMA_SISTEMI + f"\nŞu an: {simdi:%Y-%m-%d %H:%M}, {_GUNLER[simdi.weekday()]} (Türkiye)."
+        sistem = UYGULAMA_SISTEMI + f"\nŞu an: {simdi:%Y-%m-%d %H:%M}, {_GUNLER[simdi.weekday()]} (Türkiye)." + config.DIL_TALIMATI
         ek_araclar: dict[str, Any] = dict(self.uygulama_araclari)
         ek_semalar = list(self.uygulama_semalari)
         if eylemler is not None:

@@ -33,6 +33,12 @@ Hayır. Ödeme, banka ve para işlemleri kodda engellenir; modele bırakılmaz. 
 **Bir şeyler ters giderse nasıl durdururum?**
 Telegram'a yalnızca `kys` yazın: Vekil kilitlenir. Yapmakta olduğu işi kesmek için "dur" yazın.
 
+**Vekil İngilizce konuşabilir mi?**
+`DIL=en` ortam değişkenini ekleyin (Render'da *Environment*). Cevaplar, sesli okuma ve konuşma tanıma İngilizce olur. `/durum` gibi yerleşik komut mesajları ve sabit bildirimler Türkçe kalır.
+
+**Hafızamı nasıl yedeklerim?**
+Telegram'da `/yedek` yazın: bilgiler, özetler ve ayarlar tek bir JSON dosyası olarak gelir. Kilit ve anahtar ayarları ile şifre/anahtar biçimli kayıtlar dosyaya girmez. Şu an yalnızca dışa aktarma var, geri yükleme yok.
+
 **Hafızayı nasıl silerim?**
 `/hafiza` ile görün, `/unut <anahtar>` ile tek tek silin, `/sifirla` ile konuşma geçmişini temizleyin. Tamamen silmek için Neon projenizi silmeniz yeterli.
 
@@ -69,6 +75,12 @@ No. Payments, banking and money operations are blocked in code, not left to the 
 
 **How do I stop it if something goes wrong?**
 Write only `kys` on Telegram: Vekil locks. Write "dur" (stop) to cancel the work in progress.
+
+**Can Vekil speak English?**
+Add the `DIL=en` environment variable (on Render: *Environment*). Answers, spoken output and speech recognition become English. Built-in command messages such as `/durum` and fixed notifications stay Turkish.
+
+**How do I back up my memory?**
+Write `/yedek` on Telegram: knowledge, summaries and settings arrive as a single JSON file. Lock and key settings, and entries that look like passwords or keys, are left out. For now it is export only, there is no restore.
 
 **How do I delete the memory?**
 See it with `/hafiza`, delete single items with `/unut <key>`, clear the conversation history with `/sifirla`. To wipe everything, delete your Neon project.
