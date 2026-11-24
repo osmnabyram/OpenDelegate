@@ -178,7 +178,8 @@ Hepsi ortam değişkenidir; gizli değerler koda yazılmaz. Başlıcaları:
 
 Vekil bir **temeldir**; ihtiyacınıza göre ekleyin ya da çıkarın:
 
-- **Yeni araç:** [`tools.py`](vekil/tools.py) içine bir `Tool` tanımlayın, [`main.py`](vekil/main.py) içindeki araç dağıtımına bağlayın.
+- **Yeni araç (önerilen):** [`eklentiler/`](eklentiler/README.md) klasörüne bir `.py` dosyası koyun; ana koda dokunmadan yüklenir. Şablon: [`eklentiler/_ornek.py`](eklentiler/_ornek.py).
+- **Yeni yerleşik araç:** [`tools.py`](vekil/tools.py) içine bir `Tool` tanımlayın, [`main.py`](vekil/main.py) içindeki araç dağıtımına bağlayın.
 - **Hafıza başlangıcı:** [`hafiza_tohum.py`](vekil/hafiza_tohum.py) ile ilk açılışta bilinmesi gerekenleri yazın (şirket bilgisi, kurallar).
 - **Brifing planı:** `brifing.Brifing(plan_kaynagi=...)` ile takvim ya da iş sisteminizi bağlayın.
 - **Hitap ve kimlik:** sistem istemleri `main.py`, `arama.py` ve `telefon_ajan.py` içindedir.

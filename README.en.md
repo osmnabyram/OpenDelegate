@@ -180,7 +180,8 @@ All settings are environment variables; secrets are never written in code. The m
 
 Vekil is a **foundation**; add or remove what you need:
 
-- **New tool:** define a `Tool` in [`tools.py`](vekil/tools.py) and wire it into the tool dispatch in [`main.py`](vekil/main.py).
+- **New tool (recommended):** drop a `.py` file into the [`eklentiler/`](eklentiler/README.md) folder; it loads without touching the core code. Template: [`eklentiler/_ornek.py`](eklentiler/_ornek.py).
+- **New built-in tool:** define a `Tool` in [`tools.py`](vekil/tools.py) and wire it into the tool dispatch in [`main.py`](vekil/main.py).
 - **Memory seed:** use [`hafiza_tohum.py`](vekil/hafiza_tohum.py) to write what must be known on first start (company info, rules).
 - **Briefing plan:** connect your calendar or business system with `brifing.Brifing(plan_kaynagi=...)`.
 - **Address and identity:** the system prompts are in `main.py`, `arama.py` and `telefon_ajan.py`.

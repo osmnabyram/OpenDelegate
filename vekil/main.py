@@ -76,6 +76,7 @@ import ofis
 import bilgisayar
 import config
 import disiplin
+import eklenti
 import dsml
 import harita
 import guvenlik
@@ -1093,7 +1094,7 @@ async def tool_cagrisini_isle(
         # 🟡 onaysız ama sessiz değil: tek satır bilgi (web'deki indir dahil). Log yukarıda yazıldı.
         await bot.send_message(chat_id, _kisa_ozet(ad, argumanlar, vekil, simge="🟡"), parse_mode=ParseMode.HTML)
     elif tool.hedef not in ("web", "hafiza", "izleme", "ordu", "bilgisayar", "harita", "brifing", "yapilacak", "ses", "konu_takip", "hafiza_kontrol", "oz_degerlendirme", "spor_iptal", "spor_al", "gelisim_gecmisi", "komut_calistir",
-                            "zamanla", "telefon", "hava", "pc_guc"):
+                            "zamanla", "telefon", "hava", "pc_guc", "eklenti"):
         # Web araştırması sessiz: kullanıcı sadece cevabı + Kaynaklar'ı görür (yine de eylem logu yazılır).
         # Hafıza notu, iş bittikten sonra "🧠 not aldım" olarak gösterilir.
         # bilgisayar_kullan: kendi "🖥 Bilgisayarı kullanıyorum" satırını basar.
@@ -1161,6 +1162,8 @@ async def tool_cagrisini_isle(
         async with pc_kilidi:
             basarili, sonuc = await _yaziyor_iken(bot, chat_id, _surerken_haber(
                 bot, chat_id, gorevler.calistir(ad, argumanlar, onayli=yetki), _sade_eylem(ad, argumanlar)))
+    elif tool.hedef == "eklenti":
+        basarili, sonuc = await _yaziyor_iken(bot, chat_id, eklenti.calistir(ad, argumanlar))
     elif tool.hedef == "web":
         basarili, sonuc = await _yaziyor_iken(bot, chat_id, web.calistir(ad, argumanlar, onayli=yetki))
     else:
@@ -2855,6 +2858,7 @@ async def calis(app: Application) -> None:
         uvicorn.Config(web_uygulamasi(app), host="0.0.0.0", port=config.PORT, access_log=False, log_level="info")
     )
     async with app:  # initialize / shutdown
+        eklenti.yukle()
         if await hafiza.baslat():
             logger.info("Hafıza hazır: %s", hafiza.tur_adi())
             # Render, kuyruktaki bir iş PC'de çalışırken yeniden başladıysa: tekrar çalıştırma, haber ver.
