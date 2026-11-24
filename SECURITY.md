@@ -39,4 +39,5 @@ Telegram bot token'ını BotFather'dan yenile.
 - `SESLI_TOKEN` env'de yoksa bot token'ından türetilir; ayrı rastgele değer önerilir.
 
 ## Bildirim
-Açık bulduysan depo sahibine özel olarak yaz; herkese açık issue açma.
+Açık bulduysan herkese açık issue AÇMA. Depodaki **Security** sekmesinden *Report a vulnerability* ile özel olarak bildir
+(GitHub özel güvenlik bildirimi); yalnızca depo sahibi görür.

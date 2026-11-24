@@ -18,6 +18,8 @@
 
 </div>
 
+<p align="center"><b>Türkçe</b> &nbsp;|&nbsp; <a href="README.en.md">English</a></p>
+
 ---
 
 ## Vekil nedir?
@@ -100,7 +102,8 @@ Elle kurmak isterseniz [`.env.example`](.env.example) dosyasını `.env` olarak 
 
 ### Android uygulaması
 
-`android/` klasörünü Android Studio ile açın ya da komut satırından derleyin. Paket adı `com.vekilai.vekil`.
+**Hazır APK:** derlemeden denemek isterseniz [Releases](https://github.com/osmnabyram/VekilAi/releases) sayfasından imzalı APK'yı indirin.
+Kendiniz derlemek için `android/` klasörünü Android Studio ile açın ya da komut satırından derleyin. Paket adı `com.vekilai.vekil`.
 
 ```bash
 cd android
@@ -165,8 +168,8 @@ Hepsi ortam değişkenidir; gizli değerler koda yazılmaz. Başlıcaları:
 
 Vekil bir **temeldir**; ihtiyacınıza göre ekleyin ya da çıkarın:
 
-- **Yeni araç:** [`tools.py`](tools.py) içine bir `Tool` tanımlayın, [`main.py`](main.py) içindeki araç dağıtımına bağlayın.
-- **Hafıza başlangıcı:** [`hafiza_tohum.py`](hafiza_tohum.py) ile ilk açılışta bilinmesi gerekenleri yazın (şirket bilgisi, kurallar).
+- **Yeni araç:** [`tools.py`](vekil/tools.py) içine bir `Tool` tanımlayın, [`main.py`](vekil/main.py) içindeki araç dağıtımına bağlayın.
+- **Hafıza başlangıcı:** [`hafiza_tohum.py`](vekil/hafiza_tohum.py) ile ilk açılışta bilinmesi gerekenleri yazın (şirket bilgisi, kurallar).
 - **Brifing planı:** `brifing.Brifing(plan_kaynagi=...)` ile takvim ya da iş sisteminizi bağlayın.
 - **Hitap ve kimlik:** sistem istemleri `main.py`, `arama.py` ve `telefon_ajan.py` içindedir.
 
