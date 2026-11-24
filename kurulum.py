@@ -67,7 +67,8 @@ SAYFALAR: list[dict[str, Any]] = [
     {"baslik": "Acil durdurma şifresi",
      "metin": "Telegram'a sadece \"kys\" yazarsanız Vekil kendini tamamen kilitler; yalnızca bu şifreyle açılır. "
               "Şifrenin kendisi hiçbir yerde saklanmaz, sadece doğrulama özeti .env dosyasına yazılır. "
-              "Unutursanız sihirbazı tekrar çalıştırıp yeni şifre belirlersiniz.",
+              "ŞİFRENİZİ UNUTMAYIN: bir yere not edin. Şifrenin kendisi saklanmadığı için geri getirilemez; "
+              "unutursanız sihirbazı tekrar çalıştırıp yeni şifre belirler ve Render'daki KILIT_* değerlerini güncellersiniz.",
      "alanlar": [("KILIT_SIFRE", "Şifre (en az 8 karakter)", "gizli", ""),
                  ("KILIT_SIFRE2", "Şifre (tekrar)", "gizli", "")],
      "dogrula": "kilit"},

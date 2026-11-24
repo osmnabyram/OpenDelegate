@@ -173,5 +173,6 @@ Hepsi geçmeden ayrılmayın:
 | Telefon "vekil" deyince uyanmıyor | Pil kısıtlaması, mikrofon izni, erişilebilirlik açık mı; Vosk modeli indi mi. |
 | Hafıza kayboluyor | `DATABASE_URL` (Neon) girilmemiş. |
 | Render ilk istekte yavaş | Ücretsiz plan uyumuş; UptimeRobot 5 dk'da bir bakmalı. |
+| `kys` şifresi unutuldu | Şifre saklanmadığı için geri getirilemez. `python kurulum.py` ile yeni şifre belirleyin, `.env` içindeki `KILIT_*` değerlerini Render'daki aynı değişkenlere yapıştırıp servisi yeniden başlatın. |
 | `kys` işe yaramıyor | `KILIT_*` değerleri `.env`'de var mı ve Render'da da girilmiş mi? Yoksa kill switch kapalıdır. |
 | Yeni APK kurulmuyor ("paket çakışıyor") | İmza anahtarı farklı demektir; eski uygulamayı silip yenisini kurun. İmza anahtarını asla kaybetmeyin ya da değiştirmeyin. |
