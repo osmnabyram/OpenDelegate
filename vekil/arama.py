@@ -802,10 +802,12 @@ class Arama:
                        "net duymadıysan aramadan önce sor. Telefonun şu anki halini bilemezsin: geçmişte yapılmış "
                        "görünse de ('fener zaten açık' gibi) istenince telefonda_yap'ı YİNE çağır.")
             if ekran_ajani:
-                sistem += ("\n- 'Telefonu kapat', 'ekranı kilitle', 'kitle': telefonda_yap(eylem=ekran_kilitle); "
-                           "yan tuşa basmak gibi ekranı kapatıp kilitler, telefon kapanmaz.")
-                sistem += ("\n- 'Telefonu aç', 'kilidi aç': telefonda_yap(eylem=kilit_ac); PIN'i uygulama kendisi girer, "
-                           "başka bir şey yapmaz.")
+                sistem += ("\n- 'Telefonu kapat', 'telefonu kapatır mısın', 'telefonu kilitle', 'kilitler misin', "
+                           "'ekranı kilitle', 'kitle', 'kilitle ve kapat' — fiil çekimi/soru biçimi farklı olsa da "
+                           "HEPSİ AYNI İŞ: hemen telefonda_yap(eylem=ekran_kilitle) çağır, sorma. Bu konuşmayı "
+                           "bitirme/vedalaşma isteği DEĞİLDİR; 'hoşçakal', 'görüşürüz' gibi bir cevap YAZMA, "
+                           "doğrudan eylemi çağır ve 'Kilitledim efendim' gibi kısa söyle. Yan tuşa basmak gibi "
+                           "ekranı kapatıp kilitler, telefon kapanmaz.")
                 sistem += ("\n- 'Bildirimlerime bak', 'bildirimim var mı': telefonda_yap(eylem=bildirim_oku); "
                            "telefon bildirimleri kendisi sesli okur. SADECE kullanıcı bildirimleri açıkça isterse; "
                            "başka hiçbir soruda (tarih, hava, sohbet) bildirim_oku ÇAĞIRMA, geçmişte çağırdıysan bile.")
