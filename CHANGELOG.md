@@ -4,7 +4,14 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/). Sürümler [Releases](h
 
 ## [Yayınlanmadı / Unreleased]
 
+## [1.0.1] - 2026-11-24
+
+### Değişti / Changed
+- Yeni Vekil ikonu: README, kurulum sihirbazı ve Android uygulaması. / New Vekil icon: README, setup wizard and the Android app.
+
 ### Eklendi / Added
+- `eklentiler/` klasörü: müşteriye özel araçlar ana koda dokunmadan eklenir. / `eklentiler/` folder: customer-specific tools without touching the core code.
+- Zihin haritası ve uygulama ekran görüntüleri README'de. / Mind map and app screenshots in the README.
 - `render.yaml` ve README'de "Deploy to Render" düğmesi. / `render.yaml` and a "Deploy to Render" button in the README.
 - İngilizce README ve kurulum rehberi, dil seçenek bağlantıları. / English README and setup guide, language links.
 - SSS, gizlilik sayfası, yol haritası, değişiklik günlüğü. / FAQ, privacy page, roadmap, changelog.
