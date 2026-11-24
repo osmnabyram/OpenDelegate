@@ -91,6 +91,7 @@ import ordu
 import ses as ses_modulu
 import tools
 import web
+import yonetim
 import yapilacak
 import seslendirme
 import sesli as sesli_uc  # /dinle endpoint'i; 'sesli' adı seslendirme.Ses örneğine ait
@@ -439,6 +440,7 @@ KOMUT_MENUSU = [
     BotCommand("zihin", "Zihin haritası"),
     BotCommand("hafiza", "Kalıcı hafızamda ne var"),
     BotCommand("yedek", "Hafızayı dosya olarak indir"),
+    BotCommand("yonetim", "Yönetim sayfası: durum ve son işler"),
     BotCommand("kuyruk", "PC kapalıyken sıraya alınan işler"),
     BotCommand("grind", "Son 20 geliştirme"),
     BotCommand("ara", "Vekil seni telefonla arasın"),
@@ -1695,6 +1697,7 @@ START_METNI = (
     "/gecmis — son 10 eylemi göster\n"
     "/hafiza — kalıcı hafızamda ne var\n"
     "/yedek — hafızamı dosya olarak indir\n"
+    "/yonetim — yönetim sayfası (durum, hafıza sayıları, son işler)\n"
     "/unut <anahtar> — hafızadan bir bilgiyi sil\n"
     "/zihin (ya da /harita) — zihin haritası (hafızamın 3B evreni; Telegram içinde ya da tarayıcıda)\n"
     "/kuyruk — PC kapalıyken sıraya alınan işler (/kuyruk iptal <id>)\n"
@@ -1970,6 +1973,17 @@ async def komut_hafiza(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await _gonder(context.bot, update.effective_chat.id, "\n".join(satirlar))
 
 
+async def komut_yonetim(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/yonetim: yönetim sayfasının (durum, hafıza sayıları, son işler) gizli bağlantısını gönderir."""
+    if not _yetkili(update):
+        return
+    adres = yonetim.link()
+    if not adres:
+        await update.message.reply_text("Yönetim sayfası yalnızca sunucuda (Render) açılır efendim; yerelde adres yok.")
+        return
+    await update.message.reply_text(f"Yönetim sayfası (gizli bağlantı, kimseyle paylaşmayın):\n{adres}")
+
+
 async def komut_yedek(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """/yedek: kalıcı hafızayı tek JSON dosyası olarak gönderir (dışa aktarma)."""
     if not _yetkili(update):
@@ -2199,6 +2213,7 @@ def uygulama_kur() -> Application:
     app.add_handler(CommandHandler("gecmis", komut_gecmis))
     app.add_handler(CommandHandler("hafiza", komut_hafiza))
     app.add_handler(CommandHandler("yedek", komut_yedek))
+    app.add_handler(CommandHandler("yonetim", komut_yonetim))
     app.add_handler(CommandHandler("unut", komut_unut))
     app.add_handler(CommandHandler("ogrendiklerim", komut_ogrendiklerim))
     app.add_handler(CommandHandler(["harita", "zihin"], komut_harita))
@@ -2417,8 +2432,25 @@ def web_uygulamasi(app: Application) -> Starlette:
         veri = harita_onbellegi.al(await hafiza.bilgiler())
         return JSONResponse(veri, headers={**harita.GUVENLI_BASLIKLAR, "X-Onbellek": kaynak})
 
+    async def yonetim_sayfasi(request: Request) -> Response:
+        """Yönetim sayfası (salt okuma). Yanlış token -> 404."""
+        if not yonetim.token_dogru(request.path_params.get("token")):
+            return Response(status_code=404)
+        return HTMLResponse(yonetim.sayfa(), headers=harita.GUVENLI_BASLIKLAR)
+
+    async def yonetim_verisi(request: Request) -> Response:
+        if not yonetim.token_dogru(request.path_params.get("token")):
+            return Response(status_code=404)
+        veri = yonetim.derle(
+            await hafiza.istatistik(), hafiza_turu="postgres" if hafiza.postgres_mu() else "sqlite",
+            ajan_cevrimici=gorevler.ajan_cevrimici(), son_sureler=[k["toplam"] for k in hiz_kayitlari if k["toplam"]],
+        )
+        return JSONResponse(veri, headers=harita.GUVENLI_BASLIKLAR)
+
     return Starlette(
         routes=[
+            Route("/yonetim/{token}", yonetim_sayfasi, methods=["GET"]),
+            Route("/yonetim/{token}/veri", yonetim_verisi, methods=["GET"]),
             Route(config.WEBHOOK_YOLU, telegram_webhook, methods=["POST"]),
             Route("/jobs/pending", gorevler_bekleyen, methods=["GET"]),
             Route("/jobs/result", gorev_sonucu, methods=["POST"]),

@@ -45,6 +45,7 @@ uygulama açar, mesaj okur, alarm kurar. Teknik bilgi gerekmez: komut yok, menü
 | **İnternet ve dosyalar** | Web arama, sayfa özeti, OneDrive (rclone), Word/Excel/PDF/PowerPoint okuma, fotoğraf anlama |
 | **Telefonla arama** | Önemli bir şey olduğunda sizi arayabilir (Twilio, isteğe bağlı) |
 | **Uzaktan PC uyandırma** | Akıllı priz ve BIOS ayarıyla kapalı bilgisayar açılır, Vekil ajanın bağlanmasını bekler |
+| **Yönetim sayfası** | Telegram'da `/yonetim`: durum, hafıza sayıları, PC ajanı, son işler (konuşma metni göstermez) |
 | **Güvenlik** | Ödeme ve banka işlemleri kodda engellenir; sabit zamanlı token, sır maskeleme, hız sınırı, kill switch ([SECURITY.md](SECURITY.md)) |
 
 ## Görünüm

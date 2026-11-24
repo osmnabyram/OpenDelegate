@@ -452,6 +452,30 @@ def yedek_olustur() -> dict[str, Any] | None:
     }
 
 
+@_sessiz(None)
+def istatistik(gun: int = 7, son: int = 15) -> dict[str, Any] | None:
+    """Yönetim sayfası için sayılar: hafıza türleri, özet/mesaj adedi, son `gun` günün eylem dökümü, son eylemler.
+
+    Eylem argümanları ve sonuçları DÖNMEZ (sayfaya sızmasın): yalnızca araç adı, risk, durum, zaman.
+    """
+    bas = (datetime.now() - timedelta(days=gun)).isoformat(timespec="seconds")
+    sayi = lambda sql, p=(): (_calistir(sql, p, sonuc="tek") or {}).get("n", 0)  # noqa: E731
+    return {
+        "bilgi_turleri": {
+            s["tur"]: s["n"] for s in _calistir("SELECT tur, COUNT(*) AS n FROM bilgiler GROUP BY tur", sonuc="hepsi")
+        },
+        "ozet_adedi": sayi("SELECT COUNT(*) AS n FROM ozetler"),
+        "mesaj_adedi": sayi("SELECT COUNT(*) AS n FROM mesajlar"),
+        "eylem_gun": gun,
+        "eylem_durumlari": {
+            s["durum"]: s["n"] for s in _calistir(
+                "SELECT durum, COUNT(*) AS n FROM eylemler WHERE zaman >= %s GROUP BY durum", (bas,), sonuc="hepsi")
+        },
+        "son_eylemler": _calistir(
+            "SELECT zaman, tool, risk, durum FROM eylemler ORDER BY id DESC LIMIT %s", (son,), sonuc="hepsi"),
+    }
+
+
 async def bilgiler() -> list[dict[str, str]]:
     """Tüm kalıcı bilgiler (en yeni önce). Yazmaya kadar bellekte tutulur."""
     if "hepsi" not in _bilgi_onbellegi:

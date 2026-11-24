@@ -48,6 +48,7 @@ available in English ([docs/KURULUM.en.md](docs/KURULUM.en.md)) and Turkish ([do
 | **Internet and files** | Web search, page summaries, OneDrive (rclone), reads Word/Excel/PDF/PowerPoint, understands photos |
 | **Phone calls** | Can call you when something important happens (Twilio, optional) |
 | **Remote PC wake-up** | A smart plug plus a BIOS setting turns on a powered-off computer; Vekil waits for the agent to connect |
+| **Admin page** | `/yonetim` on Telegram: status, memory counts, PC agent, recent jobs (never shows conversation text) |
 | **Security** | Payments and banking are blocked in code; constant-time tokens, secret masking, rate limits, kill switch ([SECURITY.md](SECURITY.md)) |
 
 ## Screenshot

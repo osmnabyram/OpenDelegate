@@ -33,6 +33,9 @@ Hayır. Ödeme, banka ve para işlemleri kodda engellenir; modele bırakılmaz. 
 **Bir şeyler ters giderse nasıl durdururum?**
 Telegram'a yalnızca `kys` yazın: Vekil kilitlenir. Yapmakta olduğu işi kesmek için "dur" yazın.
 
+**Vekil'in durumunu nereden görürüm?**
+Telegram'da `/yonetim` yazın: gizli bir bağlantı gelir. Sayfada model, hafıza durumu, PC ajanı, hafıza sayıları ve son işler görünür. Konuşma metni ve eylem ayrıntıları gösterilmez. Model maliyeti şu an yok (DeepSeek panelinden bakın).
+
 **Vekil İngilizce konuşabilir mi?**
 `DIL=en` ortam değişkenini ekleyin (Render'da *Environment*). Cevaplar, sesli okuma ve konuşma tanıma İngilizce olur. `/durum` gibi yerleşik komut mesajları ve sabit bildirimler Türkçe kalır.
 
@@ -75,6 +78,9 @@ No. Payments, banking and money operations are blocked in code, not left to the 
 
 **How do I stop it if something goes wrong?**
 Write only `kys` on Telegram: Vekil locks. Write "dur" (stop) to cancel the work in progress.
+
+**Where do I see Vekil's status?**
+Write `/yonetim` on Telegram: a secret link arrives. The page shows the model, memory status, PC agent, memory counts and recent jobs. Conversation text and action details are not shown. There is no model cost yet (check the DeepSeek dashboard).
 
 **Can Vekil speak English?**
 Add the `DIL=en` environment variable (on Render: *Environment*). Answers, spoken output and speech recognition become English. Built-in command messages such as `/durum` and fixed notifications stay Turkish.
