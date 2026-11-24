@@ -46,6 +46,7 @@ Hepsini kullanıcının e-postasıyla, tarayıcıda birlikte açın. Anahtarlar�
 | **UptimeRobot** | [uptimerobot.com](https://uptimerobot.com) → ücretsiz hesap. Render uyumasın diye. | Fiilen evet |
 | **Neon** | [neon.tech](https://neon.tech) → hesap → yeni proje → *Connection string* (pooled) = `DATABASE_URL`. Yapılmazsa Vekil geçici bellekle çalışır ve Render her yeniden başladığında hafıza silinir. | Önerilir |
 | **Groq** | [console.groq.com](https://console.groq.com) → *API Keys*. Sesli mesaj ve telefon sesi için. | Önerilir |
+| **Takvim** | Google Takvim → *Ayarlar → takvimi seç → Takvimi entegre et → iCal biçiminde gizli adres*; adresi `TAKVIM_ICS_URL` olarak girin (salt okunur; adresi kimseyle paylaşmayın). | Hayır |
 | **Tavily** | [app.tavily.com](https://app.tavily.com). İnternette arama. | Hayır |
 | **OneDrive / rclone** | Bulut dosya işleri gerekirse (ileri düzey). | Hayır |
 | **Twilio** | Vekil'in kullanıcıyı telefonla araması (ücretli, genelde gerekmez). | Hayır |

@@ -33,6 +33,9 @@ Hayır. Ödeme, banka ve para işlemleri kodda engellenir; modele bırakılmaz. 
 **Bir şeyler ters giderse nasıl durdururum?**
 Telegram'a yalnızca `kys` yazın: Vekil kilitlenir. Yapmakta olduğu işi kesmek için "dur" yazın.
 
+**Takvimimi görebilir mi?**
+Salt okunur olarak, evet. Google Takvim'de *Ayarlar → takvimi seç → Takvimi entegre et → iCal biçiminde gizli adres* kısmındaki adresi kopyalayıp `TAKVIM_ICS_URL` ortam değişkenine yapıştırın (Render'da *Environment*). Sonra "bugün ne var", "yarın toplantım var mı", "bu hafta programım" diye sorabilirsiniz; sabah brifingine de bugünün etkinlikleri girer. Etkinlik ekleyemez ya da silemez, e-postaya bakmaz. Adresi bilen herkes takvimi okuyabilir, o yüzden kimseyle paylaşmayın; sızarsa Google'da "gizli adresi sıfırla". Telefon uygulamasındaki sesli asistan takvime şu an bakmaz, yalnızca Telegram ve brifing.
+
 **Vekil'in durumunu nereden görürüm?**
 Telegram'da `/yonetim` yazın: gizli bir bağlantı gelir. Sayfada model, hafıza durumu, PC ajanı, hafıza sayıları ve son işler görünür. Konuşma metni ve eylem ayrıntıları gösterilmez. Model maliyeti şu an yok (DeepSeek panelinden bakın).
 
@@ -78,6 +81,9 @@ No. Payments, banking and money operations are blocked in code, not left to the 
 
 **How do I stop it if something goes wrong?**
 Write only `kys` on Telegram: Vekil locks. Write "dur" (stop) to cancel the work in progress.
+
+**Can it see my calendar?**
+Read-only, yes. In Google Calendar open *Settings → pick the calendar → Integrate calendar → Secret address in iCal format*, copy the address and paste it into the `TAKVIM_ICS_URL` environment variable (on Render: *Environment*). Then you can ask "what is on today", "do I have a meeting tomorrow", "my schedule this week"; today's events also go into the morning briefing. It cannot add or delete events and does not read email. Anyone who knows the address can read the calendar, so share it with nobody; if it leaks, "reset secret address" in Google. The voice assistant in the phone app does not look at the calendar for now, only Telegram and the briefing.
 
 **Where do I see Vekil's status?**
 Write `/yonetim` on Telegram: a secret link arrives. The page shows the model, memory status, PC agent, memory counts and recent jobs. Conversation text and action details are not shown. There is no model cost yet (check the DeepSeek dashboard).

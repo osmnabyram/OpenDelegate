@@ -77,6 +77,7 @@ import bilgisayar
 import config
 import disiplin
 import eklenti
+import takvim
 import dsml
 import harita
 import guvenlik
@@ -1097,7 +1098,7 @@ async def tool_cagrisini_isle(
         # 🟡 onaysız ama sessiz değil: tek satır bilgi (web'deki indir dahil). Log yukarıda yazıldı.
         await bot.send_message(chat_id, _kisa_ozet(ad, argumanlar, vekil, simge="🟡"), parse_mode=ParseMode.HTML)
     elif tool.hedef not in ("web", "hafiza", "izleme", "ordu", "bilgisayar", "harita", "brifing", "yapilacak", "ses", "konu_takip", "hafiza_kontrol", "oz_degerlendirme", "spor_iptal", "spor_al", "gelisim_gecmisi", "komut_calistir",
-                            "zamanla", "telefon", "hava", "pc_guc", "eklenti"):
+                            "zamanla", "telefon", "hava", "pc_guc", "eklenti", "takvim"):
         # Web araştırması sessiz: kullanıcı sadece cevabı + Kaynaklar'ı görür (yine de eylem logu yazılır).
         # Hafıza notu, iş bittikten sonra "🧠 not aldım" olarak gösterilir.
         # bilgisayar_kullan: kendi "🖥 Bilgisayarı kullanıyorum" satırını basar.
@@ -1165,6 +1166,8 @@ async def tool_cagrisini_isle(
         async with pc_kilidi:
             basarili, sonuc = await _yaziyor_iken(bot, chat_id, _surerken_haber(
                 bot, chat_id, gorevler.calistir(ad, argumanlar, onayli=yetki), _sade_eylem(ad, argumanlar)))
+    elif tool.hedef == "takvim":
+        basarili, sonuc = await _yaziyor_iken(bot, chat_id, takvim.calistir(argumanlar))
     elif tool.hedef == "eklenti":
         basarili, sonuc = await _yaziyor_iken(bot, chat_id, eklenti.calistir(ad, argumanlar))
     elif tool.hedef == "web":
@@ -2885,7 +2888,9 @@ async def brifing_ve_zamanlayici_kur(bot: Bot) -> None:
     await sesli.yukle()
 
     brifing_ornegi = brifing.Brifing(gonder=html_gonder, durum_kaynagi=_vekil_durum_satiri,
-                                     yapilacak_kaynagi=yapilacak_ve_saatli)
+                                     yapilacak_kaynagi=yapilacak_ve_saatli,
+                                     plan_kaynagi=takvim.plan_kaynagi if takvim.ayarli() else None,
+                                     plan_hazirla=takvim.yenile if takvim.ayarli() else None)
     await brifing_ornegi.yukle()
     bulutta = bool(config.WEBHOOK_URL) or os.getenv("ZAMANLAYICI", "").strip() == "1"
     if not bulutta or os.getenv("ZAMANLAYICI", "").strip() == "0":
@@ -2911,6 +2916,7 @@ async def calis(app: Application) -> None:
     )
     async with app:  # initialize / shutdown
         eklenti.yukle()
+        takvim.kaydet()
         if await hafiza.baslat():
             logger.info("Hafıza hazır: %s", hafiza.tur_adi())
             # Render, kuyruktaki bir iş PC'de çalışırken yeniden başladıysa: tekrar çalıştırma, haber ver.

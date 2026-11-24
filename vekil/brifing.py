@@ -168,6 +168,7 @@ class Brifing:
     plan_kaynagi: Callable[[date], tuple[str, list[str]]] | None = None
     durum_kaynagi: Callable[[], str | list[tuple[str, str]]] | None = None
     yapilacak_kaynagi: Callable[[date], tuple[str, list[str]]] | None = None
+    plan_hazirla: Callable[[], Awaitable[None]] | None = None  # brifing başında bir kez (ör. takvimi indirir)
     istemci: Callable[[], httpx.AsyncClient] = field(default=lambda: httpx.AsyncClient(timeout=20))
     llm: Any = None  # AsyncOpenAI benzeri; None ise config'ten kurulur
     simdi: Callable[[], datetime] = field(default=lambda: datetime.now(TR))
@@ -521,6 +522,11 @@ class Brifing:
     async def olustur(self) -> str:
         gun = self.simdi().date()
         sira = [k for k in KATEGORILER if k in self.ayar["kategoriler"]]
+        if self.plan_hazirla is not None and "plan" in sira:
+            try:
+                await self.plan_hazirla()
+            except Exception as e:  # noqa: BLE001 - plan bölümü sessizce atlanır, brifing çıkar
+                logger.warning("plan kaynağı hazırlanamadı: %s", _sebep(e))
         self._hava_verisi = None
         hazir: dict[str, Bolum] = {}
         for k in sira:

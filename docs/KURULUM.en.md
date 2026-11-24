@@ -49,6 +49,7 @@ Open all of them with the user's email, together in the browser. Write the keys 
 | **UptimeRobot** | [uptimerobot.com](https://uptimerobot.com) → free account. So that Render does not sleep. | Effectively yes |
 | **Neon** | [neon.tech](https://neon.tech) → account → new project → *Connection string* (pooled) = `DATABASE_URL`. Without it Vekil uses temporary memory, and memory is wiped every time Render restarts. | Recommended |
 | **Groq** | [console.groq.com](https://console.groq.com) → *API Keys*. For voice messages and phone voice. | Recommended |
+| **Calendar** | Google Calendar → *Settings → pick the calendar → Integrate calendar → Secret address in iCal format*; enter the address as `TAKVIM_ICS_URL` (read-only; share the address with nobody). | No |
 | **Tavily** | [app.tavily.com](https://app.tavily.com). Web search. | No |
 | **OneDrive / rclone** | If cloud file tasks are needed (advanced). | No |
 | **Twilio** | Vekil calling the user on the phone (paid, usually not needed). | No |

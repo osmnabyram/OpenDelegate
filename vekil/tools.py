@@ -916,7 +916,7 @@ def risk_degerlendir(ad: str, argumanlar: dict[str, Any]) -> str:
         return "orta"
 
     if ad in ("webde_ara", "webde_oku", "hafizaya_yaz", "izleme_yonet", "ses", "konu_takip", "hafiza_kontrol", "oz_degerlendirme", "gelisim_gecmisi", "komut_calistir", "gorev_dagit", "bilgisayar_kullan", "zihin_haritasi",
-              "brifing_ayarla", "yapilacak", "zamanla", "telefonla_ara", "hava_durumu", "pc_guc"):
+              "brifing_ayarla", "yapilacak", "zamanla", "telefonla_ara", "hava_durumu", "pc_guc", "takvim_bak"):
         return risk  # internetten okur / kendi hafızasına yazar; PC/OneDrive yoluna dokunmaz
     yazan = ad in ("dosya_yaz", "onedrive_yukle", "indir")
     if yazan:

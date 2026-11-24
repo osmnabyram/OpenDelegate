@@ -43,6 +43,7 @@ available in English ([docs/KURULUM.en.md](docs/KURULUM.en.md)) and Turkish ([do
 | **Phone screen agent** | On Android: open apps, tap, type, read notifications, alarms, flashlight, calls; never touches payment or password fields |
 | **Voice assistant** | Always on in the phone, wakes on "vekil bir bakar mısın"; speaks Turkish (recognition: Groq Whisper, voice: Edge TTS) |
 | **Persistent memory** | Knows you and learns your preferences; browse memory as a 3D **mind map** |
+| **Calendar (read-only)** | Answers "what is on today, do I have a meeting tomorrow" from the secret iCal address of Google Calendar; today's events go into the morning briefing. Never adds or deletes |
 | **Reminders and briefing** | Timed reminders, to-do list, morning briefing (weather, plan, news), topic follow-up |
 | **Self-improvement** | Reviews itself every week and turns ordinary lessons into rules; never touches money or security topics on its own |
 | **Internet and files** | Web search, page summaries, OneDrive (rclone), reads Word/Excel/PDF/PowerPoint, understands photos |
@@ -172,6 +173,7 @@ All settings are environment variables; secrets are never written in code. The m
 | `DATABASE_URL` | Persistent memory (Neon Postgres) |
 | `GROQ_API_KEY` | Voice message and phone speech recognition |
 | `TAVILY_API_KEY` | Web search |
+| `TAKVIM_ICS_URL` | Calendar: secret iCal address(es) (https, comma separated). If empty the calendar is off. The address is a secret, share it with nobody |
 | `AJAN_SECRET`, `VEKIL_URL` | PC agent identity and server address |
 | `KILIT_TUZ`, `KILIT_OZET`, `KILIT_OZET_SADE` | Kill switch (`kys`) password digest; the wizard generates it and the password itself is not stored. If empty, `kys` is off |
 | `KILIT_KURTARMA_TUZ`, `KILIT_KURTARMA_OZET` | Password-independent, per-installation recovery code digest (see [SECURITY.md](SECURITY.md)) |

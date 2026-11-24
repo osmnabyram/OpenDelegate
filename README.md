@@ -40,6 +40,7 @@ uygulama açar, mesaj okur, alarm kurar. Teknik bilgi gerekmez: komut yok, menü
 | **Telefon ekran ajanı** | Android'de uygulama açma, tıklama, yazma, bildirim okuma, alarm, fener, arama; ödeme ve şifre alanlarına dokunmaz |
 | **Sesli asistan** | Telefonda hep açık, "vekil bir bakar mısın" ile uyanır; Türkçe konuşur (tanıma Groq Whisper, ses Edge TTS) |
 | **Kalıcı hafıza** | Sizi tanır, tercihlerinizi öğrenir; 3B **zihin haritası** ile hafızaya göz atın |
+| **Takvim (salt okunur)** | Google Takvim'in gizli iCal adresiyle "bugün ne var, yarın toplantım var mı" sorularını yanıtlar; sabah brifingine bugünün etkinlikleri girer. Ekleme/silme yapmaz |
 | **Hatırlatma ve brifing** | Saatli hatırlatmalar, yapılacaklar, sabah brifingi (hava, plan, haberler), konu takibi |
 | **Kendi kendine öğrenme** | Her hafta kendini değerlendirir, sıradan dersleri kurala çevirir; para ve güvenlik konularına kendiliğinden dokunmaz |
 | **İnternet ve dosyalar** | Web arama, sayfa özeti, OneDrive (rclone), Word/Excel/PDF/PowerPoint okuma, fotoğraf anlama |
@@ -170,6 +171,7 @@ Hepsi ortam değişkenidir; gizli değerler koda yazılmaz. Başlıcaları:
 | `DATABASE_URL` | Kalıcı hafıza (Neon Postgres) |
 | `GROQ_API_KEY` | Sesli mesaj ve telefon konuşma tanıma |
 | `TAVILY_API_KEY` | Web arama |
+| `TAKVIM_ICS_URL` | Takvim: gizli iCal adres(ler)i (https, virgülle ayrılır). Boşsa takvim kapalı. Adres bir sırdır, kimseyle paylaşmayın |
 | `AJAN_SECRET`, `VEKIL_URL` | PC ajanı kimliği ve sunucu adresi |
 | `KILIT_TUZ`, `KILIT_OZET`, `KILIT_OZET_SADE` | Kill switch (`kys`) şifre özeti; sihirbaz üretir, şifrenin kendisi saklanmaz. Boşsa `kys` kapalıdır |
 | `KILIT_KURTARMA_TUZ`, `KILIT_KURTARMA_OZET` | Şifreden bağımsız, o kuruluma özel kurtarma kodu özeti (bkz. [SECURITY.md](SECURITY.md)) |

@@ -6,7 +6,8 @@ Planlananlar; sıra ve tarih garanti değildir. / Planned items; order and dates
 
 - **Tam çok dillilik / Full localization:** yerleşik komut ve bildirim mesajlarının da çevrilmesi (`DIL=en` şu an yalnızca asistanın cevaplarını, sesi ve tanımayı çevirir). / Translate built-in command and notification messages too (`DIL=en` currently covers only the assistant's answers, voice and recognition).
 - **Hafıza geri yükleme / Memory restore:** `/yedek` dosyasını geri yükleme. / Restore from a `/yedek` file.
-- **Takvim ve e-posta / Calendar and email:** Google Calendar ve Gmail bağlantısı (izinler dikkatle). / Google Calendar and Gmail (with careful permissions).
+- **Takvime yazma ve e-posta / Calendar write access and email:** etkinlik ekleme ve Gmail (Google OAuth, izinler dikkatle). / Adding events and Gmail (Google OAuth, with careful permissions).
+- **Sesli asistanda takvim / Calendar in the voice assistant:** telefon uygulaması da takvime baksın. / Let the phone app's voice assistant read the calendar.
 - **Yönetim sayfasına maliyet / Cost on the admin page:** model token kullanımını kaydedip aylık maliyeti göstermek. / Record model token usage and show the monthly cost.
 - **Model seçimi / Model choice:** farklı sağlayıcılarla denenmiş ve belgelenmiş ayarlar. / Tested and documented settings for other providers.
 

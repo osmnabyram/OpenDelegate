@@ -13,6 +13,7 @@ Vekil sizin sunucunuzda çalışır; bizim (geliştiricinin) hiçbir sunucumuz y
 | İnternet aramaları | Saklanmaz | Arama metni Tavily'ye gider (kullanırsanız) |
 | Ekran görüntüleri | Diske ve veritabanına yazılmaz; sonuç yalnızca metin olarak kalır | Anlamak için görsel model sağlayıcısına gider |
 | Kimlik, kart, IBAN gibi değerler | Hafızaya ve diske yazılmaz | Belge ve fotoğraflarda maskelenir |
+| Takvim etkinlikleri | Saklanmaz (5 dakika bellekte tutulur) | Takvim adresine istek gider; sorduğunuzda etkinlik metni model sağlayıcısına gider |
 | Telefon bildirimleri | Yalnızca telefonun belleğinde (son 30), diske yazılmaz | Vekil'e sorduğunuzda içeriği model sağlayıcısına gider |
 | Telefon kilit PIN'i | Yalnızca telefonda, Android Keystore ile şifreli | Sunucuya gitmez |
 | Anahtarlar ve sırlar | Render ortam değişkenleri / yerel `.env` | Log'larda maskelenir; koda yazılmaz |
@@ -34,6 +35,7 @@ Vekil runs on your server; the developer has no servers and your data does not c
 | Web searches | Not stored | The query goes to Tavily (if you use it) |
 | Screenshots | Not written to disk or the database; only the text result stays | Sent to the vision model provider to be understood |
 | ID, card, IBAN values | Not written to memory or disk | Masked in documents and photos |
+| Calendar events | Not stored (kept in memory for 5 minutes) | A request goes to the calendar address; when you ask, the event text goes to the model provider |
 | Phone notifications | Only in the phone's memory (last 30), never written to disk | Their content goes to the model provider when you ask Vekil |
 | Phone lock PIN | Only on the phone, encrypted with Android Keystore | Never sent to the server |
 | Keys and secrets | Render environment variables / local `.env` | Masked in logs; never written in code |

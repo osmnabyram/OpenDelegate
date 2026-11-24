@@ -59,6 +59,8 @@ GOREV_SONUC_ZAMAN_ASIMI = int(os.getenv("GOREV_SONUC_ZAMAN_ASIMI", "0"))  # 0 = 
 KUYRUK_OMRU_SAAT = int(os.getenv("KUYRUK_OMRU_SAAT", "72"))
 
 # --- Kişiselleştirme (hepsi isteğe bağlı) ---
+# Salt okunur takvim: gizli iCal adres(ler)i (https, virgülle ayrılır). Boşsa takvim özelliği kapalı. Adres bir sırdır.
+TAKVIM_ICS_URL = os.getenv("TAKVIM_ICS_URL", "").strip()
 KULLANICI_ADI = os.getenv("KULLANICI_ADI", "").strip() or "efendim"  # brifing: "Günaydın <ad>"
 # Kill switch şifre özeti (kurulum sihirbazı üretir; şifrenin kendisi hiçbir yerde saklanmaz)
 KILIT_TUZ = os.getenv("KILIT_TUZ", "").strip()

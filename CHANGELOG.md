@@ -4,6 +4,9 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/). Sürümler [Releases](h
 
 ## [Yayınlanmadı / Unreleased]
 
+### Eklendi / Added
+- Salt okunur takvim: `TAKVIM_ICS_URL` (Google gizli iCal adresi). Telegram'da "bugün ne var" soruları ve sabah brifingindeki "Bugün" bölümü; tekrarlayan etkinlikler, tüm gün etkinlikleri, iptal ve değişen örnekler desteklenir. / Read-only calendar: `TAKVIM_ICS_URL` (Google secret iCal address). "What is on today" questions on Telegram and the "Today" section of the morning briefing; recurring events, all-day events, cancelled and moved instances are supported.
+
 ## [1.2.0] - 2026-11-24
 
 ### Değişti / Changed
