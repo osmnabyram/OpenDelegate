@@ -55,17 +55,23 @@ SAYFALAR: list[dict[str, Any]] = [
               "(kullanım başına ödenir, günlük kullanım çok düşük maliyetlidir).",
      "alanlar": [("DEEPSEEK_API_KEY", "DeepSeek API anahtarı", "gizli", "")],
      "dogrula": "deepseek"},
-    {"baslik": "Telegram botu",
-     "metin": "Telegram'da @BotFather'a /newbot yazıp bir bot oluşturun, size verdiği anahtarı aşağıya yapıştırın.",
-     "alanlar": [("TELEGRAM_BOT_TOKEN", "Bot anahtarı", "gizli", "")],
-     "dogrula": "bot"},
-    {"baslik": "Sohbetinizi bağlayalım",
-     "metin": "Telegram'da botunuza herhangi bir mesaj atın, sonra \"Sohbetimi bul\" düğmesine basın. "
-              "Vekil yalnızca bu sohbete cevap verir.",
-     "alanlar": [("TELEGRAM_CHAT_ID", "Sohbet kimliği", "yazi", "")],
-     "eylem": "sohbet", "dogrula": "sohbet"},
+    {"baslik": "Web sohbeti parolası",
+     "metin": "OpenDelegate ile tarayıcıdan konuşacaksınız (kurulumdan sonra adres: https://<sizin-adresiniz>/sohbet). "
+              "Giriş için bir parola belirleyin, en az 12 karakter. Bir sonraki sayfada telefonunuzdaki doğrulama "
+              "uygulaması için anahtar göstereceğiz.",
+     "alanlar": [("WEB_PAROLA", "Parola (en az 12 karakter)", "gizli", ""),
+                 ("WEB_PAROLA2", "Parola (tekrar)", "gizli", "")],
+     "dogrula": "web"},
+    {"baslik": "Doğrulama uygulaması",
+     "metin": "Telefonunuza Google Authenticator, Microsoft Authenticator ya da benzeri bir uygulama kurun; "
+              "\"anahtar girerek ekle\" deyip aşağıdaki anahtarı yazın (zaman tabanlı). Girişte parolanıza ek olarak "
+              "uygulamadaki 6 haneli kod istenir; parolanız sızsa bile telefonunuz olmadan kimse giremez. "
+              "Anahtar bir daha gösterilmeyecek, .env dosyasında WEB_TOTP_SIR olarak durur.",
+     "ozel": "totp",
+     "alanlar": [("TOTP_ONAY", "Anahtarı doğrulama uygulamama ekledim.", "onay", "")],
+     "dogrula": "totp_onay"},
     {"baslik": "Acil durdurma şifresi",
-     "metin": "Telegram'a sadece \"kys\" yazarsanız Vekil kendini tamamen kilitler; yalnızca bu şifreyle açılır. "
+     "metin": "Sohbete sadece \"kys\" yazarsanız OpenDelegate kendini tamamen kilitler; yalnızca bu şifreyle açılır. "
               "Şifrenin kendisi hiçbir yerde saklanmaz, sadece doğrulama özeti .env dosyasına yazılır. "
               "ŞİFRENİZİ UNUTMAYIN, bir yere not edin: geri getirilemez.\n\n"
               "Sonraki sayfada, bu şifreyi unutursanız kullanabileceğiniz AYRI bir kurtarma kodu göstereceğiz.",
@@ -91,6 +97,10 @@ SAYFALAR: list[dict[str, Any]] = [
 ]
 
 
+# Özel sayfalarda gösterilen üretilmiş değer: ad -> (etiket, d anahtarı)
+OZEL = {"kurtarma": ("Kurtarma kodunuz", "_KURTARMA_KODU"), "totp": ("Doğrulama uygulaması anahtarı", "WEB_TOTP_SIR")}
+
+
 # --------------------------------------------------------------------------
 # Mantık (GUI'den bağımsız, test edilebilir)
 # --------------------------------------------------------------------------
@@ -106,27 +116,12 @@ def _istek(url: str, veri: bytes | None = None, baslik: dict[str, str] | None = 
         return {"_hata": 0}
 
 
-def telegram(token: str, yontem: str) -> dict:
-    """Telegram Bot API çağrısı; hata olursa {'ok': False}."""
-    v = _istek(f"https://api.telegram.org/bot{token}/{yontem}")
-    return v if "ok" in v else {"ok": False}
-
-
 def deepseek_gecerli(anahtar: str) -> bool | None:
     """True/False: anahtar geçerli mi. None: doğrulanamadı (ağ yok)."""
     v = _istek("https://api.deepseek.com/models", baslik={"Authorization": f"Bearer {anahtar}"})
     if "_hata" not in v:
         return True
     return False if v["_hata"] in (401, 403) else None
-
-
-def sohbet_kimligi(token: str) -> int | None:
-    """Botun aldığı son özel mesajdan sohbet kimliğini okur."""
-    for g in reversed(telegram(token, "getUpdates").get("result", [])):
-        sohbet = (g.get("message") or {}).get("chat", {})
-        if sohbet.get("type") == "private":
-            return int(sohbet["id"])
-    return None
 
 
 def _temiz(metin: str) -> str:
@@ -167,6 +162,12 @@ def kilit_ozetleri(sifre: str, tuz: bytes | None = None) -> dict[str, str]:
 _KURTARMA_ALFABE = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
 
 
+def totp_sir_uret() -> str:
+    """Doğrulama uygulaması için rastgele base32 anahtar (160 bit)."""
+    import base64
+    return base64.b32encode(secrets.token_bytes(20)).decode()
+
+
 def kurtarma_kodu_uret() -> str:
     """Şifreden TAMAMEN bağımsız, o kuruluma özel kurtarma kodu (~100 bit entropi). Hiçbir kurulumda ortak değildir."""
     grup = lambda: "".join(secrets.choice(_KURTARMA_ALFABE) for _ in range(5))
@@ -191,13 +192,14 @@ def env_metni(d: dict[str, str]) -> str:
     d["SEHIR_AD"] = "" if d.get("sehir", "İstanbul") == "İstanbul" else _temiz(d.get("sehir", ""))
     d["KULLANICI_ADI"] = _temiz(d.get("KULLANICI_ADI", ""))
     gruplar = [
-        ("Zorunlu", ["DEEPSEEK_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"]),
+        ("Zorunlu", ["DEEPSEEK_API_KEY", "OPENDELEGATE_SIR", "WEB_PAROLA", "WEB_TOTP_SIR"]),
         ("Güvenlik anahtarları (rastgele üretildi)", ["WEBHOOK_SECRET", "AJAN_SECRET", "SESLI_TOKEN"]),
         ("Acil durdurma (kys) şifre özeti; şifrenin kendisi saklanmaz", ["KILIT_TUZ", "KILIT_OZET", "KILIT_OZET_SADE"]),
         ("Kurtarma kodu özeti; şifreden bağımsız, bu kuruluma özel, kodun kendisi saklanmaz",
          ["KILIT_KURTARMA_TUZ", "KILIT_KURTARMA_OZET"]),
         ("Kişiselleştirme", ["KULLANICI_ADI", "SEHIR_AD", "PROFIL"]),
         ("İsteğe bağlı servisler", ["GROQ_API_KEY", "TAVILY_API_KEY", "DATABASE_URL"]),
+        ("İsteğe bağlı: Telegram kanalı (boşsa kapalı)", ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"]),
     ]
     satir: list[str] = []
     for baslik, anahtarlar in gruplar:
@@ -215,11 +217,15 @@ def dogrula(tur: str, d: dict[str, str]) -> str | None:
         gecerli = deepseek_gecerli(d["DEEPSEEK_API_KEY"])
         if gecerli is False:
             return "Bu anahtar geçersiz görünüyor. Kontrol edip tekrar deneyin."
-    elif tur == "bot":
-        ben = telegram(d.get("TELEGRAM_BOT_TOKEN", ""), "getMe")
-        if not ben.get("ok"):
-            return "Bot anahtarı doğrulanamadı (yanlış anahtar ya da internet yok)."
-        d["_bot"] = ben["result"].get("username", "bot")
+    elif tur == "web":
+        if len(d.get("WEB_PAROLA", "")) < 12:
+            return "Parola en az 12 karakter olmalı."
+        if d.get("WEB_PAROLA") != d.get("WEB_PAROLA2"):
+            return "İki parola aynı değil."
+        d.setdefault("WEB_TOTP_SIR", totp_sir_uret())  # bir kez üretilir, geri/ileri gidince değişmez
+    elif tur == "totp_onay":
+        if not d.get("TOTP_ONAY"):
+            return "Devam etmeden önce anahtarı doğrulama uygulamanıza eklediğinizi onaylayın."
     elif tur == "kilit":
         if len(d.get("KILIT_SIFRE", "")) < 8:
             return "Şifre en az 8 karakter olmalı."
@@ -229,15 +235,12 @@ def dogrula(tur: str, d: dict[str, str]) -> str | None:
     elif tur == "kurtarma_onay":
         if not d.get("KURTARMA_ONAY"):
             return "Devam etmeden önce kurtarma kodunu kaydettiğinizi onaylayın."
-    elif tur == "sohbet":
-        if not d.get("TELEGRAM_CHAT_ID", "").lstrip("-").isdigit():
-            return "Sohbet kimliği bir sayı olmalı. \"Sohbetimi bul\" düğmesini deneyin."
     return None
 
 
 def yaz(d: dict[str, str], hedef: Path | None = None) -> Path:
     hedef = hedef or KOK / ".env"
-    for k in ("WEBHOOK_SECRET", "AJAN_SECRET", "SESLI_TOKEN"):
+    for k in ("OPENDELEGATE_SIR", "WEBHOOK_SECRET", "AJAN_SECRET", "SESLI_TOKEN"):
         d.setdefault(k, secrets.token_hex(32))
     hedef.write_text(env_metni(d), encoding="utf-8")
     try:
@@ -342,19 +345,6 @@ def pencere() -> int:
             else:
                 d[anahtar] = v.get().strip()
 
-    def sohbet_ara(girdi: tk.Entry, deneme: int = 0) -> None:
-        token = d.get("TELEGRAM_BOT_TOKEN", "")
-        bulunan = sohbet_kimligi(token)
-        if bulunan is not None:
-            girdi.delete(0, "end")
-            girdi.insert(0, str(bulunan))
-            hata.config(text="Sohbet bulundu.", fg="#3fb950")
-        elif deneme < 30:
-            hata.config(text=f"@{d.get('_bot', 'bot')} botuna bir mesaj atın, bekliyorum...", fg=SOLUK)
-            kok.after(3000, lambda: sohbet_ara(girdi, deneme + 1))
-        else:
-            hata.config(text="Mesajı göremedim. Kimliği elle yazabilirsiniz (@userinfobot'a yazınca söyler).", fg=HATA)
-
     def goster() -> None:
         s = SAYFALAR[durum["i"]]
         for w in alan_cercevesi.winfo_children():
@@ -376,10 +366,11 @@ def pencere() -> int:
             kutu.insert("1.0", kurulacaklar_metni())
             kutu.config(state="disabled")
             kutu.pack(fill="both", expand=True, pady=6)
-        if s.get("ozel") == "kurtarma":
-            tk.Label(alan_cercevesi, text="Kurtarma kodunuz (seçip kopyalayabilirsiniz):", fg=METIN, bg=ARKA,
+        if s.get("ozel") in OZEL:
+            etiket_ozel, anahtar_ozel = OZEL[s["ozel"]]
+            tk.Label(alan_cercevesi, text=f"{etiket_ozel} (seçip kopyalayabilirsiniz):", fg=METIN, bg=ARKA,
                      font=("Segoe UI", 10, "bold"), anchor="w").pack(fill="x", pady=(0, 4))
-            kod_var = tk.StringVar(value=d.get("_KURTARMA_KODU", ""))
+            kod_var = tk.StringVar(value=d.get(anahtar_ozel, ""))
             tk.Entry(alan_cercevesi, textvariable=kod_var, state="readonly", readonlybackground=PANEL, fg=VURGU,
                      relief="flat", font=("Consolas", 14, "bold"), justify="center").pack(fill="x", ipady=10, pady=(0, 10))
         for anahtar, etiket, tur, ek in s["alanlar"]:
@@ -394,9 +385,6 @@ def pencere() -> int:
                 g.pack(fill="x", ipady=6)
                 degiskenler[anahtar] = var
                 ilk_girdi = ilk_girdi or g
-                if s.get("eylem") == "sohbet":
-                    tk.Button(alan_cercevesi, text="Sohbetimi bul", relief="flat", bg=PANEL, fg=METIN,
-                              command=lambda g=g: (topla(), sohbet_ara(g))).pack(anchor="w", pady=8)
             elif tur == "secim":
                 var = tk.StringVar(value=onceki or ek[0])
                 ttk.Combobox(alan_cercevesi, textvariable=var, values=ek, state="readonly",
@@ -464,8 +452,8 @@ def terminal() -> int:
             break
         s_metin = s["metin"](d) if callable(s.get("metin")) else s.get("metin", "")
         print(f"\n== {s['baslik']} ==\n{s_metin}\n")
-        if s.get("ozel") == "kurtarma":
-            print(f"KURTARMA KODUNUZ: {d.get('_KURTARMA_KODU', '')}\n")
+        if s.get("ozel") in OZEL:
+            print(f"{OZEL[s['ozel']][0].upper()}: {d.get(OZEL[s['ozel']][1], '')}\n")
         while True:
             for anahtar, etiket, tur, ek in s["alanlar"]:
                 if tur == "secim":
@@ -482,14 +470,6 @@ def terminal() -> int:
                 else:
                     gir = getpass.getpass if tur == "gizli" else input
                     d[anahtar] = gir(f"{etiket}" + (f" [{ek}]" if ek else "") + ": ").strip() or ek
-            if s.get("eylem") == "sohbet" and not d.get("TELEGRAM_CHAT_ID"):
-                print("Sohbet aranıyor (botunuza mesaj atın)...")
-                for _ in range(30):
-                    bulunan = sohbet_kimligi(d["TELEGRAM_BOT_TOKEN"])
-                    if bulunan is not None:
-                        d["TELEGRAM_CHAT_ID"] = str(bulunan)
-                        break
-                    time.sleep(3)
             sorun = dogrula(s["dogrula"], d) if s.get("dogrula") else None
             if not sorun:
                 break

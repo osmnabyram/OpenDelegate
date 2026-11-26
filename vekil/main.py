@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import contextlib
 import html
 import io
 import json
@@ -104,6 +105,7 @@ import oz_degerlendirme
 import kilit
 import takip
 import uyandirma
+import web_sohbet
 import zamanli
 from tarih import gun_yaz
 import zamanlayici
@@ -2199,6 +2201,112 @@ async def hata_yakalayici(update: object, context: ContextTypes.DEFAULT_TYPE) ->
 # HTTP sunucusu ve başlatma
 # --------------------------------------------------------------------------
 
+# --------------------------------------------------------------------------
+# Web sohbeti: Telegram'sız kanal. Aynı ajan kodu, WebBot ile konuşur.
+# --------------------------------------------------------------------------
+
+class _WebMesajiGirdisi:
+    """mesaj_geldi'nin okuduğu update.message alanları (web'den yalnızca metin gelir)."""
+
+    def __init__(self, metin: str) -> None:
+        self.text, self.caption, self.message_id = metin, None, 0
+        self.voice = self.audio = self.photo = self.document = self.video = self.video_note = None
+        self.animation = self.reply_to_message = None
+
+    async def reply_text(self, text: str, **kw: Any) -> Any:
+        return await web_sohbet.web_bot.send_message(config.TELEGRAM_CHAT_ID, text, **kw)
+
+
+def _web_komutlari() -> dict[str, Any]:
+    return {
+        "start": komut_start, "cls": komut_cls, "durum": komut_durum, "brifing": komut_brifing,
+        "sifirla": komut_sifirla, "gecmis": komut_gecmis, "hafiza": komut_hafiza, "yedek": komut_yedek,
+        "yonetim": komut_yonetim, "unut": komut_unut, "ogrendiklerim": komut_ogrendiklerim,
+        "harita": komut_harita, "zihin": komut_harita, "kuyruk": komut_kuyruk, "grind": komut_grind,
+        "ara": komut_ara, "hiz": komut_hiz, "izle": komut_izle, "vekiller": komut_vekiller, "dur": komut_dur,
+        "ss": komut_ss, "masaustu": komut_masaustu, "pist": komut_pist,
+    }
+
+
+def _web_guncelleme(**ek: Any) -> SimpleNamespace:
+    return SimpleNamespace(effective_chat=SimpleNamespace(id=config.TELEGRAM_CHAT_ID), effective_user=None, **ek)
+
+
+async def web_mesaj_isle(metin: str) -> None:
+    """Web sohbetine yazılan bir mesaj: kill switch, /komutlar, sonra normal ajan turu."""
+    bot = web_sohbet.web_bot
+    chat_id = config.TELEGRAM_CHAT_ID
+    if kilit.kilitli:
+        sonuc = kilit.deneme(kilit.ham_adaylar(metin, []))  # şifre sohbette gösterilmez
+        if sonuc == "bekle":
+            await bot.send_message(chat_id, "Çok fazla yanlış deneme oldu. 15 dakika sonra tekrar dene. Kapalıyım.")
+        elif sonuc == "yanlis":
+            await bot.send_message(chat_id, "Şifre yanlış. " + kilit.KAPALI_MESAJI)
+        else:
+            try:
+                await kilit.ayarla(False)
+            except Exception as e:  # noqa: BLE001
+                logger.warning("kilit açılamadı (yazılamadı): %s", type(e).__name__)
+                await bot.send_message(chat_id, "Şifre doğru ama kilidi kaydedemedim; birazdan tekrar dene.")
+                return
+            await bot.send_message(chat_id, "Şifre doğru. Yeniden açılıyorum, bir dakika içinde hazırım.")
+            _kendini_kapat()
+        return
+    if kilit.tetik_mi(metin):
+        gorevler.iptal_et(chat_id)
+        gorev = aktif_turlar.get(chat_id)
+        if gorev is not None and not gorev.done():
+            gorev.cancel()
+        await kilit.ayarla(True)
+        gecmisler.pop(chat_id, None)
+        await bot.delete_messages(chat_id)
+        await bot.send_message(chat_id, kilit.KAPALI_MESAJI)
+        _kendini_kapat()
+        return
+
+    bot.kullanici_yazdi(metin)
+    baglam = SimpleNamespace(bot=bot, args=[])
+    if metin.startswith("/"):
+        ad, _, geri = metin[1:].partition(" ")
+        fonksiyon = _web_komutlari().get(ad.split("@")[0].lower())
+        if fonksiyon is None:
+            await bot.send_message(chat_id, "Bu komutu tanımıyorum.")
+            return
+        baglam.args = geri.split()
+        await fonksiyon(_web_guncelleme(message=_WebMesajiGirdisi(metin)), baglam)
+        return
+    await mesaj_geldi(_web_guncelleme(message=_WebMesajiGirdisi(metin)), baglam)
+
+
+class _WebSorgu:
+    """callback_query taklidi: tıklanan düğmenin mesajını düzenler."""
+
+    def __init__(self, veri: str, mesaj: Any) -> None:
+        self.data, self.message = veri, mesaj
+
+    async def answer(self, *a: Any, **kw: Any) -> None:
+        return None
+
+    async def edit_message_text(self, metin: str, parse_mode: Any = None, **kw: Any) -> None:
+        await self.message.edit_text(metin, parse_mode)
+
+    async def edit_message_reply_markup(self, reply_markup: Any = None, **kw: Any) -> None:
+        await self.message.edit_reply_markup(None)
+
+
+async def web_dugme_isle(veri: str) -> None:
+    mesaj = web_sohbet.web_bot.dugme_mesaji(veri)
+    if mesaj is None:
+        return
+    onek = veri.partition(":")[0]
+    isleyici = {"onay": buton_tiklandi, "red": buton_tiklandi, "kadro": kadro_butonu, "masaustu": masaustu_butonu,
+                "ss": ss_butonu, "komut": komut_butonu}.get(onek)
+    if isleyici is None or kilit.kilitli:
+        return
+    await isleyici(_web_guncelleme(callback_query=_WebSorgu(veri, mesaj)),
+                   SimpleNamespace(bot=web_sohbet.web_bot, args=[]))
+
+
 def uygulama_kur() -> Application:
     """Telegram uygulamasını ve handler'ları kurar (iki mod için ortak)."""
     app = (
@@ -2243,7 +2351,7 @@ def uygulama_kur() -> Application:
     return app
 
 
-def web_uygulamasi(app: Application) -> Starlette:
+def web_uygulamasi(app: Application | None) -> Starlette:
     """Webhook, görev API'si ve /health endpoint'lerini sunan HTTP uygulaması."""
 
     async def telegram_webhook(request: Request) -> Response:
@@ -2454,7 +2562,8 @@ def web_uygulamasi(app: Application) -> Starlette:
         routes=[
             Route("/yonetim/{token}", yonetim_sayfasi, methods=["GET"]),
             Route("/yonetim/{token}/veri", yonetim_verisi, methods=["GET"]),
-            Route(config.WEBHOOK_YOLU, telegram_webhook, methods=["POST"]),
+            *([Route(config.WEBHOOK_YOLU, telegram_webhook, methods=["POST"])] if app is not None else []),
+            *web_sohbet.rotalar(web_mesaj_isle, web_dugme_isle),
             Route("/jobs/pending", gorevler_bekleyen, methods=["GET"]),
             Route("/jobs/result", gorev_sonucu, methods=["POST"]),
             Route("/jobs/devam", gorev_devam, methods=["GET"]),
@@ -2664,7 +2773,7 @@ def arama_kur(bot: Bot, gonder: Any) -> None:
 
     arama_ornegi = arama.Arama(
         hat=arama.TwilioHat(config.TWILIO_ACCOUNT_SID, config.TWILIO_AUTH_TOKEN, config.TWILIO_NUMARA),
-        taban_url=config.WEBHOOK_URL, token=arama.token_turet(config.TELEGRAM_BOT_TOKEN),
+        taban_url=config.WEBHOOK_URL, token=arama.token_turet(config.ANA_SIR),
         auth_token=config.TWILIO_AUTH_TOKEN, kullanici=config.KULLANICI_TELEFON, dusun=dusun,
         sistem=lambda: _hafiza_blogu(chat_id),
         araclar={**{ad: (lambda a, ad=ad: _telefon_tur(a, ad)) for ad in adlar}, "isi_yap": isi_yap},
@@ -2909,12 +3018,14 @@ async def brifing_ve_zamanlayici_kur(bot: Bot) -> None:
     _arka_plan(zamanlilar.dongu())  # saatli hatırlatma / zamanlanmış görev (sadece bulutta: çift tetiklenmesin)
 
 
-async def calis(app: Application) -> None:
-    """HTTP sunucusunu $PORT'ta açar; Telegram'ı webhook ya da polling ile bağlar."""
+async def calis(app: Application | None) -> None:
+    """HTTP sunucusunu $PORT'ta açar; Telegram varsa webhook ya da polling ile bağlar.
+    Telegram kapalıysa (app None) arka plan mesajları (brifing, hatırlatma) web sohbetine gider."""
+    bot = app.bot if app is not None else web_sohbet.web_bot
     sunucu = uvicorn.Server(
         uvicorn.Config(web_uygulamasi(app), host="0.0.0.0", port=config.PORT, access_log=False, log_level="info")
     )
-    async with app:  # initialize / shutdown
+    async with (app if app is not None else contextlib.nullcontext()):  # initialize / shutdown
         eklenti.yukle()
         takvim.kaydet()
         if await hafiza.baslat():
@@ -2922,7 +3033,7 @@ async def calis(app: Application) -> None:
             # Render, kuyruktaki bir iş PC'de çalışırken yeniden başladıysa: tekrar çalıştırma, haber ver.
             for g in await hafiza.kuyruk_yarim_kalanlar():
                 await _kuyruk_bildir(
-                    app.bot, g, "⚠️", "yarıda kaldı (Vekil yeniden başladı); PC'de çalışmış OLABİLİR, kontrol et", ""
+                    bot, g, "⚠️", "yarıda kaldı (Vekil yeniden başladı); PC'de çalışmış OLABİLİR, kontrol et", ""
                 )
             kuyruk_durumu["var"] = bool(await hafiza.kuyruk_listele(sadece_bekleyen=True))
             await izleme_yenile()
@@ -2932,17 +3043,18 @@ async def calis(app: Application) -> None:
             logger.warning("Hafıza açılamadı (%s); hafızasız devam ediyorum.", hafiza.tur_adi())
 
         async def genel_gonder(metin: str) -> None:
-            await _gonder(app.bot, config.TELEGRAM_CHAT_ID, metin)
+            await _gonder(bot, config.TELEGRAM_CHAT_ID, metin)
 
-        try:
-            await app.bot.set_my_commands(KOMUT_MENUSU)
-        except Exception as e:  # noqa: BLE001 — menü olmasa da bot çalışır
-            logger.warning("Komut menüsü kaydedilemedi: %s", type(e).__name__)
+        if app is not None:
+            try:
+                await app.bot.set_my_commands(KOMUT_MENUSU)
+            except Exception as e:  # noqa: BLE001 — menü olmasa da bot çalışır
+                logger.warning("Komut menüsü kaydedilemedi: %s", type(e).__name__)
 
         if await kilit.yukle():  # kill switch: kilitliyken hiçbir arka plan işi başlamaz
             logger.warning("Vekil KİLİTLİ açıldı: sadece şifre bekleniyor")
         else:
-            await brifing_ve_zamanlayici_kur(app.bot)
+            await brifing_ve_zamanlayici_kur(bot)
         if config.WEBHOOK_URL:
             _arka_plan(_uyanik_tut(config.WEBHOOK_URL))
         if config.WEBHOOK_URL and not kilit.kilitli:  # sadece bulut: yeni sürüm açıldıysa kullanıcıya haber
@@ -2950,7 +3062,9 @@ async def calis(app: Application) -> None:
                 await guncelleme.bildir(genel_gonder)
             except Exception as e:  # noqa: BLE001 — bildirim olmasa da Vekil açılır
                 logger.warning("güncelleme bildirimi gönderilemedi: %s", type(e).__name__)
-        if config.WEBHOOK_URL:
+        if app is None:
+            logger.info("Telegram kapalı: Vekil web sohbeti ve telefon uygulamasıyla çalışıyor")
+        elif config.WEBHOOK_URL:
             await app.bot.set_webhook(
                 url=config.WEBHOOK_URL + config.WEBHOOK_YOLU,
                 secret_token=config.WEBHOOK_SECRET,
@@ -2962,14 +3076,16 @@ async def calis(app: Application) -> None:
             # mesajları ona gitmez hale getirir; bulut yeniden başlayınca webhook geri gelir.
             await app.updater.start_polling(allowed_updates=Update.ALL_TYPES)
             logger.info("Polling açık")
-        await app.start()
+        if app is not None:
+            await app.start()
         logger.info("HTTP sunucusu port %s (ajan: %s)", config.PORT, "açık" if config.AJAN_SECRET else "KAPALI, AJAN_SECRET yok")
         try:
             await sunucu.serve()  # SIGTERM / Ctrl+C gelene kadar çalışır
         finally:
-            if app.updater and app.updater.running:
-                await app.updater.stop()
-            await app.stop()
+            if app is not None:
+                if app.updater and app.updater.running:
+                    await app.updater.stop()
+                await app.stop()
 
 
 def harita_log_maskesi_kur() -> None:
@@ -2990,8 +3106,10 @@ def main() -> None:
         logger.warning("Güvenlik uyarısı: %s", u)
 
     mod = "WEBHOOK" if config.WEBHOOK_URL else "POLLING"
+    if not config.TELEGRAM_BOT_TOKEN:
+        mod = "WEB (Telegram kapalı)"
     logger.info("Vekil başlıyor: %s modu (model: %s)", mod, config.DEEPSEEK_MODEL)
-    asyncio.run(calis(uygulama_kur()))
+    asyncio.run(calis(uygulama_kur() if config.TELEGRAM_BOT_TOKEN else None))
 
 
 if __name__ == "__main__":

@@ -69,7 +69,7 @@ def token() -> str:
     acik = (getattr(config, "HARITA_TOKEN", "") or "").strip()
     if acik:
         return acik
-    tohum = (config.TELEGRAM_BOT_TOKEN or "").encode("utf-8")
+    tohum = (config.ANA_SIR or "").encode("utf-8")
     return hmac.new(tohum, b"vekil-zihin-haritasi-v1", hashlib.sha256).hexdigest()[:32]
 
 

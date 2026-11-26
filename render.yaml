@@ -2,17 +2,19 @@
 # Gizli değerler (sync: false) kurulum sırasında Render'ın formuna elle girilir; depoya yazılmaz.
 services:
   - type: web
-    name: vekil
+    name: opendelegate
     runtime: docker
     plan: free
     healthCheckPath: /health
     envVars:
       - key: DEEPSEEK_API_KEY
         sync: false
-      - key: TELEGRAM_BOT_TOKEN
+      - key: WEB_PAROLA # web sohbetinin giriş parolası (en az 12 karakter)
         sync: false
-      - key: TELEGRAM_CHAT_ID
+      - key: WEB_TOTP_SIR # doğrulama uygulaması anahtarı (base32); python kurulum.py üretir
         sync: false
+      - key: OPENDELEGATE_SIR
+        generateValue: true
       - key: DATABASE_URL # Neon Postgres; boş bırakırsanız hafıza geçici olur
         sync: false
       - key: WEBHOOK_SECRET

@@ -13,7 +13,7 @@ import kurulum  # noqa: E402
 class Mantik(unittest.TestCase):
     CEVAP = {"KULLANICI_ADI": "Ali", "meslek": "inşaat mühendisi", "takim": "Sadece ben", "kullanim": "Hatırlatma ve planlama",
              "pc_os": "Windows", "pc_acik": "Genelde açık", "telefon": "Android", "sehir": "Ankara",
-             "DEEPSEEK_API_KEY": "sk-x", "TELEGRAM_BOT_TOKEN": "1:AA", "TELEGRAM_CHAT_ID": "42"}
+             "DEEPSEEK_API_KEY": "sk-x", "WEB_PAROLA": "uzun-web-parolasi-1", "WEB_TOTP_SIR": "JBSWY3DPEHPK3PXP"}
 
     def test_profil_metni(self):
         m = kurulum.profil_metni(self.CEVAP)
@@ -57,8 +57,27 @@ class Mantik(unittest.TestCase):
 
     def test_dogrulama_bos_alan(self):
         self.assertTrue(kurulum.dogrula("deepseek", {}))
-        self.assertTrue(kurulum.dogrula("sohbet", {"TELEGRAM_CHAT_ID": "abc"}))
-        self.assertIsNone(kurulum.dogrula("sohbet", {"TELEGRAM_CHAT_ID": "-100123"}))
+
+    def test_web_parolasi_dogrulama_ve_totp_anahtari(self):
+        self.assertTrue(kurulum.dogrula("web", {"WEB_PAROLA": "kisa", "WEB_PAROLA2": "kisa"}))
+        self.assertTrue(kurulum.dogrula("web", {"WEB_PAROLA": "uzun-web-parolasi-1", "WEB_PAROLA2": "baska-web-parola-2"}))
+        d = {"WEB_PAROLA": "uzun-web-parolasi-1", "WEB_PAROLA2": "uzun-web-parolasi-1"}
+        self.assertIsNone(kurulum.dogrula("web", d))
+        sir = d["WEB_TOTP_SIR"]
+        self.assertRegex(sir, r"^[A-Z2-7]{32}$")  # 160 bit, base32: web_sohbet bunu okuyabilir
+        kurulum.dogrula("web", d)
+        self.assertEqual(d["WEB_TOTP_SIR"], sir)  # geri/ileri gidince değişmez
+        self.assertTrue(kurulum.dogrula("totp_onay", d))
+        d["TOTP_ONAY"] = "1"
+        self.assertIsNone(kurulum.dogrula("totp_onay", d))
+
+    def test_env_web_ve_ana_sir_yazilir_telegram_gerekmez(self):
+        with tempfile.TemporaryDirectory() as t:
+            metin = kurulum.yaz(dict(self.CEVAP), Path(t) / ".env").read_text(encoding="utf-8")
+        self.assertIn("WEB_PAROLA=uzun-web-parolasi-1", metin)
+        self.assertRegex(metin, r"OPENDELEGATE_SIR=[0-9a-f]{64}")
+        self.assertNotIn("TELEGRAM_BOT_TOKEN", metin)
+        self.assertNotIn("WEB_PAROLA2", metin)
 
     def test_kurtarma_kodu_formati_ve_rastgeleligi(self):
         import re as re_mod

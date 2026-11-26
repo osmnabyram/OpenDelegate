@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0b0c0e">
+<title>OpenDelegate</title>
+<link rel="stylesheet" href="/sohbet/dosya/sohbet.css">
+</head>
+<body>
+<main id="giris" hidden>
+  <form id="girisForm" autocomplete="on">
+    <h1>OpenDelegate</h1>
+    <label><span data-t="parola">Parola</span>
+      <input id="parola" type="password" autocomplete="current-password" required></label>
+    <label id="kodSatir" hidden><span data-t="kod">Doğrulama kodu</span>
+      <input id="kod" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8"></label>
+    <button type="submit" data-t="girisYap">Giriş yap</button>
+    <p id="hata" role="alert"></p>
+  </form>
+</main>
+
+<main id="sohbet" hidden>
+  <header>
+    <strong>OpenDelegate</strong>
+    <span id="yaziyor" hidden data-t="yaziyor">yazıyor...</span>
+    <button id="cikis" type="button" data-t="cikis">Çıkış</button>
+  </header>
+  <section id="akis" aria-live="polite"></section>
+  <form id="yazForm">
+    <textarea id="yaz" rows="1" maxlength="8000" data-p="yaz" autocomplete="off"></textarea>
+    <button type="submit" data-t="gonder">Gönder</button>
+  </form>
+</main>
+<script src="/sohbet/dosya/sohbet.js"></script>
+</body>
+</html>

@@ -177,11 +177,18 @@ def acilis_denetimi() -> list[str]:
     if not config.WEBHOOK_SECRET or len(config.WEBHOOK_SECRET) < 16:
         uyari.append("WEBHOOK_SECRET kısa ya da boş")
     if not os.getenv("SESLI_TOKEN"):
-        uyari.append("SESLI_TOKEN env'de yok: bot token'ından türetiliyor (ayrı rastgele değer daha iyi)")
+        uyari.append("SESLI_TOKEN env'de yok: ana sırdan türetiliyor (ayrı rastgele değer daha iyi)")
     elif len(config.SESLI_TOKEN) < 32:
         uyari.append("SESLI_TOKEN 32 karakterden kısa")
     if getattr(config, "AJAN_SECRET", "") and len(config.AJAN_SECRET) < 24:
         uyari.append("AJAN_SECRET 24 karakterden kısa")
+    if config.WEB_PAROLA:
+        if len(config.WEB_PAROLA) < 12:
+            uyari.append("WEB_PAROLA 12 karakterden kısa")
+        if not config.WEB_TOTP_SIR:
+            uyari.append("WEB_TOTP_SIR boş: web sohbeti yalnızca parolayla korunuyor (doğrulama uygulaması önerilir)")
+    elif not config.TELEGRAM_BOT_TOKEN:
+        uyari.append("Ne WEB_PAROLA ne TELEGRAM_BOT_TOKEN var: Vekil'e yazılı erişim yolu yok (yalnızca telefon uygulaması)")
     return uyari
 
 

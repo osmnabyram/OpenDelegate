@@ -30,12 +30,20 @@ DEEPSEEK_BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-flash")
 GORSEL_MODEL = os.getenv("GORSEL_MODEL", "deepseek-flash")  # ekran görüntüsü inceleme (görsel destekli olmalı)
 
-# --- Telegram ---
-TELEGRAM_BOT_TOKEN = _zorunlu("TELEGRAM_BOT_TOKEN")
+# --- Telegram (isteğe bağlı: boşsa Vekil yalnızca web sohbeti ve telefon uygulamasıyla çalışır) ---
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+# Türetilen bağlantı ve anahtarların tohumu. Telegram kullanılıyorsa bot token'ı; kullanılmıyorsa OPENDELEGATE_SIR.
+ANA_SIR = TELEGRAM_BOT_TOKEN or _zorunlu("OPENDELEGATE_SIR")
 # Zihin haritası linkinin token'ı. Boşsa TELEGRAM_BOT_TOKEN'dan HMAC ile türetilir (harita.py).
 # Link sızarsa bunu değiştir: eski link anında 404 olur.
 HARITA_TOKEN = os.getenv("HARITA_TOKEN", "").strip()
-TELEGRAM_CHAT_ID = int(_zorunlu("TELEGRAM_CHAT_ID"))  # sadece bu chat'e cevap verilir
+# Sadece bu sohbete cevap verilir. Telegram kapalıysa tek kullanıcılı web sohbetinin iç numarası (1).
+TELEGRAM_CHAT_ID = int(_zorunlu("TELEGRAM_CHAT_ID")) if TELEGRAM_BOT_TOKEN else 1
+
+# --- Web sohbeti (/sohbet): parola + isteğe bağlı ama önerilen TOTP (Google Authenticator) ---
+WEB_PAROLA = os.getenv("WEB_PAROLA", "").strip()  # boşsa web sohbeti kapalı
+WEB_TOTP_SIR = os.getenv("WEB_TOTP_SIR", "").strip().replace(" ", "").upper()  # base32; boşsa sadece parola
+WEB_OTURUM_SAAT = int(os.getenv("WEB_OTURUM_SAAT", "12"))
 
 # --- Çalışma modu ---
 # WEBHOOK_URL (ya da Render'ın otomatik verdiği RENDER_EXTERNAL_URL) varsa webhook,
@@ -45,7 +53,7 @@ WEBHOOK_YOLU = "/webhook"
 # Telegram her webhook isteğinde bu değeri header'da gönderir; sahte istekleri eler.
 # Verilmezse bot token'ından türetilir (Telegram: 1-256 karakter, A-Z a-z 0-9 _ -).
 WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "").strip() or hashlib.sha256(
-    TELEGRAM_BOT_TOKEN.encode()
+    ANA_SIR.encode()
 ).hexdigest()[:48]
 PORT = int(os.getenv("PORT", "10000"))  # Render $PORT'u kendisi verir
 
@@ -98,7 +106,7 @@ TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "").strip()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()  # boşsa sesli mesaj kapalı
 # Android sesli asistan endpoint'i (/dinle/{token}). Boşsa bot token'ından türetilir.
 SESLI_TOKEN = os.getenv("SESLI_TOKEN", "").strip() or hashlib.sha256(
-    (TELEGRAM_BOT_TOKEN + "sesli").encode()
+    (ANA_SIR + "sesli").encode()
 ).hexdigest()[:40]
 STT_MODEL = os.getenv("STT_MODEL", "whisper-large-v3-turbo")
 # Telefon uygulaması: kısa komutlar, turbo'dan daha isabetli tam model (Groq'ta ikisi de ücretsiz katmanda).

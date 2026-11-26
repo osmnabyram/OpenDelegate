@@ -1,0 +1,39 @@
+:root { --zemin:#0b0c0e; --kart:#16181c; --cizgi:#2a2d33; --metin:#e8eaed; --soluk:#9aa0a8; --vurgu:#8a909a;
+  --mono:"Cascadia Mono",Consolas,ui-monospace,monospace; }
+* { box-sizing:border-box; }
+html, body { height:100%; margin:0; }
+body { background:var(--zemin); color:var(--metin); font:16px/1.45 "Segoe UI",system-ui,sans-serif; }
+[hidden] { display:none !important; }
+
+#giris { min-height:100%; display:grid; place-items:center; padding:16px; }
+#girisForm { width:100%; max-width:340px; display:grid; gap:14px; }
+#girisForm h1 { font-family:var(--mono); letter-spacing:.18em; font-size:18px; margin:0; color:var(--vurgu); }
+label { display:grid; gap:6px; font-size:13px; color:var(--soluk); }
+input, textarea { background:var(--kart); border:1px solid var(--cizgi); color:var(--metin); border-radius:10px;
+  padding:11px 12px; font:inherit; width:100%; }
+input:focus, textarea:focus { outline:2px solid var(--vurgu); outline-offset:0; }
+button { background:var(--vurgu); color:#0b0c0e; border:0; border-radius:10px; padding:11px 16px; font:inherit;
+  font-weight:600; cursor:pointer; }
+button:hover { filter:brightness(1.1); }
+#hata { color:#f08080; min-height:1.2em; margin:0; font-size:14px; }
+
+#sohbet { height:100%; display:flex; flex-direction:column; max-width:760px; margin:0 auto; }
+header { display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--cizgi); }
+header strong { font-family:var(--mono); letter-spacing:.14em; color:var(--vurgu); }
+header span { color:var(--soluk); font-size:13px; flex:1; }
+header button { background:none; border:1px solid var(--cizgi); color:var(--soluk); padding:6px 12px; margin-left:auto; }
+#akis { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
+.m { max-width:88%; padding:10px 13px; border-radius:14px; background:var(--kart); border:1px solid var(--cizgi);
+  white-space:pre-wrap; overflow-wrap:anywhere; }
+.m.ben { align-self:flex-end; background:#23262c; }
+.m a { color:#b9c0cc; }
+.m pre, .m code { font-family:var(--mono); font-size:13px; background:#0f1013; border-radius:6px; padding:1px 5px; }
+.m pre { padding:8px 10px; overflow-x:auto; }
+.m img, .m video { max-width:100%; border-radius:10px; display:block; }
+.m audio { width:100%; }
+.dugmeler { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.dugmeler button { background:none; border:1px solid var(--vurgu); color:var(--metin); padding:7px 12px; font-weight:500; }
+.dugmeler button[disabled] { opacity:.4; cursor:default; }
+#yazForm { display:flex; gap:8px; padding:12px 16px; border-top:1px solid var(--cizgi); align-items:flex-end; }
+#yaz { resize:none; max-height:160px; }
+@media (max-width:480px) { .m { max-width:96%; } }
