@@ -85,17 +85,17 @@
         android:clickable="true"
         android:focusable="true"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/tvTelegram"
+        app:layout_constraintBottom_toTopOf="@id/tvWebSohbet"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginBottom="8dp" />
 
-    <!-- OpenDelegate'in Telegram sohbetini açar -->
+    <!-- OpenDelegate'in web sohbetini açar -->
     <TextView
-        android:id="@+id/tvTelegram"
+        android:id="@+id/tvWebSohbet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="VEKIL - BOT"
+        android:text="WEB SOHBETİ"
         android:textColor="@color/fg"
         android:textSize="12sp"
         android:fontFamily="monospace"

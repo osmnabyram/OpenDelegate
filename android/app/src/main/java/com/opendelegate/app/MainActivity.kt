@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
             VekilService.gecmis.clear()
             gecmisGuncelle()
         }
-        findViewById<TextView>(R.id.tvTelegram).setOnClickListener { telegramiAc() }
+        findViewById<TextView>(R.id.tvWebSohbet).setOnClickListener { webSohbetiAc() }
         findViewById<TextView>(R.id.tvErisim).setOnClickListener {
             startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
@@ -86,18 +86,15 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    /** OpenDelegate'in Telegram sohbeti: Telegram yüklüyse orada, değilse tarayıcıda açılır. */
-    private fun telegramiAc() {
-        val uygulamada = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("tg://resolve?domain=$TELEGRAM_BOT"))
-        try {
-            startActivity(uygulamada)
-        } catch (_: android.content.ActivityNotFoundException) {
-            startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://t.me/$TELEGRAM_BOT")))
+    /** OpenDelegate'in web sohbeti: kayıtlı sunucu adresinin /sohbet sayfası tarayıcıda açılır. */
+    private fun webSohbetiAc() {
+        val adres = Config.renderUrl(this)
+        if (adres.isEmpty()) {
+            android.widget.Toast.makeText(this, "Önce Bağlantı Ayarları'ndan sunucu adresini girin.",
+                android.widget.Toast.LENGTH_LONG).show()
+            return
         }
-    }
-
-    companion object {
-        private const val TELEGRAM_BOT = "VekiL00_bot"
+        startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("$adres/sohbet")))
     }
 
     private fun gecmisGuncelle() {
@@ -198,7 +195,7 @@ class MainActivity : AppCompatActivity() {
                     setPadding(48, 16, 48, 0)
                 }
                 val etUrl = android.widget.EditText(this@MainActivity).apply {
-                    hint = "https://vekil.onrender.com"
+                    hint = "https://servis-adiniz.onrender.com"
                     setText(Config.renderUrl(this@MainActivity))
                     setTextColor(getColor(R.color.fg))
                     setHintTextColor(getColor(R.color.fg2))

@@ -414,7 +414,7 @@ class Gorusme:
 @dataclass
 class Arama:
     hat: Any  # .ara(kime, url) -> sid, .durum(sid) -> (CallStatus, süre sn)
-    taban_url: str  # https://vekil.onrender.com
+    taban_url: str  # https://servis-adiniz.onrender.com
     token: str
     auth_token: str
     kullanici: str  # +90...
