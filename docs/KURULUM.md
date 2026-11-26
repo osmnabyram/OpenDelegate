@@ -67,15 +67,15 @@ Hepsini kullanıcının e-postasıyla, tarayıcıda birlikte açın. Anahtarlar�
    ```
 4. Açılan pencerede (solda OpenDelegate resmi, sağ altta *İleri*) soruları kullanıcıyla birlikte doldurun:
    isim, işi, kullanım alanları, cihazlar, şehir; sonra DeepSeek anahtarı.
-   - **Web sohbeti parolası:** en az 12 karakter. Sonraki sayfada sihirbaz doğrulama uygulaması için bir anahtar gösterir; kullanıcı bunu telefondaki uygulamaya ekler.
-   - **Acil durdurma şifresi:** kullanıcı `kys` şifresini belirler (en az 8 karakter). Sihirbaz şifrenin kendisini değil,
-     yalnızca doğrulama özetini `.env`'e yazar. ŞİFRENİN NOT EDİLMESİ GEREKTİĞİNİ kullanıcıya hatırlatın.
+   - **Şifre (kys şifresi = web sohbeti şifresi):** kullanıcı tek bir şifre belirler (en az 12 karakter); bu şifre hem web sohbetine girişte hem de sohbete `kys` yazınca
+     kilidi açmada kullanılır. Sihirbaz şifrenin kendisini değil, yalnızca doğrulama özetini `.env`'e yazar. ŞİFRENİN NOT EDİLMESİ GEREKTİĞİNİ kullanıcıya hatırlatın.
+   - **Doğrulama uygulaması:** kurtarma kodundan sonra sihirbaz bir anahtar gösterir; kullanıcı bunu telefondaki Authenticator uygulamasına ekler.
    - **Kurtarma kodu:** sonraki sayfa, şifreden bağımsız, bu kuruluma özel rastgele bir kod gösterir (yalnızca bir
      kez). Kullanıcı bunu güvenli bir yere yazmalı. İsterse size (kurulumu yapana) de bir kopyasını bırakabilir —
      zorunlu değil, kullanıcının tercihi. Siz bıraktıysa kendi özel kaydınıza (ör. müşteri adıyla, ayrı bir not
      dosyasında) yazın; **hiçbir ortak/sabit anahtar yoktur**, her kurulumun kodu farklıdır.
    - Son sayfada Groq, Tavily, Neon (`DATABASE_URL`) varsa yapıştırın. **Kur** düğmesi `.env` dosyasını oluşturur.
-5. **Yerelde deneyin:** `python vekil\main.py` → tarayıcıda `http://localhost:10000/sohbet` → parola ve uygulamadaki kodla girin, "merhaba" yazın, cevap gelmeli. `Ctrl+C` ile durdurun.
+5. **Yerelde deneyin:** `python vekil\main.py` → tarayıcıda `http://localhost:10000/sohbet` → şifre ve uygulamadaki kodla girin, "merhaba" yazın, cevap gelmeli. `Ctrl+C` ile durdurun.
    Bu yalnızca deneme; gerçek çalışma Render'da, bilgisayar kapalıyken de sürer.
 6. **`.env` dosyası:** kurulumdaki tüm anahtarlar orada. Kullanıcıya bir kopyasını verin (USB ya da şifre yöneticisi).
    Başkasına göndermeyin, internete yüklemeyin, ekran görüntüsü atmayın.
@@ -86,7 +86,7 @@ Hepsini kullanıcının e-postasıyla, tarayıcıda birlikte açın. Anahtarlar�
    Kullanıcıya özel kod değişikliği yaptıysanız onun hesabında ayrı bir GitHub reposuna koyup onu bağlayın.
 2. **Language: Docker**, **Instance Type: Free**, *Advanced → Health Check Path:* `/health`.
 3. **Environment** bölümüne `.env` içindeki şu değerleri tek tek girin:
-   `DEEPSEEK_API_KEY`, `WEB_PAROLA`, `WEB_TOTP_SIR`, `OPENDELEGATE_SIR`, `AJAN_SECRET`, `SESLI_TOKEN`,
+   `DEEPSEEK_API_KEY`, `WEB_TOTP_SIR`, `OPENDELEGATE_SIR`, `AJAN_SECRET`, `SESLI_TOKEN`,
    `KULLANICI_ADI`, `SEHIR_AD`, `PROFIL`, `KILIT_TUZ`, `KILIT_OZET`, `KILIT_OZET_SADE`,
    `KILIT_KURTARMA_TUZ`, `KILIT_KURTARMA_OZET`, ve varsa `DATABASE_URL`, `GROQ_API_KEY`, `TAVILY_API_KEY`.
    `WEBHOOK_URL`'yi **girmeyin**; Render adresi kendisi veriyor.
@@ -155,7 +155,7 @@ Menü adları marka ve Android sürümüne göre biraz değişir (Samsung, Xiaom
 
 Hepsi geçmeden ayrılmayın:
 
-- [ ] Web sohbeti: parola ve kodla giriş, "merhaba" → cevap geliyor.
+- [ ] Web sohbeti: şifre ve kodla giriş, "merhaba" → cevap geliyor.
 - [ ] Web sohbeti: "yarın sabah 9'da bana şunu hatırlat: ..." → kabul ediyor.
 - [ ] PC açıkken: "ekran görüntüsü al" → geliyor.
 - [ ] Telefon: ekran açıkken "delegate, bir bakar mısın" → dinliyor; soru sorun → sesli cevap veriyor.
@@ -180,7 +180,7 @@ Hepsi geçmeden ayrılmayın:
 
 | Belirti | Çözüm |
 |---|---|
-| Web sohbetine giremiyorum | Parola `WEB_PAROLA` ile birebir aynı mı; 6 haneli kod telefonun saati doğruysa değişir (otomatik saat açık olsun). 5 yanlış denemede 15 dakika beklenir. Sayfa hiç açılmıyorsa `WEB_PAROLA` boştur. |
+| Web sohbetine giremiyorum | Şifre, kurulumda belirlenen `kys` şifresiyle birebir aynı mı (kurtarma kodu web girişinde çalışmaz); 6 haneli kod telefonun saati doğruysa değişir (otomatik saat açık olsun). 5 yanlış denemede 15 dakika beklenir. Sayfa hiç açılmıyorsa `KILIT_OZET` boştur (kys şifresi kurulmamış). |
 | Cevap gelmiyor | Render → *Logs* bakın; servis uyuyor olabilir (UptimeRobot); `DEEPSEEK_API_KEY` doğru mu. |
 | "Ajan çevrimdışı" | Bilgisayar kapalı/internet yok ya da ajan çalışmıyor; `AJAN_SECRET` iki yerde aynı mı. |
 | Telefon "vekil" deyince uyanmıyor | Pil kısıtlaması, mikrofon izni, erişilebilirlik açık mı; Vosk modeli indi mi. |

@@ -18,7 +18,7 @@ import main
 import web_sohbet
 from web_sohbet import DenemeSiniri, Oturumlar, WebBot, guvenli_html, totp_dogru, totp_uret
 
-PAROLA = "test-web-parolasi-123"
+PAROLA = "test-sifre"  # tests/__init__.py: kys şifresi (KILIT_OZET) bu şifrenin özetidir
 SIR = base64.b32encode(b"12345678901234567890").decode()  # RFC 6238 test anahtarı
 H = {"X-OD": "1"}
 
@@ -154,7 +154,7 @@ class WebBotTesti(unittest.IsolatedAsyncioTestCase):
 
 class UcTanUcaTesti(unittest.TestCase):
     def setUp(self):
-        self.yamalar = [mock.patch.object(config, "WEB_PAROLA", PAROLA), mock.patch.object(config, "WEB_TOTP_SIR", "")]
+        self.yamalar = [mock.patch.object(config, "WEB_PAROLA", ""), mock.patch.object(config, "WEB_TOTP_SIR", "")]
         for y in self.yamalar:
             y.start()
         web_sohbet.oturumlar = Oturumlar()
@@ -273,13 +273,32 @@ class UcTanUcaTesti(unittest.TestCase):
                     continue
                 self.assertIn(yanit.status_code, (401, 403, 404), f"{yontem} {r.path} -> {yanit.status_code}")
 
+    def test_giris_sifresi_kys_sifresidir_kurtarma_kodu_ve_sade_hal_giremez(self):
+        self.assertEqual(self.giris(PAROLA).status_code, 200)  # kys şifresi
+        web_sohbet.deneme_siniri = DenemeSiniri()
+        with mock.patch.object(web_sohbet.kilit, "kurtarma_kodu_dogru", return_value=True):
+            self.assertEqual(self.giris("kurtarma-kodu-gibi-bir-sey").status_code, 401)  # kurtarma kodu web kapısı değil
+        web_sohbet.deneme_siniri = DenemeSiniri()
+        self.assertEqual(self.giris("test-sifre ").status_code, 200)  # kenar boşluğu temizlenir (kilit.py ile aynı)
+        web_sohbet.deneme_siniri = DenemeSiniri()
+        self.assertEqual(self.giris("test_sifre").status_code, 401)  # biçim işaretsiz "sade" eşleşme kabul edilmez
+
+    def test_kys_sifresi_varken_web_parola_yok_sayilir_yoksa_yedek_olarak_calisir(self):
+        with mock.patch.object(config, "WEB_PAROLA", "ayri-web-parolasi-1"):
+            self.assertEqual(self.giris("ayri-web-parolasi-1").status_code, 401)  # tek şifre: kys şifresi
+        web_sohbet.deneme_siniri = DenemeSiniri()
+        with mock.patch.object(config, "WEB_PAROLA", "ayri-web-parolasi-1"), mock.patch.object(config, "KILIT_OZET", ""):
+            self.assertEqual(self.giris("ayri-web-parolasi-1").status_code, 200)  # kys yoksa yedek
+            web_sohbet.deneme_siniri = DenemeSiniri()
+            self.assertEqual(self.giris(PAROLA).status_code, 401)
+
     def test_cikis_oturumu_oldurur(self):
         self.giris()
         self.assertEqual(self.istemci.post("/sohbet/cikis", json={}, headers=H).status_code, 200)
         self.assertEqual(self.istemci.get("/sohbet/olaylar").status_code, 401)
 
     def test_parola_bos_ise_web_sohbeti_hic_yok(self):
-        with mock.patch.object(config, "WEB_PAROLA", ""):
+        with mock.patch.object(config, "WEB_PAROLA", ""), mock.patch.object(config, "KILIT_OZET", ""):
             istemci = TestClient(main.web_uygulamasi(None), base_url="https://od.test")
             self.assertEqual(istemci.get("/sohbet").status_code, 404)
 

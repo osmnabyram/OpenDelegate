@@ -70,9 +70,9 @@ Open all of them with the user's email, together in the browser. Write the keys 
    ```
 4. In the window that opens (OpenDelegate picture on the left, *İleri* (Next) bottom right) fill in the questions together with the user:
    name, job, uses, devices, city; then the DeepSeek key.
-   - **Web chat password:** at least 12 characters. On the next page the wizard shows a key for the authenticator app; the user adds it in the app on the phone.
-   - **Emergency stop password:** the user chooses the `kys` password (at least 8 characters). The wizard writes only a verification
-     digest to `.env`, not the password itself. REMIND THE USER THAT THE PASSWORD MUST BE WRITTEN DOWN.
+   - **Password (kys password = web chat password):** the user chooses one password (at least 12 characters); it is used both to sign in to the web chat and to unlock after `kys` is written in the chat.
+     The wizard writes only a verification digest to `.env`, not the password itself. REMIND THE USER THAT THE PASSWORD MUST BE WRITTEN DOWN.
+   - **Authenticator app:** after the recovery code the wizard shows a key; the user adds it in the Authenticator app on the phone.
    - **Recovery code:** the next page shows a random code, independent of the password and specific to this installation (shown
      only once). The user must write it down somewhere safe. They may also leave a copy with you (the installer); this is not
      required, it is the user's choice. If you keep one, store it in your own private record (for example in a separate note file
@@ -89,7 +89,7 @@ Open all of them with the user's email, together in the browser. Write the keys 
    If you made user-specific code changes, put them in a separate GitHub repo under the user's account and connect that one.
 2. **Language: Docker**, **Instance Type: Free**, *Advanced → Health Check Path:* `/health`.
 3. In the **Environment** section enter these values from `.env` one by one:
-   `DEEPSEEK_API_KEY`, `WEB_PAROLA`, `WEB_TOTP_SIR`, `OPENDELEGATE_SIR`, `AJAN_SECRET`, `SESLI_TOKEN`,
+   `DEEPSEEK_API_KEY`, `WEB_TOTP_SIR`, `OPENDELEGATE_SIR`, `AJAN_SECRET`, `SESLI_TOKEN`,
    `KULLANICI_ADI`, `SEHIR_AD`, `PROFIL`, `KILIT_TUZ`, `KILIT_OZET`, `KILIT_OZET_SADE`,
    `KILIT_KURTARMA_TUZ`, `KILIT_KURTARMA_OZET`, and if present `DATABASE_URL`, `GROQ_API_KEY`, `TAVILY_API_KEY`.
    Do **not** enter `WEBHOOK_URL`; Render provides the address itself.
@@ -184,7 +184,7 @@ Do not leave until all of these pass:
 
 | Symptom | Fix |
 |---|---|
-| Cannot sign in to the web chat | Is the password exactly `WEB_PAROLA`; the 6-digit code depends on the phone's clock (keep automatic time on). After 5 wrong tries wait 15 minutes. If the page does not open at all, `WEB_PAROLA` is empty. |
+| Cannot sign in to the web chat | Is the password exactly the `kys` password chosen at setup (the recovery code does not work for web sign-in); the 6-digit code depends on the phone's clock (keep automatic time on). After 5 wrong tries wait 15 minutes. If the page does not open at all, `KILIT_OZET` is empty (no kys password was set up). |
 | No answer comes | Check Render → *Logs*; the service may be asleep (UptimeRobot); is `DEEPSEEK_API_KEY` correct. |
 | "Ajan çevrimdışı" (agent offline) | The computer is off or has no internet, or the agent is not running; is `AJAN_SECRET` the same in both places. |
 | Phone does not wake on "vekil" | Battery restriction, microphone permission, accessibility on? Did the Vosk model finish downloading? |

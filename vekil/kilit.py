@@ -87,6 +87,15 @@ def sifre_dogru(metin: str | None) -> bool:
     return hmac.compare_digest(hashlib.pbkdf2_hmac("sha256", sade.encode("utf-8"), _TUZ, _TUR), _OZET_SADE)
 
 
+def web_sifresi_dogru(metin: str | None) -> bool:
+    """Web sohbeti girişi: YALNIZCA asıl kys şifresi. Kurtarma kodu ve biçim işaretsiz (`sade`) hâl kabul edilmez:
+    onlar sohbet içi kilit açma kolaylığıdır, web kapısını zayıflatmasın."""
+    if not _OZET:
+        return False
+    aday = hashlib.pbkdf2_hmac("sha256", (metin or "").strip().encode("utf-8"), _TUZ, _TUR)
+    return hmac.compare_digest(aday, _OZET)
+
+
 def _oku_db() -> bool:
     import hafiza
 

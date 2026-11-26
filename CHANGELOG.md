@@ -4,6 +4,9 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/). Sürümler [Releases](h
 
 ## [Yayınlanmadı / Unreleased]
 
+### Değişti / Changed
+- **Web sohbetinin giriş şifresi artık `kys` şifresiyle aynı.** Ayrı `WEB_PAROLA` yok: tek şifre, yalnızca PBKDF2 özeti saklanır (şifrenin kendisi hiçbir yerde durmaz). Kurulum sihirbazında şifre en az 12 karakter ve tek sayfada sorulur; Render şablonu `KILIT_*` özetlerini ister. `WEB_PAROLA` yalnızca kys şifresi hiç ayarlanmamış kurulumlar için yedek olarak kaldı. / **The web chat sign-in password is now the same as the `kys` password.** No separate `WEB_PAROLA`: one password, only its PBKDF2 digest is stored (the password itself is never kept). The setup wizard asks for it once, at least 12 characters; the Render blueprint asks for the `KILIT_*` digests. `WEB_PAROLA` remains only as a fallback for installs with no kys password at all.
+
 ### Eklendi / Added
 - Web sohbetinde dosya, fotoğraf ve sesli mesaj yükleme (en fazla 25 MB, bellekte işlenir) ve mikrofon düğmesi. / File, photo and voice upload (up to 25 MB, processed in memory) and a microphone button in the web chat.
 - Sohbet geçmişi yeniden açılışta ekranda görünür. / The chat history shows again after a restart.

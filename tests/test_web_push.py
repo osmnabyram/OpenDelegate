@@ -137,7 +137,7 @@ class TetikTesti(unittest.IsolatedAsyncioTestCase):
 
 class RotaTesti(unittest.TestCase):
     def setUp(self):
-        self.yamalar = [mock.patch.object(config, "WEB_PAROLA", "test-web-parolasi-123"), mock.patch.object(config, "WEB_TOTP_SIR", ""),
+        self.yamalar = [mock.patch.object(config, "WEB_PAROLA", ""), mock.patch.object(config, "WEB_TOTP_SIR", ""),
                         mock.patch("zamanlayici.ayar_yaz", mock.AsyncMock())]
         for y in self.yamalar:
             y.start()
@@ -152,7 +152,7 @@ class RotaTesti(unittest.TestCase):
         web_push._aboneler.clear()
 
     def giris(self):
-        self.istemci.post("/sohbet/giris", json={"parola": "test-web-parolasi-123"}, headers=H)
+        self.istemci.post("/sohbet/giris", json={"parola": "test-sifre"}, headers=H)
 
     def test_anahtar_girissiz_kapali(self):
         self.assertEqual(self.istemci.get("/sohbet/push/anahtar").status_code, 401)

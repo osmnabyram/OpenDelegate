@@ -9,7 +9,16 @@ services:
     envVars:
       - key: DEEPSEEK_API_KEY
         sync: false
-      - key: WEB_PAROLA # web sohbetinin giriş parolası (en az 12 karakter)
+      # Web sohbetinin giriş şifresi = kys şifresi. `python kurulum.py` bunların özetlerini .env dosyasına yazar; değerleri buraya kopyalayın.
+      - key: KILIT_TUZ
+        sync: false
+      - key: KILIT_OZET
+        sync: false
+      - key: KILIT_OZET_SADE
+        sync: false
+      - key: KILIT_KURTARMA_TUZ
+        sync: false
+      - key: KILIT_KURTARMA_OZET
         sync: false
       - key: WEB_TOTP_SIR # doğrulama uygulaması anahtarı (base32); python kurulum.py üretir
         sync: false

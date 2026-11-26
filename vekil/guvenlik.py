@@ -182,13 +182,13 @@ def acilis_denetimi() -> list[str]:
         uyari.append("SESLI_TOKEN 32 karakterden kısa")
     if getattr(config, "AJAN_SECRET", "") and len(config.AJAN_SECRET) < 24:
         uyari.append("AJAN_SECRET 24 karakterden kısa")
-    if config.WEB_PAROLA:
-        if len(config.WEB_PAROLA) < 12:
+    if config.web_acik():
+        if not config.KILIT_OZET and len(config.WEB_PAROLA) < 12:
             uyari.append("WEB_PAROLA 12 karakterden kısa")
         if not config.WEB_TOTP_SIR:
-            uyari.append("WEB_TOTP_SIR boş: web sohbeti yalnızca parolayla korunuyor (doğrulama uygulaması önerilir)")
+            uyari.append("WEB_TOTP_SIR boş: web sohbeti yalnızca şifreyle korunuyor (doğrulama uygulaması önerilir)")
     elif not config.TELEGRAM_BOT_TOKEN:
-        uyari.append("Ne WEB_PAROLA ne TELEGRAM_BOT_TOKEN var: OpenDelegate'e yazılı erişim yolu yok (yalnızca telefon uygulaması)")
+        uyari.append("Ne kys şifresi (KILIT_OZET) ne WEB_PAROLA ne TELEGRAM_BOT_TOKEN var: OpenDelegate'e yazılı erişim yolu yok (yalnızca telefon uygulaması)")
     return uyari
 
 

@@ -13,7 +13,7 @@ import kurulum  # noqa: E402
 class Mantik(unittest.TestCase):
     CEVAP = {"KULLANICI_ADI": "Ali", "meslek": "inşaat mühendisi", "takim": "Sadece ben", "kullanim": "Hatırlatma ve planlama",
              "pc_os": "Windows", "pc_acik": "Genelde açık", "telefon": "Android", "sehir": "Ankara",
-             "DEEPSEEK_API_KEY": "sk-x", "WEB_PAROLA": "uzun-web-parolasi-1", "WEB_TOTP_SIR": "JBSWY3DPEHPK3PXP"}
+             "DEEPSEEK_API_KEY": "sk-x", "KILIT_SIFRE": "uzun-kys-sifresi-1", "WEB_TOTP_SIR": "JBSWY3DPEHPK3PXP"}
 
     def test_profil_metni(self):
         m = kurulum.profil_metni(self.CEVAP)
@@ -52,32 +52,36 @@ class Mantik(unittest.TestCase):
 
     def test_kilit_sifre_dogrulama(self):
         self.assertTrue(kurulum.dogrula("kilit", {"KILIT_SIFRE": "kisa", "KILIT_SIFRE2": "kisa"}))
-        self.assertTrue(kurulum.dogrula("kilit", {"KILIT_SIFRE": "uzun-sifre-1", "KILIT_SIFRE2": "baska-sifre-1"}))
-        self.assertIsNone(kurulum.dogrula("kilit", {"KILIT_SIFRE": "uzun-sifre-1", "KILIT_SIFRE2": "uzun-sifre-1"}))
+        self.assertTrue(kurulum.dogrula("kilit", {"KILIT_SIFRE": "uzun-sifre-12", "KILIT_SIFRE2": "baska-sifre-12"}))
+        self.assertTrue(kurulum.dogrula("kilit", {"KILIT_SIFRE": "on-bir-harf", "KILIT_SIFRE2": "on-bir-harf"}))  # 11 karakter: web şifresi de
+        self.assertIsNone(kurulum.dogrula("kilit", {"KILIT_SIFRE": "uzun-sifre-12", "KILIT_SIFRE2": "uzun-sifre-12"}))
 
     def test_dogrulama_bos_alan(self):
         self.assertTrue(kurulum.dogrula("deepseek", {}))
 
-    def test_web_parolasi_dogrulama_ve_totp_anahtari(self):
-        self.assertTrue(kurulum.dogrula("web", {"WEB_PAROLA": "kisa", "WEB_PAROLA2": "kisa"}))
-        self.assertTrue(kurulum.dogrula("web", {"WEB_PAROLA": "uzun-web-parolasi-1", "WEB_PAROLA2": "baska-web-parola-2"}))
-        d = {"WEB_PAROLA": "uzun-web-parolasi-1", "WEB_PAROLA2": "uzun-web-parolasi-1"}
-        self.assertIsNone(kurulum.dogrula("web", d))
+    def test_kys_sifresi_totp_anahtari_uretir_ve_web_parolasi_sorulmaz(self):
+        sayfalar = [x["baslik"] for x in kurulum.SAYFALAR]
+        self.assertNotIn("Web sohbeti parolası", sayfalar)  # tek şifre: kys şifresi
+        self.assertLess(sayfalar.index("Kurtarma kodunuz"), sayfalar.index("Doğrulama uygulaması"))
+        d = {"KILIT_SIFRE": "uzun-sifre-12", "KILIT_SIFRE2": "uzun-sifre-12"}
+        self.assertIsNone(kurulum.dogrula("kilit", d))
         sir = d["WEB_TOTP_SIR"]
         self.assertRegex(sir, r"^[A-Z2-7]{32}$")  # 160 bit, base32: web_sohbet bunu okuyabilir
-        kurulum.dogrula("web", d)
+        kurulum.dogrula("kilit", d)
         self.assertEqual(d["WEB_TOTP_SIR"], sir)  # geri/ileri gidince değişmez
         self.assertTrue(kurulum.dogrula("totp_onay", d))
         d["TOTP_ONAY"] = "1"
         self.assertIsNone(kurulum.dogrula("totp_onay", d))
 
-    def test_env_web_ve_ana_sir_yazilir_telegram_gerekmez(self):
+    def test_env_kys_ozeti_ve_ana_sir_yazilir_parola_ve_telegram_yok(self):
         with tempfile.TemporaryDirectory() as t:
             metin = kurulum.yaz(dict(self.CEVAP), Path(t) / ".env").read_text(encoding="utf-8")
-        self.assertIn("WEB_PAROLA=uzun-web-parolasi-1", metin)
+        self.assertRegex(metin, r"KILIT_OZET=[0-9a-f]{64}")
         self.assertRegex(metin, r"OPENDELEGATE_SIR=[0-9a-f]{64}")
+        self.assertIn("WEB_TOTP_SIR=JBSWY3DPEHPK3PXP", metin)
+        self.assertNotIn("uzun-kys-sifresi-1", metin)  # şifrenin kendisi yazılmaz
+        self.assertNotIn("WEB_PAROLA", metin)
         self.assertNotIn("TELEGRAM_BOT_TOKEN", metin)
-        self.assertNotIn("WEB_PAROLA2", metin)
 
     def test_kurtarma_kodu_formati_ve_rastgeleligi(self):
         import re as re_mod
@@ -87,7 +91,7 @@ class Mantik(unittest.TestCase):
         self.assertNotEqual(kod1, kod2)  # her kurulumda farklı; ortak/sabit bir kod değil
 
     def test_kilit_dogrulamasi_kurtarma_kodu_uretir(self):
-        d = {"KILIT_SIFRE": "sifre-1234", "KILIT_SIFRE2": "sifre-1234"}
+        d = {"KILIT_SIFRE": "sifre-1234-abc", "KILIT_SIFRE2": "sifre-1234-abc"}
         self.assertIsNone(kurulum.dogrula("kilit", d))
         self.assertIn("_KURTARMA_KODU", d)
         onceki = d["_KURTARMA_KODU"]

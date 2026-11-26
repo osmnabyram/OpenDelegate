@@ -47,7 +47,7 @@ def _kutuphane() -> bool:
 
 
 def acik() -> bool:
-    return bool(config.WEB_PAROLA) and _kutuphane()
+    return config.web_acik() and _kutuphane()
 
 
 def _anahtar() -> Any:

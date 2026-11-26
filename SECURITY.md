@@ -5,7 +5,7 @@ OpenDelegate tek kullanıcılı. Saldırgan hedefleri: (1) web sohbeti, Telegram
 telefon/PC kontrolü, (3) para/ödeme işlemi, (4) sızan sırlar, (5) ekran/mesaj içeriğiyle modeli yönlendirme.
 
 ## Katmanlar
-- **Web sohbeti (`/sohbet`):** parola (`WEB_PAROLA`, sabit zamanlı karşılaştırma) + TOTP kodu (`WEB_TOTP_SIR`, RFC 6238); yanlış girişte hep aynı cevap, IP başına 5 ve genelde 30 başarısız denemede 15 dk kilit; oturum çerezi `HttpOnly`, `Secure`, `SameSite=Strict`, bellekte tutulur (yeniden başlatmada herkes çıkar); durum değiştiren her istek çerez + özel `X-OD` başlığı + aynı kaynak (`Origin`) ister (CSRF); sayfa betikleri ayrı dosyadır ve CSP `script-src 'self'` ile sınırlıdır; Vekil'in HTML'i beyaz listeden süzülür (script, resim, olay özellikleri atılır). `WEB_PAROLA` boşsa web sohbeti hiç açılmaz.
+- **Web sohbeti (`/sohbet`):** şifre (kys şifresiyle aynı: yalnızca PBKDF2-SHA256 özeti saklanır, 600 bin tur, sabit zamanlı karşılaştırma; kurtarma kodu web girişinde geçmez) + TOTP kodu (`WEB_TOTP_SIR`, RFC 6238); yanlış girişte hep aynı cevap, IP başına 5 ve genelde 30 başarısız denemede 15 dk kilit; oturum çerezi `HttpOnly`, `Secure`, `SameSite=Strict`, bellekte tutulur (yeniden başlatmada herkes çıkar); durum değiştiren her istek çerez + özel `X-OD` başlığı + aynı kaynak (`Origin`) ister (CSRF); sayfa betikleri ayrı dosyadır ve CSP `script-src 'self'` ile sınırlıdır; Vekil'in HTML'i beyaz listeden süzülür (script, resim, olay özellikleri atılır). Ne kys şifresi (`KILIT_OZET`) ne yedek `WEB_PAROLA` varsa web sohbeti hiç açılmaz.
 - **Kimlik:** Telegram (açıksa) sadece `TELEGRAM_CHAT_ID`; webhook `WEBHOOK_SECRET`; PC ajanı `X-Ajan-Secret`;
   telefon `SESLI_TOKEN`; hepsi sabit zamanlı karşılaştırma (`secrets.compare_digest`).
 - **Kill switch:** `kys` (kalıcı kilit, fail-closed). Şifreyle ya da o kuruluma özel kurtarma koduyla açılır
@@ -31,7 +31,7 @@ unutulursa/kaybedilirse tek yol: yeni bir şifre+kod üretip ilgili `KILIT_*` or
 
 ## Sır yönetimi
 Sırlar sadece ortam değişkeninde (Render env / yerel `.env`). Koda, teste, loga yazılmaz. Sızıntıdan şüphede:
-Render'da ilgili env'i değiştir (`WEB_PAROLA`, `WEB_TOTP_SIR`, `SESLI_TOKEN`, `WEBHOOK_SECRET`, `AJAN_SECRET`), uygulamada token'ı yeniden gir,
+Render'da ilgili env'i değiştir (`KILIT_*` şifre özetleri, `WEB_TOTP_SIR`, `SESLI_TOKEN`, `WEBHOOK_SECRET`, `AJAN_SECRET`), uygulamada token'ı yeniden gir,
 Telegram kullanıyorsan bot token'ını BotFather'dan yenile. Telefon kaybında `WEB_TOTP_SIR` değiştirmek eski kodları geçersiz kılar.
 
 ## Bilinen sınırlar

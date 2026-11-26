@@ -39,7 +39,7 @@ available in English ([docs/KURULUM.en.md](docs/KURULUM.en.md)) and Turkish ([do
 
 | | |
 |---|---|
-| **Web chat** | On your own address (`/sohbet`): sign in with a password and an authenticator code; answers and approval buttons appear in the browser; you can upload files, photos and voice messages; a "new message" notification (Web Push) when the tab is closed; it can be added to the phone home screen. No Telegram dependency |
+| **Web chat** | On your own address (`/sohbet`): sign in with your kys password and an authenticator code; answers and approval buttons appear in the browser; you can upload files, photos and voice messages; a "new message" notification (Web Push) when the tab is closed; it can be added to the phone home screen. No Telegram dependency |
 | **Computer control** | Files, terminal, programs, screenshots; works on its own by looking at the screen and using mouse and keyboard |
 | **Phone screen agent** | On Android: open apps, tap, type, read notifications, alarms, flashlight, calls; never touches payment or password fields |
 | **Voice assistant** | Always on in the phone, wakes on "delegate bir bakar mısın"; speaks Turkish (recognition: Groq Whisper, voice: Edge TTS) |
@@ -97,17 +97,17 @@ python kurulum.py                                  # wizard: asks for keys, writ
 python vekil/main.py                               # open http://localhost:10000/sohbet in your browser
 ```
 
-The wizard writes `.env`, takes your web chat password and generates the authenticator key.
+The wizard writes `.env`, takes your password (it is both the web chat sign-in and the `kys` emergency-stop password) and generates the authenticator key.
 To set up by hand, copy [`.env.example`](.env.example) to `.env` and fill it in.
 
 ### Deploy to the cloud (Render)
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/osmnabyram/OpenDelegate)
 
-The button reads `render.yaml` and prepares the service; the form asks for `DEEPSEEK_API_KEY`, `WEB_PAROLA`, `WEB_TOTP_SIR` and (recommended) `DATABASE_URL` (`python kurulum.py` generates the `WEB_TOTP_SIR` value). Render generates the random keys itself. When it is up, sign in at `https://<your-service-address>/sohbet`. To set it up by hand:
+The button reads `render.yaml` and prepares the service; the form asks for `DEEPSEEK_API_KEY`, `KILIT_*` (the digests of the kys password), `WEB_TOTP_SIR` and (recommended) `DATABASE_URL` (`python kurulum.py` generates the `KILIT_*` and `WEB_TOTP_SIR` values). Render generates the random keys itself. When it is up, sign in at `https://<your-service-address>/sohbet`. To set it up by hand:
 
 1. *New → Web Service →* this repo → **Language: Docker** → *Health Check Path* `/health`.
-2. Environment: `DEEPSEEK_API_KEY`, `WEB_PAROLA`, `WEB_TOTP_SIR`, `OPENDELEGATE_SIR`, `AJAN_SECRET`.
+2. Environment: `DEEPSEEK_API_KEY`, `KILIT_TUZ`, `KILIT_OZET`, `KILIT_OZET_SADE`, `WEB_TOTP_SIR`, `OPENDELEGATE_SIR`, `AJAN_SECRET`.
 3. For persistent memory add a [Neon](https://neon.tech) Postgres URL as `DATABASE_URL` (if empty, temporary SQLite is used).
 4. The free plan sleeps the service; set up a monitor (e.g. UptimeRobot) that requests `/health` every 5 minutes.
 
@@ -169,7 +169,7 @@ All settings are environment variables; secrets are never written in code. The m
 | Variable | Description |
 |---|---|
 | `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL` | Model key and name (default `deepseek-flash`) |
-| `WEB_PAROLA`, `WEB_TOTP_SIR`, `WEB_OTURUM_SAAT` | Web chat: sign-in password (12+ characters), authenticator key (base32) and session length (hours, default 12). If `WEB_PAROLA` is empty the web chat is off |
+| `WEB_TOTP_SIR`, `WEB_OTURUM_SAAT`, `WEB_PAROLA` | Web chat: the sign-in password **is the kys password** (`KILIT_*` below; only its digest is stored). `WEB_TOTP_SIR` is the authenticator key (base32), `WEB_OTURUM_SAAT` the session length (default 12). `WEB_PAROLA` is only a fallback when no kys password is set at all. If neither exists the web chat is off |
 | `OPENDELEGATE_SIR` | Seed for derived links and keys; a long random value. Required when Telegram is not used |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Optional: the Telegram channel and its single authorized chat. If empty, Telegram is off |
 | `KULLANICI_ADI`, `SEHIR_AD`, `SEHIR_LAT`, `SEHIR_LON` | Briefing greeting and weather city |
@@ -179,7 +179,7 @@ All settings are environment variables; secrets are never written in code. The m
 | `TAVILY_API_KEY` | Web search |
 | `TAKVIM_ICS_URL` | Calendar: secret iCal address(es) (https, comma separated). If empty the calendar is off. The address is a secret, share it with nobody |
 | `AJAN_SECRET`, `VEKIL_URL` | PC agent identity and server address |
-| `KILIT_TUZ`, `KILIT_OZET`, `KILIT_OZET_SADE` | Kill switch (`kys`) password digest; the wizard generates it and the password itself is not stored. If empty, `kys` is off |
+| `KILIT_TUZ`, `KILIT_OZET`, `KILIT_OZET_SADE` | Digest (PBKDF2) of the kill switch (`kys`) **and web chat sign-in** password; the wizard generates it, the password itself is never stored. If empty, `kys` is off |
 | `KILIT_KURTARMA_TUZ`, `KILIT_KURTARMA_OZET` | Password-independent, per-installation recovery code digest (see [SECURITY.md](SECURITY.md)) |
 | `SESLI_TOKEN` | Android app key (derived from the main secret if empty; a separate random value is recommended) |
 | `TWILIO_*`, `KULLANICI_TELEFON` | Phone calls (optional) |

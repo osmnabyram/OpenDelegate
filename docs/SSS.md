@@ -37,7 +37,7 @@ Sohbete yalnızca `kys` yazın: OpenDelegate kilitlenir. Yapmakta olduğu işi k
 Hayır. OpenDelegate kendi adresinizdeki **web sohbetinden** (`/sohbet`) kullanılır; Telegram isteğe bağlı bir ek kanaldır. `TELEGRAM_BOT_TOKEN` ve `TELEGRAM_CHAT_ID` boşsa Telegram tamamen kapalıdır ve hiçbir veri Telegram'a gitmez.
 
 **Web sohbeti güvenli mi?**
-Giriş parola (en az 12 karakter) ve telefondaki doğrulama uygulamasının 6 haneli koduyla yapılır. Yanlış denemede 15 dakika beklenir, oturum çerezi tarayıcı betiklerinden gizlidir ve yalnızca https ile gider, süresi dolunca ya da çıkış yapınca biter. Telefonu kaybederseniz Render'da `WEB_TOTP_SIR` değerini değiştirerek eski kodları geçersiz kılarsınız.
+Giriş, kurulumda belirlediğiniz tek şifreyle (aynı şifre `kys` kilidini de açar; en az 12 karakter, kendisi hiçbir yerde saklanmaz, yalnızca PBKDF2 özeti) ve telefondaki doğrulama uygulamasının 6 haneli koduyla yapılır. Yanlış denemede 15 dakika beklenir, oturum çerezi tarayıcı betiklerinden gizlidir ve yalnızca https ile gider, süresi dolunca ya da çıkış yapınca biter. Telefonu kaybederseniz Render'da `WEB_TOTP_SIR` değerini değiştirerek eski kodları geçersiz kılarsınız.
 
 **Web sohbetinden dosya ya da sesli mesaj gönderebilir miyim?**
 Evet. Yazı kutusunun yanındaki *Dosya* düğmesiyle fotoğraf, PDF, Word, Excel ve metin dosyası; *Ses* düğmesiyle sesli mesaj gönderirsiniz (tarayıcı mikrofon izni ister; sesin yazıya çevrilmesi için `GROQ_API_KEY` gerekir). En fazla 25 MB. Dosyalar diske yazılmaz, bellekte işlenir.
@@ -98,7 +98,7 @@ Write only `kys` in the chat: OpenDelegate locks. Write "dur" (stop) to cancel t
 No. OpenDelegate is used through the **web chat** (`/sohbet`) on your own address; Telegram is an optional extra channel. If `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are empty, Telegram is completely off and no data goes to Telegram.
 
 **Is the web chat secure?**
-Sign-in needs a password (12+ characters) and the 6-digit code from the authenticator app on your phone. After wrong tries it waits 15 minutes, the session cookie is hidden from page scripts and travels only over https, and it ends on expiry or sign-out. If you lose the phone, change `WEB_TOTP_SIR` on Render to invalidate the old codes.
+Sign-in needs the one password you chose at setup (the same password also unlocks `kys`; 12+ characters, never stored itself, only a PBKDF2 digest) and the 6-digit code from the authenticator app on your phone. After wrong tries it waits 15 minutes, the session cookie is hidden from page scripts and travels only over https, and it ends on expiry or sign-out. If you lose the phone, change `WEB_TOTP_SIR` on Render to invalidate the old codes.
 
 **Can I send files or voice messages from the web chat?**
 Yes. Use the *File* button next to the text box for photos, PDF, Word, Excel and text files, and the *Voice* button for a voice message (the browser asks for microphone permission; `GROQ_API_KEY` is needed to turn speech into text). Up to 25 MB. Files are not written to disk; they are processed in memory.

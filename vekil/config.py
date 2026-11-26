@@ -41,9 +41,16 @@ HARITA_TOKEN = os.getenv("HARITA_TOKEN", "").strip()
 TELEGRAM_CHAT_ID = int(_zorunlu("TELEGRAM_CHAT_ID")) if TELEGRAM_BOT_TOKEN else 1
 
 # --- Web sohbeti (/sohbet): parola + isteğe bağlı ama önerilen TOTP (Google Authenticator) ---
-WEB_PAROLA = os.getenv("WEB_PAROLA", "").strip()  # boşsa web sohbeti kapalı
+# Giriş şifresi = kys şifresi (KILIT_OZET, yalnızca PBKDF2 özeti saklanır). WEB_PAROLA yalnızca kys şifresi
+# hiç ayarlanmamış kurulumlar için yedektir; kys şifresi varsa YOK SAYILIR (tek şifre, iki ayrı sır olmasın).
+WEB_PAROLA = os.getenv("WEB_PAROLA", "").strip()
 WEB_TOTP_SIR = os.getenv("WEB_TOTP_SIR", "").strip().replace(" ", "").upper()  # base32; boşsa sadece parola
 WEB_OTURUM_SAAT = int(os.getenv("WEB_OTURUM_SAAT", "12"))
+
+
+def web_acik() -> bool:
+    """Web sohbeti açık mı: kys şifresi (KILIT_OZET) ya da (o yoksa) WEB_PAROLA ayarlıysa."""
+    return bool(KILIT_OZET or WEB_PAROLA)
 
 # --- Çalışma modu ---
 # WEBHOOK_URL (ya da Render'ın otomatik verdiği RENDER_EXTERNAL_URL) varsa webhook,

@@ -34,6 +34,7 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 
 import config
+import kilit
 import web_push
 
 STATIK = Path(__file__).with_name("static")
@@ -160,9 +161,13 @@ def istemci_ip(request: Request) -> str:
 
 
 def parola_dogru(parola: str) -> bool:
+    """kys şifresi varsa giriş şifresi odur (PBKDF2 özeti); yoksa yedek olarak WEB_PAROLA."""
+    parola = (parola or "")[:200]
+    if config.KILIT_OZET:
+        return kilit.web_sifresi_dogru(parola)
     if not config.WEB_PAROLA:
         return False
-    return hmac.compare_digest(hashlib.sha256((parola or "").encode()).digest(),
+    return hmac.compare_digest(hashlib.sha256(parola.encode()).digest(),
                                hashlib.sha256(config.WEB_PAROLA.encode()).digest())
 
 
@@ -452,8 +457,8 @@ def yukleme_adi(ham: str) -> str:
 
 def rotalar(mesaj_isle: Callable[[str], Awaitable[None]], dugme_isle: Callable[[str], Awaitable[None]],
             yukle_isle: Callable[[bytes, str, str, str, str], Awaitable[None]]) -> list[Route]:
-    """Web sohbeti kapalıysa (WEB_PAROLA boş) hiç rota eklenmez: /sohbet 404 verir."""
-    if not config.WEB_PAROLA:
+    """Web sohbeti kapalıysa (ne kys şifresi ne WEB_PAROLA) hiç rota eklenmez: /sohbet 404 verir."""
+    if not config.web_acik():
         return []
     arka: set[asyncio.Task[None]] = set()
 
@@ -484,7 +489,7 @@ def rotalar(mesaj_isle: Callable[[str], Awaitable[None]], dugme_isle: Callable[[
         veri = await _govde(request)
         if veri is None or request.headers.get("x-od") != "1":
             return _json({"hata": "Geçersiz istek."}, 400)
-        p_ok = parola_dogru(str(veri.get("parola", "")))
+        p_ok = await asyncio.to_thread(parola_dogru, str(veri.get("parola", "")))  # PBKDF2 ağır: olay döngüsünü tutmasın
         adim = totp_adimi(config.WEB_TOTP_SIR, str(veri.get("kod", ""))) if config.WEB_TOTP_SIR else None
         # Kod yalnızca parola da doğruysa "harcanır": yanlış parolayla gelen biri sahibin kodunu yakamaz.
         k_ok = True if not config.WEB_TOTP_SIR else (p_ok and totp_yeniden.kabul(adim))

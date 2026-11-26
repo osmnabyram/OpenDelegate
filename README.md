@@ -37,7 +37,7 @@ uygulama açar, mesaj okur, alarm kurar. Teknik bilgi gerekmez: komut yok, menü
 
 | | |
 |---|---|
-| **Web sohbeti** | Kendi adresinizde (`/sohbet`): parola ve doğrulama uygulaması koduyla giriş, cevaplar ve onay düğmeleri tarayıcıda; dosya, fotoğraf ve sesli mesaj yükleyebilirsiniz; sekme kapalıyken "yeni mesaj" bildirimi (Web Push); telefonda ana ekrana eklenebilir. Telegram'a bağımlı değildir |
+| **Web sohbeti** | Kendi adresinizde (`/sohbet`): kys şifresi ve doğrulama uygulaması koduyla giriş, cevaplar ve onay düğmeleri tarayıcıda; dosya, fotoğraf ve sesli mesaj yükleyebilirsiniz; sekme kapalıyken "yeni mesaj" bildirimi (Web Push); telefonda ana ekrana eklenebilir. Telegram'a bağımlı değildir |
 | **Bilgisayar kontrolü** | Dosya, terminal, program, ekran görüntüsü; ekranı görerek fare ve klavyeyle kendi kendine iş yapma |
 | **Telefon ekran ajanı** | Android'de uygulama açma, tıklama, yazma, bildirim okuma, alarm, fener, arama; ödeme ve şifre alanlarına dokunmaz |
 | **Sesli asistan** | Telefonda hep açık, "delegate bir bakar mısın" ile uyanır; Türkçe konuşur (tanıma Groq Whisper, ses Edge TTS) |
@@ -102,10 +102,10 @@ Elle kurmak isterseniz [`.env.example`](.env.example) dosyasını `.env` olarak 
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/osmnabyram/OpenDelegate)
 
-Düğme `render.yaml` dosyasını okur ve servisi hazırlar; formda `DEEPSEEK_API_KEY`, `WEB_PAROLA`, `WEB_TOTP_SIR` ve (önerilir) `DATABASE_URL` sorulur (`WEB_TOTP_SIR` değerini `python kurulum.py` üretir). Rastgele anahtarları Render kendisi üretir. Kurulum bitince `https://<servis-adresiniz>/sohbet` adresinden girersiniz. Elle kurmak isterseniz:
+Düğme `render.yaml` dosyasını okur ve servisi hazırlar; formda `DEEPSEEK_API_KEY`, `KILIT_*` (kys şifresinin özetleri), `WEB_TOTP_SIR` ve (önerilir) `DATABASE_URL` sorulur (`KILIT_*` ve `WEB_TOTP_SIR` değerlerini `python kurulum.py` üretir). Rastgele anahtarları Render kendisi üretir. Kurulum bitince `https://<servis-adresiniz>/sohbet` adresinden girersiniz. Elle kurmak isterseniz:
 
 1. *New → Web Service →* bu depo → **Language: Docker** → *Health Check Path* `/health`.
-2. Environment: `DEEPSEEK_API_KEY`, `WEB_PAROLA`, `WEB_TOTP_SIR`, `OPENDELEGATE_SIR`, `AJAN_SECRET`.
+2. Environment: `DEEPSEEK_API_KEY`, `KILIT_TUZ`, `KILIT_OZET`, `KILIT_OZET_SADE`, `WEB_TOTP_SIR`, `OPENDELEGATE_SIR`, `AJAN_SECRET`.
 3. Kalıcı hafıza için [Neon](https://neon.tech) Postgres adresini `DATABASE_URL` olarak ekleyin (boşsa geçici SQLite).
 4. Ücretsiz planda servis uyur; `/health` adresine 5 dakikada bir istek atan bir izleyici (ör. UptimeRobot) kurun.
 
@@ -168,7 +168,7 @@ Hepsi ortam değişkenidir; gizli değerler koda yazılmaz. Başlıcaları:
 | Değişken | Açıklama |
 |---|---|
 | `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL` | Model anahtarı ve adı (varsayılan `deepseek-flash`) |
-| `WEB_PAROLA`, `WEB_TOTP_SIR`, `WEB_OTURUM_SAAT` | Web sohbeti: giriş parolası (en az 12 karakter), doğrulama uygulaması anahtarı (base32) ve oturum süresi (saat, varsayılan 12). `WEB_PAROLA` boşsa web sohbeti kapalıdır |
+| `WEB_TOTP_SIR`, `WEB_OTURUM_SAAT`, `WEB_PAROLA` | Web sohbeti: giriş şifresi **kys şifresiyle aynıdır** (aşağıdaki `KILIT_*`, yalnızca özeti saklanır). `WEB_TOTP_SIR` doğrulama uygulaması anahtarı (base32), `WEB_OTURUM_SAAT` oturum süresi (varsayılan 12). `WEB_PAROLA` yalnızca kys şifresi hiç ayarlanmamışsa yedektir. İkisi de yoksa web sohbeti kapalıdır |
 | `OPENDELEGATE_SIR` | Türetilen bağlantı ve anahtarların tohumu; uzun rastgele bir değer. Telegram kullanılmıyorsa zorunludur |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | İsteğe bağlı: Telegram kanalı ve tek yetkili sohbet. Boşsa Telegram kapalıdır |
 | `KULLANICI_ADI`, `SEHIR_AD`, `SEHIR_LAT`, `SEHIR_LON` | Brifing selamı ve hava durumu şehri |
@@ -178,7 +178,7 @@ Hepsi ortam değişkenidir; gizli değerler koda yazılmaz. Başlıcaları:
 | `TAVILY_API_KEY` | Web arama |
 | `TAKVIM_ICS_URL` | Takvim: gizli iCal adres(ler)i (https, virgülle ayrılır). Boşsa takvim kapalı. Adres bir sırdır, kimseyle paylaşmayın |
 | `AJAN_SECRET`, `VEKIL_URL` | PC ajanı kimliği ve sunucu adresi |
-| `KILIT_TUZ`, `KILIT_OZET`, `KILIT_OZET_SADE` | Kill switch (`kys`) şifre özeti; sihirbaz üretir, şifrenin kendisi saklanmaz. Boşsa `kys` kapalıdır |
+| `KILIT_TUZ`, `KILIT_OZET`, `KILIT_OZET_SADE` | Kill switch (`kys`) **ve web sohbeti giriş** şifresinin özeti (PBKDF2); sihirbaz üretir, şifrenin kendisi saklanmaz. Boşsa `kys` kapalıdır |
 | `KILIT_KURTARMA_TUZ`, `KILIT_KURTARMA_OZET` | Şifreden bağımsız, o kuruluma özel kurtarma kodu özeti (bkz. [SECURITY.md](SECURITY.md)) |
 | `SESLI_TOKEN` | Android uygulaması anahtarı (boşsa ana sırdan türetilir; ayrı rastgele değer önerilir) |
 | `TWILIO_*`, `KULLANICI_TELEFON` | Telefonla arama (isteğe bağlı) |

@@ -55,27 +55,13 @@ SAYFALAR: list[dict[str, Any]] = [
               "(kullanım başına ödenir, günlük kullanım çok düşük maliyetlidir).",
      "alanlar": [("DEEPSEEK_API_KEY", "DeepSeek API anahtarı", "gizli", "")],
      "dogrula": "deepseek"},
-    {"baslik": "Web sohbeti parolası",
-     "metin": "OpenDelegate ile tarayıcıdan konuşacaksınız (kurulumdan sonra adres: https://<sizin-adresiniz>/sohbet). "
-              "Giriş için bir parola belirleyin, en az 12 karakter. Bir sonraki sayfada telefonunuzdaki doğrulama "
-              "uygulaması için anahtar göstereceğiz.",
-     "alanlar": [("WEB_PAROLA", "Parola (en az 12 karakter)", "gizli", ""),
-                 ("WEB_PAROLA2", "Parola (tekrar)", "gizli", "")],
-     "dogrula": "web"},
-    {"baslik": "Doğrulama uygulaması",
-     "metin": "Telefonunuza Google Authenticator, Microsoft Authenticator ya da benzeri bir uygulama kurun; "
-              "\"anahtar girerek ekle\" deyip aşağıdaki anahtarı yazın (zaman tabanlı). Girişte parolanıza ek olarak "
-              "uygulamadaki 6 haneli kod istenir; parolanız sızsa bile telefonunuz olmadan kimse giremez. "
-              "Anahtar bir daha gösterilmeyecek, .env dosyasında WEB_TOTP_SIR olarak durur.",
-     "ozel": "totp",
-     "alanlar": [("TOTP_ONAY", "Anahtarı doğrulama uygulamama ekledim.", "onay", "")],
-     "dogrula": "totp_onay"},
     {"baslik": "Acil durdurma şifresi",
-     "metin": "Sohbete sadece \"kys\" yazarsanız OpenDelegate kendini tamamen kilitler; yalnızca bu şifreyle açılır. "
-              "Şifrenin kendisi hiçbir yerde saklanmaz, sadece doğrulama özeti .env dosyasına yazılır. "
+     "metin": "Bu şifre iki iş görür: (1) tarayıcıdaki web sohbetine (kurulumdan sonra adres: https://<sizin-adresiniz>/sohbet) "
+              "girişte şifrenizdir; (2) sohbete sadece \"kys\" yazarsanız OpenDelegate kendini tamamen kilitler ve yalnızca "
+              "bu şifreyle açılır. Şifrenin kendisi hiçbir yerde saklanmaz, sadece doğrulama özeti .env dosyasına yazılır. "
               "ŞİFRENİZİ UNUTMAYIN, bir yere not edin: geri getirilemez.\n\n"
               "Sonraki sayfada, bu şifreyi unutursanız kullanabileceğiniz AYRI bir kurtarma kodu göstereceğiz.",
-     "alanlar": [("KILIT_SIFRE", "Şifre (en az 8 karakter)", "gizli", ""),
+     "alanlar": [("KILIT_SIFRE", "Şifre (en az 12 karakter)", "gizli", ""),
                  ("KILIT_SIFRE2", "Şifre (tekrar)", "gizli", "")],
      "dogrula": "kilit"},
     {"baslik": "Kurtarma kodunuz",
@@ -88,6 +74,14 @@ SAYFALAR: list[dict[str, Any]] = [
      "ozel": "kurtarma",
      "alanlar": [("KURTARMA_ONAY", "Kurtarma kodunu güvenli bir yere kaydettim.", "onay", "")],
      "dogrula": "kurtarma_onay"},
+    {"baslik": "Doğrulama uygulaması",
+     "metin": "Telefonunuza Google Authenticator, Microsoft Authenticator ya da benzeri bir uygulama kurun; "
+              "\"anahtar girerek ekle\" deyip aşağıdaki anahtarı yazın (zaman tabanlı). Girişte şifrenize ek olarak "
+              "uygulamadaki 6 haneli kod istenir; şifreniz sızsa bile telefonunuz olmadan kimse giremez. "
+              "Anahtar bir daha gösterilmeyecek, .env dosyasında WEB_TOTP_SIR olarak durur.",
+     "ozel": "totp",
+     "alanlar": [("TOTP_ONAY", "Anahtarı doğrulama uygulamama ekledim.", "onay", "")],
+     "dogrula": "totp_onay"},
     {"baslik": "İsteğe bağlı servisler",
      "metin": "Hepsini boş bırakabilirsiniz; sonradan .env dosyasına eklenebilir.",
      "alanlar": [("GROQ_API_KEY", "Groq anahtarı (sesli mesajlar için, console.groq.com)", "gizli", ""),
@@ -192,7 +186,7 @@ def env_metni(d: dict[str, str]) -> str:
     d["SEHIR_AD"] = "" if d.get("sehir", "İstanbul") == "İstanbul" else _temiz(d.get("sehir", ""))
     d["KULLANICI_ADI"] = _temiz(d.get("KULLANICI_ADI", ""))
     gruplar = [
-        ("Zorunlu", ["DEEPSEEK_API_KEY", "OPENDELEGATE_SIR", "WEB_PAROLA", "WEB_TOTP_SIR"]),
+        ("Zorunlu", ["DEEPSEEK_API_KEY", "OPENDELEGATE_SIR", "WEB_TOTP_SIR"]),
         ("Güvenlik anahtarları (rastgele üretildi)", ["WEBHOOK_SECRET", "AJAN_SECRET", "SESLI_TOKEN"]),
         ("Acil durdurma (kys) şifre özeti; şifrenin kendisi saklanmaz", ["KILIT_TUZ", "KILIT_OZET", "KILIT_OZET_SADE"]),
         ("Kurtarma kodu özeti; şifreden bağımsız, bu kuruluma özel, kodun kendisi saklanmaz",
@@ -217,21 +211,16 @@ def dogrula(tur: str, d: dict[str, str]) -> str | None:
         gecerli = deepseek_gecerli(d["DEEPSEEK_API_KEY"])
         if gecerli is False:
             return "Bu anahtar geçersiz görünüyor. Kontrol edip tekrar deneyin."
-    elif tur == "web":
-        if len(d.get("WEB_PAROLA", "")) < 12:
-            return "Parola en az 12 karakter olmalı."
-        if d.get("WEB_PAROLA") != d.get("WEB_PAROLA2"):
-            return "İki parola aynı değil."
-        d.setdefault("WEB_TOTP_SIR", totp_sir_uret())  # bir kez üretilir, geri/ileri gidince değişmez
     elif tur == "totp_onay":
         if not d.get("TOTP_ONAY"):
             return "Devam etmeden önce anahtarı doğrulama uygulamanıza eklediğinizi onaylayın."
     elif tur == "kilit":
-        if len(d.get("KILIT_SIFRE", "")) < 8:
-            return "Şifre en az 8 karakter olmalı."
+        if len(d.get("KILIT_SIFRE", "")) < 12:
+            return "Şifre en az 12 karakter olmalı (web sohbetinin giriş şifresidir)."
         if d.get("KILIT_SIFRE") != d.get("KILIT_SIFRE2"):
             return "İki şifre aynı değil."
         d.setdefault("_KURTARMA_KODU", kurtarma_kodu_uret())  # bir kez üretilir, geri/ileri gidince değişmez
+        d.setdefault("WEB_TOTP_SIR", totp_sir_uret())  # doğrulama uygulaması anahtarı, bir kez
     elif tur == "kurtarma_onay":
         if not d.get("KURTARMA_ONAY"):
             return "Devam etmeden önce kurtarma kodunu kaydettiğinizi onaylayın."
