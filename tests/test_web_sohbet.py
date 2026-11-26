@@ -39,6 +39,21 @@ class TotpTesti(unittest.TestCase):
         self.assertFalse(totp_dogru("!!!bozuk!!!", "123456"))
 
 
+class TotpYenidenKullanimTesti(unittest.TestCase):
+    def test_ayni_adim_ikinci_kez_kabul_edilmez(self):
+        y = web_sohbet.TotpYenidenKullanim()
+        adim = web_sohbet.totp_adimi(SIR, "287082", 59)
+        self.assertEqual(adim, 1)
+        self.assertTrue(y.kabul(adim))
+        self.assertFalse(y.kabul(adim))  # aynı kod tekrar
+        self.assertFalse(y.kabul(0))  # daha eski adım
+        self.assertTrue(y.kabul(2))
+        self.assertFalse(y.kabul(None))
+
+    def test_adim_yanlis_kodda_none(self):
+        self.assertIsNone(web_sohbet.totp_adimi(SIR, "000000", 59))
+
+
 class SinirTesti(unittest.TestCase):
     def test_ip_basina_bes_sonra_kilit_ve_sure_dolunca_acilir(self):
         s = DenemeSiniri(ip_limit=5, genel_limit=30, bekleme=900)
@@ -144,6 +159,7 @@ class UcTanUcaTesti(unittest.TestCase):
             y.start()
         web_sohbet.oturumlar = Oturumlar()
         web_sohbet.deneme_siniri = DenemeSiniri()
+        web_sohbet.totp_yeniden = web_sohbet.TotpYenidenKullanim()
         self.istemci = TestClient(main.web_uygulamasi(None), base_url="https://od.test")
 
     def tearDown(self):
@@ -190,7 +206,9 @@ class UcTanUcaTesti(unittest.TestCase):
             self.assertEqual(self.giris(kod="").status_code, 401)
             self.assertEqual(self.giris(kod="000000").status_code, 401)
             with mock.patch("web_sohbet.time.time", return_value=59):
+                self.assertEqual(self.giris("yanlis", kod="287082").status_code, 401)  # yanlış parola kodu yakmaz
                 self.assertEqual(self.giris(kod="287082").status_code, 200)
+                self.assertEqual(self.giris(kod="287082").status_code, 401)  # aynı kod ikinci kez: reddedilir
 
     def test_csrf_basligi_ve_origin(self):
         self.giris()

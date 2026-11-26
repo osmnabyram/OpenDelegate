@@ -38,7 +38,6 @@ Telegram kullanıyorsan bot token'ını BotFather'dan yenile. Telefon kaybında 
 - Ödeme kapısı anahtar kelime tabanlıdır; eşanlamlılar kaçabilir. Ek katman: model talimatı + ekran ajanı durdurma.
 - Uyandırma cümlesini herkes söyleyebilir (kilitliyken `uygulama_ac` PIN girer): bilinçli tercih.
 - `SESLI_TOKEN` env'de yoksa ana sırdan (`OPENDELEGATE_SIR` ya da bot token'ı) türetilir; ayrı rastgele değer önerilir.
-- Web sohbetinde TOTP koduna yeniden kullanım (replay) koruması yok: 30 sn içinde aynı kod iki kez kabul edilir. Ek katman olarak parola ve deneme sınırı vardır.
 - Web sohbeti giriş sınırı genel (30 başarısız deneme / 15 dk): saldırgan sizi o süre dışarıda bırakabilir ama içeri giremez. IP başına sınır, proxy'nin `X-Forwarded-For` sonuna eklediği adrese dayanır; proxy arkasında birçok kişi aynı adresi görebilir.
 - Web Push abonelik adresleri yalnızca bilinen push servislerine (Google FCM, Mozilla, Apple, Windows) izinlidir; bildirim "Yeni mesaj" der, metin taşımaz.
 - Uyandırma cümlesi "delegate bir bakar mısın": Vosk Türkçe modelinde "delegate" kelimesi yok, "delege" tanınır; ses benzerliğine dayanır.

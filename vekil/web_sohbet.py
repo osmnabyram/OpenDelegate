@@ -60,17 +60,36 @@ def totp_uret(sir: str, an: float | None = None) -> str:
     return f"{(struct.unpack('>I', ozet[o:o + 4])[0] & 0x7FFFFFFF) % 10**6:06d}"
 
 
-def totp_dogru(sir: str, kod: str, an: float | None = None) -> bool:
+def totp_adimi(sir: str, kod: str, an: float | None = None) -> int | None:
+    """Kodun eşleştiği 30 sn'lik adım numarası (saat kayması için ±1 adım tolerans); eşleşme yoksa None."""
     simdi = time.time() if an is None else an
     kod = (kod or "").strip().replace(" ", "")
-    try:
-        adaylar = [totp_uret(sir, simdi + k * 30) for k in (-1, 0, 1)]  # saat kayması için bir adım tolerans
-    except Exception:  # noqa: BLE001 - bozuk base32 sır: giriş hiç açılmaz
-        return False
-    ok = False
-    for a in adaylar:
-        ok |= hmac.compare_digest(a.encode(), kod.encode())
-    return ok
+    bulunan = None
+    for k in (-1, 0, 1):
+        try:
+            aday = totp_uret(sir, simdi + k * 30)
+        except Exception:  # noqa: BLE001 - bozuk base32 sır: giriş hiç açılmaz
+            return None
+        if hmac.compare_digest(aday.encode(), kod.encode()):
+            bulunan = int((simdi + k * 30) // 30)
+    return bulunan
+
+
+def totp_dogru(sir: str, kod: str, an: float | None = None) -> bool:
+    return totp_adimi(sir, kod, an) is not None
+
+
+class TotpYenidenKullanim:
+    """Aynı (ya da daha eski) 30 sn'lik adımın kodu ikinci kez kabul edilmez: gözden kaçan kod tekrar kullanılamaz."""
+
+    def __init__(self) -> None:
+        self._son = -1
+
+    def kabul(self, adim: int | None) -> bool:
+        if adim is None or adim <= self._son:
+            return False
+        self._son = adim
+        return True
 
 
 # --------------------------------------------------------------------------
@@ -390,6 +409,7 @@ class WebBot:
 web_bot = WebBot()
 oturumlar = Oturumlar()
 deneme_siniri = DenemeSiniri()
+totp_yeniden = TotpYenidenKullanim()
 
 
 # --------------------------------------------------------------------------
@@ -465,7 +485,9 @@ def rotalar(mesaj_isle: Callable[[str], Awaitable[None]], dugme_isle: Callable[[
         if veri is None or request.headers.get("x-od") != "1":
             return _json({"hata": "Geçersiz istek."}, 400)
         p_ok = parola_dogru(str(veri.get("parola", "")))
-        k_ok = totp_dogru(config.WEB_TOTP_SIR, str(veri.get("kod", ""))) if config.WEB_TOTP_SIR else True
+        adim = totp_adimi(config.WEB_TOTP_SIR, str(veri.get("kod", ""))) if config.WEB_TOTP_SIR else None
+        # Kod yalnızca parola da doğruysa "harcanır": yanlış parolayla gelen biri sahibin kodunu yakamaz.
+        k_ok = True if not config.WEB_TOTP_SIR else (p_ok and totp_yeniden.kabul(adim))
         if not (p_ok and k_ok):
             deneme_siniri.basarisiz(ip)
             return _json({"hata": "Bilgiler yanlış."}, 401)
