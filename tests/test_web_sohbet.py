@@ -241,6 +241,20 @@ class UcTanUcaTesti(unittest.TestCase):
         self.assertIn("microphone=(self)", self.istemci.get("/sohbet").headers["permissions-policy"])
         self.assertIn("microphone=()", self.istemci.get("/health").headers["permissions-policy"])
 
+    def test_girissiz_hicbir_korumali_rota_calismaz(self):
+        """Tüm /sohbet rotaları dolaşılır: herkese açık olması gerekenler dışında girişsiz hiçbiri 200 vermez."""
+        acik = {("GET", "/sohbet"), ("GET", "/sohbet/ben"), ("GET", "/sohbet/sw.js"), ("GET", "/sohbet/manifest.webmanifest"),
+                ("GET", "/sohbet/dosya/{ad}"), ("POST", "/sohbet/giris")}
+        rotalar = [r for r in main.web_uygulamasi(None).routes if r.path.startswith("/sohbet")]
+        self.assertGreaterEqual(len(rotalar), 14)
+        for r in rotalar:
+            for yontem in sorted(m for m in r.methods if m != "HEAD"):
+                yol = r.path.replace("{ad}", "sohbet.js").replace("{mid}", "yok")
+                yanit = self.istemci.request(yontem, yol, content=b"{}", headers={"Content-Type": "application/json"})
+                if (yontem, r.path) in acik:
+                    continue
+                self.assertIn(yanit.status_code, (401, 403, 404), f"{yontem} {r.path} -> {yanit.status_code}")
+
     def test_cikis_oturumu_oldurur(self):
         self.giris()
         self.assertEqual(self.istemci.post("/sohbet/cikis", json={}, headers=H).status_code, 200)
@@ -255,6 +269,24 @@ class UcTanUcaTesti(unittest.TestCase):
         self.assertEqual(self.istemci.get("/sohbet/dosya/sohbet.js").status_code, 200)
         self.assertEqual(self.istemci.get("/sohbet/dosya/main.py").status_code, 404)
         self.assertEqual(self.istemci.get("/sohbet/dosya/..%2Fconfig.py").status_code, 404)
+
+
+class HataMetniTesti(unittest.TestCase):
+    def test_402_bakiye_bitti_anlasilir_mesaj(self):
+        e = Exception("Error code: 402 - Insufficient Balance")
+        e.status_code = 402
+        m = main._hata_metni(e)
+        self.assertIn("bakiyesi bitmiş", m)
+        self.assertNotIn("Exception", m)
+
+    def test_diger_hatalar_eskisi_gibi(self):
+        self.assertEqual(main._hata_metni(ValueError("x")), "⚠️ efendim, bi hata oldu: ValueError: x")
+        e = Exception("y")
+        e.status_code = 500
+        self.assertIn("bi hata oldu", main._hata_metni(e))
+
+    def test_sistem_istemi_ekran_durustlugu(self):
+        self.assertIn("göremedim", main.SYSTEM_PROMPT)
 
 
 class EntegrasyonTesti(unittest.IsolatedAsyncioTestCase):

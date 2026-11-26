@@ -39,7 +39,7 @@ available in English ([docs/KURULUM.en.md](docs/KURULUM.en.md)) and Turkish ([do
 
 | | |
 |---|---|
-| **Web chat** | On your own address (`/sohbet`): sign in with a password and an authenticator code; answers and approval buttons appear in the browser, and it can be added to the phone home screen. No Telegram dependency |
+| **Web chat** | On your own address (`/sohbet`): sign in with a password and an authenticator code; answers and approval buttons appear in the browser; you can upload files, photos and voice messages; a "new message" notification (Web Push) when the tab is closed; it can be added to the phone home screen. No Telegram dependency |
 | **Computer control** | Files, terminal, programs, screenshots; works on its own by looking at the screen and using mouse and keyboard |
 | **Phone screen agent** | On Android: open apps, tap, type, read notifications, alarms, flashlight, calls; never touches payment or password fields |
 | **Voice assistant** | Always on in the phone, wakes on "delegate bir bakar mısın"; speaks Turkish (recognition: Groq Whisper, voice: Edge TTS) |

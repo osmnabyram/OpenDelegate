@@ -14,3 +14,5 @@ psycopg[binary]>=3.2,<4
 pypdf>=4.0,<7
 # Sesli cevap (Türkçe TTS): Microsoft Edge sinir ağı sesleri; ücretsiz, key yok, saf Python. Sadece Render.
 edge-tts>=7.0,<8
+# Web Push (sohbet sayfası bildirimi): VAPID + şifreli yük. Sadece Render; yoksa bildirim kapalı kalır.
+pywebpush>=2.0,<3

@@ -4,6 +4,15 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/). Sürümler [Releases](h
 
 ## [Yayınlanmadı / Unreleased]
 
+### Eklendi / Added
+- Web sohbetinde dosya, fotoğraf ve sesli mesaj yükleme (en fazla 25 MB, bellekte işlenir) ve mikrofon düğmesi. / File, photo and voice upload (up to 25 MB, processed in memory) and a microphone button in the web chat.
+- Sohbet geçmişi yeniden açılışta ekranda görünür. / The chat history shows again after a restart.
+- Web Push: sekme kapalıyken "Yeni mesaj" bildirimi (içerik taşımaz), PWA kurulumu için manifest ve ikonlar. Gerekli paket: `pywebpush`. / Web Push: a "new message" notification while the tab is closed (carries no text), a manifest and icons for PWA install. Required package: `pywebpush`.
+
+### Düzeltildi / Fixed
+- Model hesabının bakiyesi bitince (HTTP 402) ham hata yerine anlaşılır mesaj gösterilir. / When the model account runs out of balance (HTTP 402) a clear message is shown instead of the raw error.
+- Asistan, ekran görüntüsü gelmediyse ya da araç hata verdiyse gördüğünü uydurmaz; "göremedim" der. / When no screenshot arrived or the tool failed, the assistant no longer invents what it sees; it says it could not see.
+
 ## [1.4.0] - 2026-11-26
 
 ### Değişti / Changed

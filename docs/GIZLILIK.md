@@ -15,6 +15,7 @@ OpenDelegate sizin sunucunuzda çalışır; bizim (geliştiricinin) hiçbir sunu
 | Kimlik, kart, IBAN gibi değerler | Hafızaya ve diske yazılmaz | Belge ve fotoğraflarda maskelenir |
 | Takvim etkinlikleri | Saklanmaz (5 dakika bellekte tutulur) | Takvim adresine istek gider; sorduğunuzda etkinlik metni model sağlayıcısına gider |
 | Web sohbeti oturumu | Sunucu belleğinde rastgele oturum kimliği (diske yazılmaz, yeniden başlatmada silinir); tarayıcıda yalnızca `HttpOnly` çerez | Hiçbir şey; sohbet metni yalnızca sizin adresinizle sizin tarayıcınız arasında gider |
+| Web bildirimi (Web Push) | Tarayıcının verdiği abonelik (adres + anahtarlar) `ayarlar` tablosunda; `/yedek` dosyasına girmez | Bildirim yalnızca "Yeni mesaj" yazar, sohbet metni taşımaz; tarayıcının push servisinden (Google, Apple ya da Mozilla) geçer |
 | Telefon bildirimleri | Yalnızca telefonun belleğinde (son 30), diske yazılmaz | OpenDelegate'e sorduğunuzda içeriği model sağlayıcısına gider |
 | Telefon kilit PIN'i | Yalnızca telefonda, Android Keystore ile şifreli | Sunucuya gitmez |
 | Anahtarlar ve sırlar | Render ortam değişkenleri / yerel `.env` | Log'larda maskelenir; koda yazılmaz |
@@ -38,6 +39,7 @@ OpenDelegate runs on your server; the developer has no servers and your data doe
 | ID, card, IBAN values | Not written to memory or disk | Masked in documents and photos |
 | Calendar events | Not stored (kept in memory for 5 minutes) | A request goes to the calendar address; when you ask, the event text goes to the model provider |
 | Web chat session | A random session id in server memory (never written to disk, cleared on restart); only an `HttpOnly` cookie in the browser | Nothing; chat text travels only between your own address and your own browser |
+| Web notification (Web Push) | The subscription the browser gives (address + keys) in the `ayarlar` table; not included in the `/yedek` file | The notification only says "Yeni mesaj" (new message) and carries no chat text; it passes through the browser's push service (Google, Apple or Mozilla) |
 | Phone notifications | Only in the phone's memory (last 30), never written to disk | Their content goes to the model provider when you ask OpenDelegate |
 | Phone lock PIN | Only on the phone, encrypted with Android Keystore | Never sent to the server |
 | Keys and secrets | Render environment variables / local `.env` | Masked in logs; never written in code |

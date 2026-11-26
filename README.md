@@ -37,7 +37,7 @@ uygulama açar, mesaj okur, alarm kurar. Teknik bilgi gerekmez: komut yok, menü
 
 | | |
 |---|---|
-| **Web sohbeti** | Kendi adresinizde (`/sohbet`): parola ve doğrulama uygulaması koduyla giriş, cevaplar ve onay düğmeleri tarayıcıda; telefonda ana ekrana eklenebilir. Telegram'a bağımlı değildir |
+| **Web sohbeti** | Kendi adresinizde (`/sohbet`): parola ve doğrulama uygulaması koduyla giriş, cevaplar ve onay düğmeleri tarayıcıda; dosya, fotoğraf ve sesli mesaj yükleyebilirsiniz; sekme kapalıyken "yeni mesaj" bildirimi (Web Push); telefonda ana ekrana eklenebilir. Telegram'a bağımlı değildir |
 | **Bilgisayar kontrolü** | Dosya, terminal, program, ekran görüntüsü; ekranı görerek fare ve klavyeyle kendi kendine iş yapma |
 | **Telefon ekran ajanı** | Android'de uygulama açma, tıklama, yazma, bildirim okuma, alarm, fener, arama; ödeme ve şifre alanlarına dokunmaz |
 | **Sesli asistan** | Telefonda hep açık, "delegate bir bakar mısın" ile uyanır; Türkçe konuşur (tanıma Groq Whisper, ses Edge TTS) |

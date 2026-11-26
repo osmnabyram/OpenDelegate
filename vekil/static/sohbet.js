@@ -5,10 +5,12 @@
   var EN = (navigator.language || "").toLowerCase().indexOf("en") === 0;
   var T = EN
     ? { parola: "Password", kod: "Verification code", girisYap: "Sign in", yaziyor: "typing...", cikis: "Sign out",
-        gonder: "Send", yaz: "Write a message", hata: "Connection problem. Retrying...", dosya: "File", ses: "Voice",
+        gonder: "Send", yaz: "Write a message", hata: "Connection problem. Retrying...", dosya: "File", ses: "Voice", bildirim: "Notifications", bildirimAcik: "Notifications on",
+        izinYok: "Notification permission was not given.", pushYok: "This browser cannot receive notifications (on iPhone, add the page to the home screen first).",
         kayit: "Recording... tap Voice again to send", mikYok: "Microphone is not available (it needs https and permission).", yuklenemedi: "Could not upload." }
     : { parola: "Parola", kod: "Doğrulama kodu", girisYap: "Giriş yap", yaziyor: "yazıyor...", cikis: "Çıkış",
-        gonder: "Gönder", yaz: "Bir mesaj yazın", hata: "Bağlantı sorunu. Tekrar deneniyor...", dosya: "Dosya", ses: "Ses",
+        gonder: "Gönder", yaz: "Bir mesaj yazın", hata: "Bağlantı sorunu. Tekrar deneniyor...", dosya: "Dosya", ses: "Ses", bildirim: "Bildirim", bildirimAcik: "Bildirim açık",
+        izinYok: "Bildirim izni verilmedi.", pushYok: "Bu tarayıcı bildirim alamıyor (iPhone'da önce sayfayı ana ekrana ekleyin).",
         kayit: "Kaydediliyor... göndermek için Ses düğmesine tekrar dokunun", mikYok: "Mikrofon kullanılamıyor (https ve izin gerekir).", yuklenemedi: "Yüklenemedi." };
   document.documentElement.lang = EN ? "en" : "tr";
   document.querySelectorAll("[data-t]").forEach(function (e) { e.textContent = T[e.dataset.t]; });
@@ -123,7 +125,7 @@
     try {
       var r = await api("/sohbet/giris", { parola: $("parola").value, kod: $("kod").value });
       var v = await r.json();
-      if (r.ok) { $("parola").value = ""; $("kod").value = ""; goster(true); dongu(); }
+      if (r.ok) { $("parola").value = ""; $("kod").value = ""; goster(true); dongu(); bildirimDurumu(); }
       else { $("hata").textContent = v.hata || ""; }
     } catch (x) { $("hata").textContent = T.hata; }
   });
@@ -195,6 +197,39 @@
     } catch (e) { kayit = null; sistemNotu(T.mikYok); }
   });
 
+  // Web Push: sekme kapalıyken "yeni mesaj" bildirimi (içerik taşımaz).
+  function u8(b64) {
+    var d = atob((b64 + "=".repeat((4 - b64.length % 4) % 4)).replace(/-/g, "+").replace(/_/g, "/"));
+    return Uint8Array.from(d, function (c) { return c.charCodeAt(0); });
+  }
+  async function bildirimDurumu() {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !window.Notification) { return; }
+    try {
+      var a = await (await api("/sohbet/push/anahtar")).json();
+      if (!a.acik) { return; }
+      var reg = await navigator.serviceWorker.register("/sohbet/sw.js");
+      var mevcut = await reg.pushManager.getSubscription();
+      var d = $("bildirim");
+      d.hidden = false;
+      if (mevcut && Notification.permission === "granted") { d.textContent = T.bildirimAcik; d.classList.add("acik"); }
+      d.onclick = async function () {
+        try {
+          var abone = await reg.pushManager.getSubscription();
+          if (abone) {
+            await api("/sohbet/push/iptal", { endpoint: abone.endpoint });
+            await abone.unsubscribe();
+            d.textContent = T.bildirim; d.classList.remove("acik");
+            return;
+          }
+          if (await Notification.requestPermission() !== "granted") { sistemNotu(T.izinYok); return; }
+          abone = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(a.anahtar) });
+          var r = await api("/sohbet/push/abone", abone.toJSON());
+          if (r.ok) { d.textContent = T.bildirimAcik; d.classList.add("acik"); } else { await abone.unsubscribe(); sistemNotu(T.pushYok); }
+        } catch (x) { sistemNotu(T.pushYok); }
+      };
+    } catch (e) { /* bildirim yoksa sohbet yine çalışır */ }
+  }
+
   $("cikis").addEventListener("click", async function () {
     await api("/sohbet/cikis", {});
     location.reload();
@@ -202,6 +237,6 @@
 
   api("/sohbet/ben").then(function (r) { return r.json(); }).then(function (v) {
     $("kodSatir").hidden = !v.totp;
-    if (v.giris) { goster(true); dongu(); } else { goster(false); }
+    if (v.giris) { goster(true); dongu(); bildirimDurumu(); } else { goster(false); }
   }).catch(function () { goster(false); });
 })();

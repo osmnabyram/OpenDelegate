@@ -39,6 +39,12 @@ Hayır. OpenDelegate kendi adresinizdeki **web sohbetinden** (`/sohbet`) kullan�
 **Web sohbeti güvenli mi?**
 Giriş parola (en az 12 karakter) ve telefondaki doğrulama uygulamasının 6 haneli koduyla yapılır. Yanlış denemede 15 dakika beklenir, oturum çerezi tarayıcı betiklerinden gizlidir ve yalnızca https ile gider, süresi dolunca ya da çıkış yapınca biter. Telefonu kaybederseniz Render'da `WEB_TOTP_SIR` değerini değiştirerek eski kodları geçersiz kılarsınız.
 
+**Web sohbetinden dosya ya da sesli mesaj gönderebilir miyim?**
+Evet. Yazı kutusunun yanındaki *Dosya* düğmesiyle fotoğraf, PDF, Word, Excel ve metin dosyası; *Ses* düğmesiyle sesli mesaj gönderirsiniz (tarayıcı mikrofon izni ister; sesin yazıya çevrilmesi için `GROQ_API_KEY` gerekir). En fazla 25 MB. Dosyalar diske yazılmaz, bellekte işlenir.
+
+**Sekme kapalıyken bildirim gelir mi?**
+Evet, *Bildirim* düğmesine basıp izin verirseniz. Bildirim yalnızca "Yeni mesaj" der, mesajı açmak için sohbete girersiniz. iPhone'da bildirim için sayfayı önce *Ana Ekrana Ekle* ile kurmanız gerekir (iOS 16.4 ve üstü). Render'da ücretsiz plan uyuduysa bildirim ancak sunucu uyanıkken gider (UptimeRobot kurun).
+
 **Takvimimi görebilir mi?**
 Salt okunur olarak, evet. Google Takvim'de *Ayarlar → takvimi seç → Takvimi entegre et → iCal biçiminde gizli adres* kısmındaki adresi kopyalayıp `TAKVIM_ICS_URL` ortam değişkenine yapıştırın (Render'da *Environment*). Sonra "bugün ne var", "yarın toplantım var mı", "bu hafta programım" diye sorabilirsiniz; sabah brifingine de bugünün etkinlikleri girer. Etkinlik ekleyemez ya da silemez, e-postaya bakmaz. Adresi bilen herkes takvimi okuyabilir, o yüzden kimseyle paylaşmayın; sızarsa Google'da "gizli adresi sıfırla". Telefon uygulamasındaki sesli asistan takvime şu an bakmaz, yalnızca Telegram ve brifing.
 
@@ -93,6 +99,12 @@ No. OpenDelegate is used through the **web chat** (`/sohbet`) on your own addres
 
 **Is the web chat secure?**
 Sign-in needs a password (12+ characters) and the 6-digit code from the authenticator app on your phone. After wrong tries it waits 15 minutes, the session cookie is hidden from page scripts and travels only over https, and it ends on expiry or sign-out. If you lose the phone, change `WEB_TOTP_SIR` on Render to invalidate the old codes.
+
+**Can I send files or voice messages from the web chat?**
+Yes. Use the *File* button next to the text box for photos, PDF, Word, Excel and text files, and the *Voice* button for a voice message (the browser asks for microphone permission; `GROQ_API_KEY` is needed to turn speech into text). Up to 25 MB. Files are not written to disk; they are processed in memory.
+
+**Will I get a notification when the tab is closed?**
+Yes, if you press the *Notifications* button and allow it. The notification only says "Yeni mesaj" (new message); you open the chat to read it. On iPhone you must first install the page with *Add to Home Screen* (iOS 16.4 and later). If the free Render plan has gone to sleep, the notification only goes out while the server is awake (set up UptimeRobot).
 
 **Can it see my calendar?**
 Read-only, yes. In Google Calendar open *Settings → pick the calendar → Integrate calendar → Secret address in iCal format*, copy the address and paste it into the `TAKVIM_ICS_URL` environment variable (on Render: *Environment*). Then you can ask "what is on today", "do I have a meeting tomorrow", "my schedule this week"; today's events also go into the morning briefing. It cannot add or delete events and does not read email. Anyone who knows the address can read the calendar, so share it with nobody; if it leaks, "reset secret address" in Google. The voice assistant in the phone app does not look at the calendar for now, only Telegram and the briefing.

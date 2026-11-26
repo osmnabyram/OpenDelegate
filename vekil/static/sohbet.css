@@ -21,7 +21,9 @@ button:hover { filter:brightness(1.1); }
 header { display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--cizgi); }
 header strong { font-family:var(--mono); letter-spacing:.14em; color:var(--vurgu); }
 header span { color:var(--soluk); font-size:13px; flex:1; }
-header button { background:none; border:1px solid var(--cizgi); color:var(--soluk); padding:6px 12px; margin-left:auto; }
+header button { background:none; border:1px solid var(--cizgi); color:var(--soluk); padding:6px 12px; }
+header #bildirim { margin-left:auto; }
+header #bildirim.acik { border-color:var(--vurgu); color:var(--metin); }
 #akis { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
 .m { max-width:88%; padding:10px 13px; border-radius:14px; background:var(--kart); border:1px solid var(--cizgi);
   white-space:pre-wrap; overflow-wrap:anywhere; }

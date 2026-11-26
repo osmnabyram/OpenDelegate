@@ -34,11 +34,13 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 
 import config
+import web_push
 
 STATIK = Path(__file__).with_name("static")
-SAYFA_DOSYALARI = {"sohbet.js": "text/javascript; charset=utf-8", "sohbet.css": "text/css; charset=utf-8"}
+SAYFA_DOSYALARI = {"sohbet.js": "text/javascript; charset=utf-8", "sohbet.css": "text/css; charset=utf-8",
+                   "ikon-192.png": "image/png", "ikon-512.png": "image/png"}
 CSP = ("default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; "
-       "connect-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'")
+       "connect-src 'self'; manifest-src 'self'; worker-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'")
 MAKS_GOVDE = 64 * 1024
 MAKS_METIN = 8000
 MAKS_MEDYA = 20  # bellekte tutulan son medya sayısı
@@ -270,12 +272,23 @@ class WebBot:
         self.mesajlar: dict[int, WebMesaj] = {}  # düğmeli mesaja düğme tıklanınca ulaşmak için
         self._yuklenen: dict[str, bytes] = {}
         self._yaziyor = 0.0
+        self._son_yoklama = 0.0
+        self.bildirim: Callable[[], None] | None = None  # sekme kapalıyken yeni mesajda (Web Push)
+
+    def yoklandi(self) -> None:
+        self._son_yoklama = time.time()
+
+    def ekran_acik_mi(self) -> bool:
+        """Sohbet sayfası şu an açık mı (uzun yoklama sürüyor mu)?"""
+        return time.time() - self._son_yoklama < 25
 
     def _ekle(self, olay: dict[str, Any]) -> int:
         self.no += 1
         olay["id"] = self.no
         olay["an"] = int(time.time())
         self.olaylar.append(olay)
+        if olay["tur"] in ("mesaj", "medya") and self.bildirim is not None and not self.ekran_acik_mi():
+            self.bildirim()
         return self.no
 
     def yaziyor_mu(self) -> bool:
@@ -322,7 +335,7 @@ class WebBot:
         self._medya[mid] = (veri, _mime(veri, ad), ad)
         while len(self._medya) > MAKS_MEDYA:
             self._medya.pop(next(iter(self._medya)))
-        no = self._ekle({"tur": "medya", "cins": tur, "url": f"/sohbet/medya/{mid}", "ad": html.escape(ad),
+        no = self._ekle({"tur": "medya", "cins": tur, "url": f"/sohbet/medya/{mid}", "ad": ad,
                          "mime": self._medya[mid][1], "altyazi": html.escape(caption or "")})
         return WebMesaj(self, no, caption or "")
 
@@ -479,8 +492,10 @@ def rotalar(mesaj_isle: Callable[[str], Awaitable[None]], dugme_isle: Callable[[
         except ValueError:
             son = 0
         bitis = time.time() + 20
+        web_bot.yoklandi()
         while web_bot.no <= son and time.time() < bitis:  # uzun yoklama: yeni olay gelince hemen döner
             await asyncio.sleep(0.4)
+            web_bot.yoklandi()
             if not _giris_var(request):
                 break
         return _json({"olaylar": web_bot.olaylar_sonrasi(son), "son": web_bot.no, "yaziyor": web_bot.yaziyor_mu()})
@@ -504,6 +519,36 @@ def rotalar(mesaj_isle: Callable[[str], Awaitable[None]], dugme_isle: Callable[[
             return _json({"hata": "Geçersiz."}, 400)
         baslat(dugme_isle(d))
         return _json({"tamam": True}, 202)
+
+    async def push_anahtar(request: Request) -> Response:
+        if not _giris_var(request):
+            return _json({"hata": "Giriş gerekli."}, 401)
+        if not web_push.acik():
+            return _json({"acik": False})
+        return _json({"acik": True, "anahtar": web_push.genel_anahtar()})
+
+    async def push_abone(request: Request) -> Response:
+        if not _yazma_izni(request):
+            return _json({"hata": "Yetkisiz."}, 403)
+        if not web_push.acik() or not await web_push.abone_ekle((await _govde(request)) or {}):
+            return _json({"hata": "Abonelik kabul edilmedi."}, 400)
+        return _json({"tamam": True})
+
+    async def push_iptal(request: Request) -> Response:
+        if not _yazma_izni(request):
+            return _json({"hata": "Yetkisiz."}, 403)
+        uc = str(((await _govde(request)) or {}).get("endpoint", ""))
+        if uc:
+            await web_push.abone_sil(uc)
+        return _json({"tamam": True})
+
+    async def servis_calisani(request: Request) -> Response:
+        return Response((STATIK / "sw.js").read_bytes(), media_type="text/javascript; charset=utf-8",
+                        headers={"Cache-Control": "no-cache", "Content-Security-Policy": CSP})
+
+    async def manifest(request: Request) -> Response:
+        return Response((STATIK / "sohbet.webmanifest").read_bytes(), media_type="application/manifest+json",
+                        headers={"Cache-Control": "no-cache"})
 
     async def yukle(request: Request) -> Response:
         """Ham gövde = dosya. Başlıklar: X-Dosya-Adi, X-Tur (ses|dosya), X-Not (hepsi yüzde-kodlu), Content-Type."""
@@ -557,5 +602,10 @@ def rotalar(mesaj_isle: Callable[[str], Awaitable[None]], dugme_isle: Callable[[
         Route("/sohbet/mesaj", mesaj, methods=["POST"]),
         Route("/sohbet/dugme", dugme, methods=["POST"]),
         Route("/sohbet/yukle", yukle, methods=["POST"]),
+        Route("/sohbet/push/anahtar", push_anahtar, methods=["GET"]),
+        Route("/sohbet/push/abone", push_abone, methods=["POST"]),
+        Route("/sohbet/push/iptal", push_iptal, methods=["POST"]),
+        Route("/sohbet/sw.js", servis_calisani, methods=["GET"]),
+        Route("/sohbet/manifest.webmanifest", manifest, methods=["GET"]),
         Route("/sohbet/medya/{mid}", medya, methods=["GET"]),
     ]

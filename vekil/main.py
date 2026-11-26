@@ -105,6 +105,7 @@ import oz_degerlendirme
 import kilit
 import takip
 import uyandirma
+import web_push
 import web_sohbet
 import zamanli
 from tarih import gun_yaz
@@ -148,6 +149,8 @@ Dürüstlük — doğruluk tondan önce gelir:
 - Kullanıcının mesajında yanlış bir varsayım varsa (ör. yarın toplantı yokken "yarınki toplantıya kaçta çıkayım") önce onu
   kibarca düzelt, sonra devam et.
 - Hoşuna gitmeyecek olsa da doğrusunu söyle; bir işi yapamadıysan ya da yarım kaldıysa "oldu" deme.
+- Ekran konusunda SADECE son ekran görüntüsünde gerçekten gördüğünü söyle. Görüntü gelmediyse ya da araç hata verdiyse
+  "baktım, şunu görüyorum" deme, "göremedim" de. Tıkladığın şeyin açıldığını görmeden "açıldı" deme.
 
 Kullanıcıyla konuşma — sade dil:
 - Kullanıcıya ham kod, terminal komutu, komut çıktısı, hata metni, dosya yolu ve teknik terim GÖSTERME. Ne yaptığını
@@ -1498,6 +1501,13 @@ async def _dosyayi_metne_cevir(update: Update, context: ContextTypes.DEFAULT_TYP
         return None
 
 
+def _hata_metni(e: Exception) -> str:
+    """Ajan turunda patlayan hata kullanıcıya nasıl söylenir. 402 = model hesabının bakiyesi bitmiş."""
+    if getattr(e, "status_code", None) == 402:
+        return "⚠️ efendim, model bakiyesi bitmiş (DeepSeek: Insufficient Balance). Yüklenince devam ederim."
+    return f"⚠️ efendim, bi hata oldu: {type(e).__name__}: {e}"
+
+
 async def mesaj_geldi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not _yetkili(update) or update.message is None:
         logger.warning("Yetkisiz mesaj yok sayıldı: chat_id=%s", update.effective_chat and update.effective_chat.id)
@@ -1582,7 +1592,7 @@ async def mesaj_geldi(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         except Exception as e:  # noqa: BLE001
             logger.exception("Ajan turu patladı")
             del gecmis[geri_donus_noktasi:]  # yarım kalan tool zincirini at, geçmiş bozulmasın
-            await update.message.reply_text(f"⚠️ efendim, bi hata oldu: {type(e).__name__}: {e}")
+            await update.message.reply_text(_hata_metni(e))
         finally:
             aktif_turlar.pop(chat_id, None)
             iptal_istenen.discard(chat_id)
@@ -3069,6 +3079,9 @@ async def calis(app: Application | None) -> None:
             await ordu.kadro_yukle()
             await hafiza_tohum.uygula()  # Kullanıcının verdiği profil bilgileri, bir kez
             web_sohbet.web_bot.gecmis_yukle(await hafiza.son_mesajlar(config.TELEGRAM_CHAT_ID, 40))  # web ekranı boş açılmasın
+            if web_push.acik():
+                await web_push.yukle()
+                web_sohbet.web_bot.bildirim = web_push.tetikle  # geçmiş yüklendikten SONRA: açılışta bildirim yağmasın
         else:
             logger.warning("Hafıza açılamadı (%s); hafızasız devam ediyorum.", hafiza.tur_adi())
 
