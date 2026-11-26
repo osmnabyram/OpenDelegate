@@ -118,6 +118,15 @@ class WebBotTesti(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((o["tur"], o["mime"]), ("medya", "image/png"))
         self.assertEqual(b.medya(o["url"].rsplit("/", 1)[1])[0], png)
 
+    async def test_gecmis_yukle_ekran_bossa_ve_kacarak(self):
+        b = WebBot()
+        b.gecmis_yukle([{"role": "user", "content": "<b>selam</b>"}, {"role": "assistant", "content": "merhaba & hoş geldin"}])
+        o = b.olaylar_sonrasi(0)
+        self.assertEqual([x["tur"] for x in o], ["kullanici", "mesaj"])
+        self.assertEqual(o[0]["metin"], "&lt;b&gt;selam&lt;/b&gt;")
+        b.gecmis_yukle([{"role": "user", "content": "tekrar"}])  # ekran doluyken eklenmez
+        self.assertEqual(len(b.olaylar), 2)
+
     async def test_temizle_ve_bilinmeyen_cagrilar(self):
         b = WebBot()
         await b.send_message(1, "x")
@@ -206,6 +215,32 @@ class UcTanUcaTesti(unittest.TestCase):
             self.assertEqual(istemci.post("/sohbet/mesaj", content=b"{bozuk", headers=H).status_code, 400)
         self.assertEqual(gidenler, ["merhaba"])
 
+    def test_yukleme_yetki_boyut_ve_baslik_temizligi(self):
+        gelen = []
+
+        async def sahte(veri, ad, mime, tur, not_):
+            gelen.append((veri, ad, mime, tur, not_))
+
+        self.assertEqual(self.istemci.post("/sohbet/yukle", content=b"x", headers=H).status_code, 403)  # girişsiz
+        self.giris()
+        with mock.patch.object(main, "web_yukle_isle", sahte):
+            istemci = TestClient(main.web_uygulamasi(None), base_url="https://od.test")
+            istemci.cookies.update(self.istemci.cookies)
+            baslik = {**H, "Content-Type": "application/pdf", "X-Dosya-Adi": "..%2F..%2Fgizli%2Frapor.pdf", "X-Not": "%C3%B6zetle"}
+            self.assertEqual(istemci.post("/sohbet/yukle", content=b"%PDF-1", headers=baslik).status_code, 202)
+            self.assertEqual(istemci.post("/sohbet/yukle", content=b"", headers=H).status_code, 400)
+            self.assertEqual(istemci.post("/sohbet/yukle", headers={**H, "Origin": "https://kotu.site"}, content=b"x").status_code, 403)
+            buyuk = b"0" * (web_sohbet.MAKS_YUKLE + 1)
+            self.assertEqual(istemci.post("/sohbet/yukle", content=buyuk, headers=H).status_code, 413)
+            self.assertEqual(istemci.post("/sohbet/yukle", content=b"ses", headers={**H, "X-Tur": "ses", "Content-Type": "audio/webm;codecs=opus"}).status_code, 202)
+        self.assertEqual(gelen[0], (b"%PDF-1", "rapor.pdf", "application/pdf", "dosya", "özetle"))
+        self.assertEqual(gelen[1][2:4], ("audio/webm", "ses"))
+        self.assertEqual(len(gelen), 2)
+
+    def test_sayfa_mikrofon_iznini_sadece_kendine_verir(self):
+        self.assertIn("microphone=(self)", self.istemci.get("/sohbet").headers["permissions-policy"])
+        self.assertIn("microphone=()", self.istemci.get("/health").headers["permissions-policy"])
+
     def test_cikis_oturumu_oldurur(self):
         self.giris()
         self.assertEqual(self.istemci.post("/sohbet/cikis", json={}, headers=H).status_code, 200)
@@ -274,6 +309,28 @@ class EntegrasyonTesti(unittest.IsolatedAsyncioTestCase):
             self.assertIn("Onaylandı", son["metin"])
         finally:
             main.bekleyen_onaylar.pop("abc123", None)
+
+    async def test_yuklenen_ses_foto_belge_mesaj_geldi_ye_gider(self):
+        cagri = mock.AsyncMock()
+        with mock.patch.object(main, "mesaj_geldi", cagri), mock.patch.object(main.kilit, "kilitli", False):
+            await main.web_yukle_isle(b"ogg", "ses.webm", "audio/webm", "ses", "")
+            await main.web_yukle_isle(b"jpeg-baytlari", "foto.jpg", "image/jpeg", "dosya", "bu ne")
+            await main.web_yukle_isle(b"abc", "not.txt", "text/plain", "dosya", "")
+        ses, foto, belge_ = [c.args[0].message for c in cagri.await_args_list]
+        self.assertEqual((ses.voice.mime_type, ses.photo, ses.document), ("audio/webm", None, None))
+        self.assertEqual((foto.caption, len(foto.photo), foto.voice), ("bu ne", 1, None))
+        self.assertEqual((belge_.document.file_name, belge_.document.mime_type), ("not.txt", "text/plain"))
+        # İşleyicilerin yaptığı gibi dosya get_file ile bir kez alınabilir
+        dosya = await self.bot.get_file(foto.photo[0].file_id)
+        self.assertEqual(bytes(await dosya.download_as_bytearray()), b"jpeg-baytlari")
+        with self.assertRaises(FileNotFoundError):
+            await self.bot.get_file(foto.photo[0].file_id)
+
+    async def test_kilitliyken_yukleme_reddedilir(self):
+        cagri = mock.AsyncMock()
+        with mock.patch.object(main, "mesaj_geldi", cagri), mock.patch.object(main.kilit, "kilitli", True):
+            await main.web_yukle_isle(b"x", "a.txt", "text/plain", "dosya", "")
+        cagri.assert_not_awaited()
 
     async def test_bilinmeyen_dugme_sessizce_yok_sayilir(self):
         await main.web_dugme_isle("hack:1")

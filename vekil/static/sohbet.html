@@ -30,6 +30,9 @@
   </header>
   <section id="akis" aria-live="polite"></section>
   <form id="yazForm">
+    <input id="dosya" type="file" hidden>
+    <button id="ekle" type="button" class="ikincil" data-t="dosya">Dosya</button>
+    <button id="mikrofon" type="button" class="ikincil" data-t="ses">Ses</button>
     <textarea id="yaz" rows="1" maxlength="8000" data-p="yaz" autocomplete="off"></textarea>
     <button type="submit" data-t="gonder">Gönder</button>
   </form>

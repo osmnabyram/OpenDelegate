@@ -25,6 +25,7 @@ import struct
 import time
 from collections import deque
 from html.parser import HTMLParser
+from urllib.parse import unquote
 from pathlib import Path
 from typing import Any, Awaitable, Callable
 
@@ -42,6 +43,7 @@ MAKS_GOVDE = 64 * 1024
 MAKS_METIN = 8000
 MAKS_MEDYA = 20  # bellekte tutulan son medya sayısı
 MAKS_MEDYA_BAYT = 25 * 1024 * 1024
+MAKS_YUKLE = 25 * 1024 * 1024  # tarayıcıdan yüklenen dosya/ses üst sınırı
 
 
 # --------------------------------------------------------------------------
@@ -250,12 +252,23 @@ class WebMesaj:
         self._bot._ekle({"tur": "sil", "hedef": self.message_id})
 
 
+class _WebDosya:
+    """Telegram `File` taklidi: yalnızca `download_as_bytearray`."""
+
+    def __init__(self, veri: bytes) -> None:
+        self._veri = veri
+
+    async def download_as_bytearray(self) -> bytearray:
+        return bytearray(self._veri)
+
+
 class WebBot:
     def __init__(self) -> None:
         self.olaylar: deque[dict[str, Any]] = deque(maxlen=500)
         self.no = 0
         self._medya: dict[str, tuple[bytes, str, str]] = {}
         self.mesajlar: dict[int, WebMesaj] = {}  # düğmeli mesaja düğme tıklanınca ulaşmak için
+        self._yuklenen: dict[str, bytes] = {}
         self._yaziyor = 0.0
 
     def _ekle(self, olay: dict[str, Any]) -> int:
@@ -277,6 +290,14 @@ class WebBot:
             if any(d["veri"] == veri for satir in o.get("dugmeler") or () for d in satir):
                 return self.mesajlar.get(o.get("hedef", o["id"]))
         return None
+
+    def gecmis_yukle(self, mesajlar: list[dict[str, str]]) -> None:
+        """Açılışta kalıcı hafızadaki son konuşmayı sohbet ekranına koyar (yalnızca ekran boşsa)."""
+        if self.olaylar:
+            return
+        for m in mesajlar:
+            metin = html.escape(str(m.get("content", ""))[:4000])
+            self._ekle({"tur": "kullanici" if m.get("role") == "user" else "mesaj", "metin": metin, "dugmeler": []})
 
     def kullanici_yazdi(self, metin: str) -> None:
         self._ekle({"tur": "kullanici", "metin": html.escape(metin)})
@@ -335,8 +356,19 @@ class WebBot:
     async def set_my_commands(self, *a: Any, **kw: Any) -> None:
         return None
 
-    async def get_file(self, *a: Any, **kw: Any) -> Any:
-        raise NotImplementedError("web sohbetinde dosya yükleme yok")
+    def dosya_koy(self, veri: bytes) -> str:
+        """Yüklenen dosyayı bellekte tutar; main'deki Telegram işleyicileri `get_file(kimlik)` ile alır (bir kez)."""
+        kimlik = secrets.token_urlsafe(12)
+        self._yuklenen[kimlik] = veri
+        while len(self._yuklenen) > 5:
+            self._yuklenen.pop(next(iter(self._yuklenen)))
+        return kimlik
+
+    async def get_file(self, file_id: str, *a: Any, **kw: Any) -> Any:
+        veri = self._yuklenen.pop(file_id, None)
+        if veri is None:
+            raise FileNotFoundError("yüklenen dosya bulunamadı")
+        return _WebDosya(veri)
 
     def medya(self, mid: str) -> tuple[bytes, str, str] | None:
         return self._medya.get(mid)
@@ -378,7 +410,15 @@ async def _govde(request: Request) -> dict[str, Any] | None:
     return veri if isinstance(veri, dict) else None
 
 
-def rotalar(mesaj_isle: Callable[[str], Awaitable[None]], dugme_isle: Callable[[str], Awaitable[None]]) -> list[Route]:
+def yukleme_adi(ham: str) -> str:
+    """Başlıktaki dosya adı: yüzde-kodlu çöz, yol parçalarını ve kontrol karakterlerini at."""
+    ad = unquote(ham or "")[:200].replace("\\", "/").rsplit("/", 1)[-1]
+    ad = re.sub(r"[\x00-\x1f\x7f]", "", ad).strip()
+    return ad[:120] or "dosya"
+
+
+def rotalar(mesaj_isle: Callable[[str], Awaitable[None]], dugme_isle: Callable[[str], Awaitable[None]],
+            yukle_isle: Callable[[bytes, str, str, str, str], Awaitable[None]]) -> list[Route]:
     """Web sohbeti kapalıysa (WEB_PAROLA boş) hiç rota eklenmez: /sohbet 404 verir."""
     if not config.WEB_PAROLA:
         return []
@@ -391,7 +431,8 @@ def rotalar(mesaj_isle: Callable[[str], Awaitable[None]], dugme_isle: Callable[[
 
     async def sayfa(request: Request) -> Response:
         return Response((STATIK / "sohbet.html").read_text(encoding="utf-8"), media_type="text/html; charset=utf-8",
-                        headers={"Content-Security-Policy": CSP, "Cache-Control": "no-store"})
+                        headers={"Content-Security-Policy": CSP, "Cache-Control": "no-store",
+                                 "Permissions-Policy": "camera=(), microphone=(self), geolocation=()"})
 
     async def dosya(request: Request) -> Response:
         ad = request.path_params["ad"]
@@ -464,6 +505,33 @@ def rotalar(mesaj_isle: Callable[[str], Awaitable[None]], dugme_isle: Callable[[
         baslat(dugme_isle(d))
         return _json({"tamam": True}, 202)
 
+    async def yukle(request: Request) -> Response:
+        """Ham gövde = dosya. Başlıklar: X-Dosya-Adi, X-Tur (ses|dosya), X-Not (hepsi yüzde-kodlu), Content-Type."""
+        if not _yazma_izni(request):
+            return _json({"hata": "Yetkisiz."}, 403)
+        try:
+            bildirilen = int(request.headers.get("content-length", "0"))
+        except ValueError:
+            bildirilen = 0
+        if bildirilen > MAKS_YUKLE:
+            return _json({"hata": "Dosya çok büyük (en fazla 25 MB)."}, 413)
+        parcalar: list[bytes] = []
+        toplam = 0
+        async for p in request.stream():
+            toplam += len(p)
+            if toplam > MAKS_YUKLE:
+                return _json({"hata": "Dosya çok büyük (en fazla 25 MB)."}, 413)
+            parcalar.append(p)
+        veri = b"".join(parcalar)
+        if not veri:
+            return _json({"hata": "Dosya boş."}, 400)
+        tur = "ses" if request.headers.get("x-tur") == "ses" else "dosya"
+        mime = (request.headers.get("content-type") or "application/octet-stream").split(";")[0].strip().lower()
+        ad = yukleme_adi(request.headers.get("x-dosya-adi", ""))
+        not_ = unquote(request.headers.get("x-not", ""))[:1000]
+        baslat(yukle_isle(veri, ad, mime, tur, not_))
+        return _json({"tamam": True}, 202)
+
     async def medya(request: Request) -> Response:
         if not _giris_var(request):
             return Response(status_code=404)
@@ -488,5 +556,6 @@ def rotalar(mesaj_isle: Callable[[str], Awaitable[None]], dugme_isle: Callable[[
         Route("/sohbet/olaylar", olaylar, methods=["GET"]),
         Route("/sohbet/mesaj", mesaj, methods=["POST"]),
         Route("/sohbet/dugme", dugme, methods=["POST"]),
+        Route("/sohbet/yukle", yukle, methods=["POST"]),
         Route("/sohbet/medya/{mid}", medya, methods=["GET"]),
     ]

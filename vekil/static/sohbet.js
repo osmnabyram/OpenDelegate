@@ -5,9 +5,11 @@
   var EN = (navigator.language || "").toLowerCase().indexOf("en") === 0;
   var T = EN
     ? { parola: "Password", kod: "Verification code", girisYap: "Sign in", yaziyor: "typing...", cikis: "Sign out",
-        gonder: "Send", yaz: "Write a message", hata: "Connection problem. Retrying..." }
+        gonder: "Send", yaz: "Write a message", hata: "Connection problem. Retrying...", dosya: "File", ses: "Voice",
+        kayit: "Recording... tap Voice again to send", mikYok: "Microphone is not available (it needs https and permission).", yuklenemedi: "Could not upload." }
     : { parola: "Parola", kod: "Doğrulama kodu", girisYap: "Giriş yap", yaziyor: "yazıyor...", cikis: "Çıkış",
-        gonder: "Gönder", yaz: "Bir mesaj yazın", hata: "Bağlantı sorunu. Tekrar deneniyor..." };
+        gonder: "Gönder", yaz: "Bir mesaj yazın", hata: "Bağlantı sorunu. Tekrar deneniyor...", dosya: "Dosya", ses: "Ses",
+        kayit: "Kaydediliyor... göndermek için Ses düğmesine tekrar dokunun", mikYok: "Mikrofon kullanılamıyor (https ve izin gerekir).", yuklenemedi: "Yüklenemedi." };
   document.documentElement.lang = EN ? "en" : "tr";
   document.querySelectorAll("[data-t]").forEach(function (e) { e.textContent = T[e.dataset.t]; });
   document.querySelectorAll("[data-p]").forEach(function (e) { e.placeholder = T[e.dataset.p]; });
@@ -140,6 +142,57 @@
   yaz.addEventListener("input", function () {
     yaz.style.height = "auto";
     yaz.style.height = Math.min(yaz.scrollHeight, 160) + "px";
+  });
+
+  function sistemNotu(metin) {
+    var k = document.createElement("div");
+    k.className = "m sistem";
+    k.textContent = metin;
+    akis.appendChild(k);
+    altaKaydir();
+    setTimeout(function () { k.remove(); }, 6000);
+  }
+
+  async function yukle(govde, ad, tur, tip) {
+    var baslik = { "X-OD": "1", "Content-Type": tip || "application/octet-stream", "X-Dosya-Adi": encodeURIComponent(ad),
+      "X-Tur": tur, "X-Not": encodeURIComponent(yaz.value.trim()) };
+    try {
+      var r = await fetch("/sohbet/yukle", { method: "POST", credentials: "same-origin", headers: baslik, body: govde });
+      if (!r.ok) { var v = await r.json().catch(function () { return {}; }); sistemNotu(v.hata || T.yuklenemedi); return; }
+      yaz.value = "";
+      yaz.style.height = "";
+    } catch (e) { sistemNotu(T.yuklenemedi); }
+  }
+
+  $("ekle").addEventListener("click", function () { $("dosya").click(); });
+  $("dosya").addEventListener("change", function () {
+    var f = this.files[0];
+    this.value = "";
+    if (f) { yukle(f, f.name, "dosya", f.type); }
+  });
+
+  var kayit = null;
+  $("mikrofon").addEventListener("click", async function () {
+    var dugme = this;
+    if (kayit) { kayit.stop(); return; }
+    if (!navigator.mediaDevices || !window.MediaRecorder) { sistemNotu(T.mikYok); return; }
+    try {
+      var akim = await navigator.mediaDevices.getUserMedia({ audio: true });
+      var parcalar = [];
+      kayit = new MediaRecorder(akim);
+      kayit.ondataavailable = function (e) { if (e.data.size) { parcalar.push(e.data); } };
+      kayit.onstop = function () {
+        akim.getTracks().forEach(function (t) { t.stop(); });
+        var tip = kayit.mimeType || "audio/webm";
+        kayit = null;
+        dugme.classList.remove("kayit");
+        var blob = new Blob(parcalar, { type: tip });
+        if (blob.size) { yukle(blob, tip.indexOf("ogg") >= 0 ? "ses.ogg" : tip.indexOf("mp4") >= 0 ? "ses.m4a" : "ses.webm", "ses", tip); }
+      };
+      kayit.start();
+      dugme.classList.add("kayit");
+      sistemNotu(T.kayit);
+    } catch (e) { kayit = null; sistemNotu(T.mikYok); }
   });
 
   $("cikis").addEventListener("click", async function () {

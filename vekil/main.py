@@ -2211,12 +2211,13 @@ async def hata_yakalayici(update: object, context: ContextTypes.DEFAULT_TYPE) ->
 # --------------------------------------------------------------------------
 
 class _WebMesajiGirdisi:
-    """mesaj_geldi'nin okuduğu update.message alanları (web'den yalnızca metin gelir)."""
+    """mesaj_geldi'nin okuduğu update.message alanları (web'den metin, ses, fotoğraf ve belge gelir)."""
 
-    def __init__(self, metin: str) -> None:
-        self.text, self.caption, self.message_id = metin, None, 0
-        self.voice = self.audio = self.photo = self.document = self.video = self.video_note = None
-        self.animation = self.reply_to_message = None
+    def __init__(self, metin: str | None, *, ses: Any = None, foto: Any = None, belge_: Any = None,
+                 aciklama: str | None = None) -> None:
+        self.text, self.caption, self.message_id = metin, aciklama, 0
+        self.voice, self.photo, self.document = ses, foto, belge_
+        self.audio = self.video = self.video_note = self.animation = self.reply_to_message = None
 
     async def reply_text(self, text: str, **kw: Any) -> Any:
         return await web_sohbet.web_bot.send_message(config.TELEGRAM_CHAT_ID, text, **kw)
@@ -2281,6 +2282,29 @@ async def web_mesaj_isle(metin: str) -> None:
         await fonksiyon(_web_guncelleme(message=_WebMesajiGirdisi(metin)), baglam)
         return
     await mesaj_geldi(_web_guncelleme(message=_WebMesajiGirdisi(metin)), baglam)
+
+
+async def web_yukle_isle(veri: bytes, ad: str, mime: str, tur: str, not_: str) -> None:
+    """Tarayıcıdan yüklenen ses/fotoğraf/belge: Telegram'daki işleyiciyle aynı yoldan (mesaj_geldi) geçer."""
+    bot = web_sohbet.web_bot
+    if kilit.kilitli:
+        await bot.send_message(config.TELEGRAM_CHAT_ID, kilit.KAPALI_MESAJI)
+        return
+    kimlik = bot.dosya_koy(veri)
+    boyut = len(veri)
+    if tur == "ses":
+        girdi = _WebMesajiGirdisi(None, ses=SimpleNamespace(file_id=kimlik, file_size=boyut, mime_type=mime or "audio/webm",
+                                                            file_name=ad if "." in ad else "ses.webm"))
+        bot.kullanici_yazdi("(sesli mesaj)")
+    elif mime.startswith("image/"):
+        girdi = _WebMesajiGirdisi(None, aciklama=not_ or None,
+                                  foto=[SimpleNamespace(file_id=kimlik, file_size=boyut, width=1, height=1)])
+        bot.kullanici_yazdi(f"(fotoğraf: {ad})" + (f" {not_}" if not_ else ""))
+    else:
+        girdi = _WebMesajiGirdisi(None, aciklama=not_ or None,
+                                  belge_=SimpleNamespace(file_id=kimlik, file_size=boyut, file_name=ad, mime_type=mime))
+        bot.kullanici_yazdi(f"(dosya: {ad})" + (f" {not_}" if not_ else ""))
+    await mesaj_geldi(_web_guncelleme(message=girdi), SimpleNamespace(bot=bot, args=[]))
 
 
 class _WebSorgu:
@@ -2568,7 +2592,7 @@ def web_uygulamasi(app: Application | None) -> Starlette:
             Route("/yonetim/{token}", yonetim_sayfasi, methods=["GET"]),
             Route("/yonetim/{token}/veri", yonetim_verisi, methods=["GET"]),
             *([Route(config.WEBHOOK_YOLU, telegram_webhook, methods=["POST"])] if app is not None else []),
-            *web_sohbet.rotalar(web_mesaj_isle, web_dugme_isle),
+            *web_sohbet.rotalar(web_mesaj_isle, web_dugme_isle, web_yukle_isle),
             Route("/jobs/pending", gorevler_bekleyen, methods=["GET"]),
             Route("/jobs/result", gorev_sonucu, methods=["POST"]),
             Route("/jobs/devam", gorev_devam, methods=["GET"]),
@@ -3044,6 +3068,7 @@ async def calis(app: Application | None) -> None:
             await izleme_yenile()
             await ordu.kadro_yukle()
             await hafiza_tohum.uygula()  # Kullanıcının verdiği profil bilgileri, bir kez
+            web_sohbet.web_bot.gecmis_yukle(await hafiza.son_mesajlar(config.TELEGRAM_CHAT_ID, 40))  # web ekranı boş açılmasın
         else:
             logger.warning("Hafıza açılamadı (%s); hafızasız devam ediyorum.", hafiza.tur_adi())
 
