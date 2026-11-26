@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#050508">
-<title>Vekil · Zihin Haritası</title>
+<title>OpenDelegate · Zihin Haritası</title>
 <style>
   :root {
     --zemin: #050508;
@@ -488,7 +488,7 @@ const cekirdekHalkalari = [];
   m.rotation.set(ex, 0, ez); cekirdek.add(m); cekirdekHalkalari.push(m);
 });
 const cekirdekEtiket = document.createElement('div');
-cekirdekEtiket.innerHTML = '<div class="cekirdek-etiket" title="Vekil\'in beyni"><b>VEKİL</b><span id="toplam">kalıcı hafıza</span></div>';
+cekirdekEtiket.innerHTML = '<div class="cekirdek-etiket" title="OpenDelegate\'in beyni"><b>VEKİL</b><span id="toplam">kalıcı hafıza</span></div>';
 cekirdekEtiket.firstChild.addEventListener('click', (e) => { e.stopPropagation(); cekirdekSec(); });
 cekirdek.add(new CSS2DObject(cekirdekEtiket));
 const CEKIRDEK = { cekirdek: true };   // seçim/üzerine gelme için işaret nesnesi
@@ -1043,7 +1043,7 @@ function kayitSec(id, ucarak = true) {
       <div class="meta">Güncellendi · ${esc(tarihYaz(k.tarih))}</div>
       ${bagli.length ? `<div><div class="baslik-kucuk">BAĞLANTILI · ${bagli.length}</div><div class="liste">${bagli.map((b) => `<button data-id="${b.id}">${esc(b.anahtar)}</button>`).join('')}</div></div>` : ''}
     </div>
-    <button class="unut" title="Telegram'da Vekil'e yapıştır"><code>/unut ${esc(k.anahtar)}</code><span>KOPYALA</span></button>`;
+    <button class="unut" title="Telegram'da OpenDelegate'e yapıştır"><code>/unut ${esc(k.anahtar)}</code><span>KOPYALA</span></button>`;
   panelOlaylari(); panel.querySelector('.unut').onclick = () => kopyala(`/unut ${k.anahtar}`);
   panel.classList.add('acik');
 }
@@ -1068,7 +1068,7 @@ function cekirdekSec() {
   const merkez = [...kayitlar].map((k) => [k, komsu.get(k.id).length]).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).slice(0, 5);
   panel.innerHTML = `
     <div class="ust"><span class="cip" style="--c:#ff2a1a">ÇEKİRDEK</span><button class="kapat" aria-label="Kapat">×</button></div>
-    <h2>Vekil'in beyni</h2>
+    <h2>OpenDelegate'in beyni</h2>
     <div class="govde">
       <div class="istat">
         <div><b>${kayitlar.length}</b><span>KAYIT</span></div>
@@ -1094,7 +1094,7 @@ function panelOlaylari() {
   panel.querySelectorAll('[data-id]').forEach((b) => b.onclick = () => kayitSec(b.dataset.id));
 }
 async function kopyala(metin) {
-  try { await navigator.clipboard.writeText(metin); bildir('Kopyalandı — Telegram\'da Vekil\'e yapıştır'); }
+  try { await navigator.clipboard.writeText(metin); bildir('Kopyalandı — Telegram\'da OpenDelegate\'e yapıştır'); }
   catch { bildir(metin); }
 }
 let bildirimZaman;
@@ -1236,7 +1236,7 @@ window.__harita = {
   let veri;
   try { veri = await ilkVeri(); }
   catch (e) {
-    yukleme(e.kalici ? 'bu link geçersiz ya da yenilenmiş — /harita ile yenisini al' : 'Vekil şu an uyanmadı — biraz sonra tekrar dene', 100);
+    yukleme(e.kalici ? 'bu link geçersiz ya da yenilenmiş — /harita ile yenisini al' : 'OpenDelegate şu an uyanmadı — biraz sonra tekrar dene', 100);
     return;
   }
   yukleme('evren kuruluyor…', 88);

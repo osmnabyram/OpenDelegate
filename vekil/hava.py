@@ -1,6 +1,6 @@
 """Hızlı hava durumu: tek istekte şu an + önümüzdeki saatler + 3 gün (Open-Meteo, key'siz).
 
-Neden: "hava nasıl" sorusunda Vekil internette arayıp sayfa okuyup birkaç model turu yapıyordu (15-20 sn).
+Neden: "hava nasıl" sorusunda OpenDelegate internette arayıp sayfa okuyup birkaç model turu yapıyordu (15-20 sn).
 Bu araç tek istekte, ~1 sn'de, sade Türkçe özet döner; model 1 tur daha düşünüp cevaplar. Telefonda da doğrudan
 kullanılır. Konum verilmezse brifingin şehri (config.SEHIR_AD). Open-Meteo olmazsa YEDEK kaynak MET Norway denenir; ikisi de olmazsa hata metni döner ve model
 internette ESKİ/tarihli sayfa okumaya YÖNLENDİRİLMEZ (19 Kasım 2026: Open-Meteo 429 verince model eski

@@ -1,6 +1,6 @@
 """OneDrive erişimi (rclone).
 
-PC kapalıyken Vekil'in senkron klasörlere (Masaüstü, Belgeler) bulut üzerinden
+PC kapalıyken OpenDelegate'in senkron klasörlere (Masaüstü, Belgeler) bulut üzerinden
 erişmesini sağlar. PC açıkken buraya yüklenen dosyalar OneDrive senkronu ile
 PC'deki klasöre de iner.
 

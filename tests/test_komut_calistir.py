@@ -1,4 +1,4 @@
-"""komut_calistir: Vekil Telegram komutlarını niyetten kendisi çalıştırır; tehlikeliler (cls/sifirla/dur) yok."""
+"""komut_calistir: OpenDelegate Telegram komutlarını niyetten kendisi çalıştırır; tehlikeliler (cls/sifirla/dur) yok."""
 
 import os
 import sys
@@ -21,7 +21,7 @@ class KomutCalistir(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(ok)
         self.assertEqual(bot.send_message.await_args.args[1], "Durum tamam")  # çıktı doğrudan sohbete
         self.assertIn("tekrar yazma", sonuc)
-        self.assertIn("Durum tamam", sonuc)  # ve Vekil de okuyabiliyor
+        self.assertIn("Durum tamam", sonuc)  # ve OpenDelegate de okuyabiliyor
 
     async def test_tehlikeli_komutlar_yok(self):
         bot = mock.Mock(send_message=mock.AsyncMock())

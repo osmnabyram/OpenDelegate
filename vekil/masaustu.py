@@ -1,12 +1,12 @@
 """Sanal masaüstü çalışma alanları (Sprint 5 / A2) — Render tarafı.
 
 Ordu çalışırken pencere açabilen her vekil (program_ac yetkisi olan: Kodcu) kendi Windows sanal
-masaüstünde çalışır: "Vekil - <ad>". Kullanıcı Win+Tab ile gezip izler. Web-only vekiller (Araştırmacı,
+masaüstünde çalışır: "OpenDelegate - <ad>". Kullanıcı Win+Tab ile gezip izler. Web-only vekiller (Araştırmacı,
 Planlayıcı) masaüstü almaz.
 
 Kurallar:
 - Vekiller kendiliğinden ASLA kullanıcının masaüstlerine (ilki dahil) gitmez: işçinin program_ac'i her zaman
-  kendi "Vekil - " masaüstüne yönlendirilir. Başvekil kullanıcının bir masaüstünü ("3") ancak kullanıcı o turda
+  kendi "OpenDelegate - " masaüstüne yönlendirilir. Başvekil kullanıcının bir masaüstünü ("3") ancak kullanıcı o turda
   açıkça masaüstü dediyse hedefleyebilir.
 - Destek ajan üzerinden yoklanır (masaustu_durum) ve önbelleğe alınır; ajan yeniden bağlanınca sıfırlanır.
   Desteklenmiyorsa iş masaüstüsüz sürer, kullanıcıya bir kez dürüstçe söylenir.
@@ -35,7 +35,7 @@ import gorevler
 
 logger = logging.getLogger("vekil.masaustu")
 
-ONEK = "Vekil - "
+ONEK = "OpenDelegate - "
 DURUM_OMRU = 600  # sn; destek bilgisi bu kadar önbellekte kalır (ajan yeniden bağlanınca da sıfırlanır)
 _durum: dict[str, Any] = {"destek": None, "neden": "", "zaman": 0.0}
 _bekleyen_temizlik: dict[str, tuple[int, list[str]]] = {}  # buton jetonu -> (chat_id, masaüstü adları)
@@ -44,7 +44,7 @@ _arka: set[asyncio.Task[Any]] = set()
 
 @dataclass
 class Oturum:
-    masaustleri: dict[str, str] = field(default_factory=dict)  # işçi adı -> "Vekil - <ad>"
+    masaustleri: dict[str, str] = field(default_factory=dict)  # işçi adı -> "OpenDelegate - <ad>"
     olusturulan: list[str] = field(default_factory=list)  # bu oturumda açılan (temizlenecek) masaüstleri
 
 

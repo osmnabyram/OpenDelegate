@@ -17,6 +17,11 @@ class UyanmaAyikla(unittest.TestCase):
             ("Vekil, hava nasıl?", "hava nasıl?"),
             ("  vekil.  saat kaç", "saat kaç"),
             ("Vekil." , ""),
+            ("Delegate bir bakar mısın", ""),
+            ("delegate, hava nasıl?", "hava nasıl?"),
+            ("Delege bir bakar mısın? Feneri aç.", "Feneri aç."),
+            ("Open Delegate, saat kaç", "saat kaç"),
+            ("delegeyt bir bakar mısın", ""),
         ]:
             self.assertEqual(sesli._UYANMA.sub("", ham).strip(), beklenen, ham)
 
@@ -33,8 +38,8 @@ class UyanmaAyikla(unittest.TestCase):
             self.assertEqual(sesli._UYANMA.sub("", ham).strip(), beklenen, ham)
 
     def test_ortadaki_vekil_korunur(self):
-        ham = "bana vekil ne demek anlat"
-        self.assertEqual(sesli._UYANMA.sub("", ham).strip(), ham)
+        for ham in ("bana vekil ne demek anlat", "bana delegate ne demek anlat", "temsilci delege seçildi"):
+            self.assertEqual(sesli._UYANMA.sub("", ham).strip(), ham)
 
 
 if __name__ == "__main__":

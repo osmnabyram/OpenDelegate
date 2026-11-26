@@ -1,4 +1,4 @@
-package com.vekilai.vekil
+package com.opendelegate.app
 
 import android.Manifest
 import android.animation.ObjectAnimator
@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         VekilService.durumCallback = { durum -> runOnUiThread { durumGuncelle(durum) } }
         VekilService.gecmisCallback = { runOnUiThread { gecmisGuncelle() } }
 
-        // Gemini gibi: dokun = şimdi dinle. Basılı tut = Vekil'i kapat/aç.
+        // Gemini gibi: dokun = şimdi dinle. Basılı tut = OpenDelegate'i kapat/aç.
         btnMic.setOnClickListener { btnMic.tetikle(); simdiDinle() }
         btnMic.setOnLongClickListener { servisToggle(); true }
         findViewById<TextView>(R.id.tvAyarlar).setOnClickListener { ayarlarGoster() }
@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    /** Vekil'in Telegram sohbeti: Telegram yüklüyse orada, değilse tarayıcıda açılır. */
+    /** OpenDelegate'in Telegram sohbeti: Telegram yüklüyse orada, değilse tarayıcıda açılır. */
     private fun telegramiAc() {
         val uygulamada = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("tg://resolve?domain=$TELEGRAM_BOT"))
         try {
@@ -163,8 +163,8 @@ class MainActivity : AppCompatActivity() {
     private fun durumGuncelle(durum: VekilService.Durum) {
         val (statusMetin, servisMetin, pulse) = when (durum) {
             VekilService.Durum.KAPALI       -> Triple("> KAPALI — ACMAK ICIN DOKUN", "KAPALI", false)
-            VekilService.Durum.BASLATILIYOR -> Triple("> VEKIL", "AKTIF", false)
-            VekilService.Durum.BEKLIYOR     -> Triple("> VEKIL", "AKTIF", false)  // bekleme: kara delik sakin
+            VekilService.Durum.BASLATILIYOR -> Triple("> OPENDELEGATE", "AKTIF", false)
+            VekilService.Durum.BEKLIYOR     -> Triple("> OPENDELEGATE", "AKTIF", false)  // bekleme: kara delik sakin
             VekilService.Durum.DINLIYOR     -> Triple("> DINLENIYOR...", "AKTIF", true)
             VekilService.Durum.ISLIYOR      -> Triple("> ISLIYOR...", "AKTIF", true)
             VekilService.Durum.OYNATILIYOR  -> Triple("> YANITLIYOR...", "AKTIF", true)
@@ -189,7 +189,7 @@ class MainActivity : AppCompatActivity() {
     private fun ayarlarGoster() {
         val dialog = layoutInflater.inflate(android.R.layout.simple_list_item_2, null)
         AlertDialog.Builder(this)
-            .setTitle("Vekil — Bağlantı Ayarları")
+            .setTitle("OpenDelegate — Bağlantı Ayarları")
             .setMessage("Render URL ve token gir:")
             .apply {
                 // İki EditText için basit dialog
@@ -225,7 +225,7 @@ class MainActivity : AppCompatActivity() {
 
     // Dinleme için şart olan sadece mikrofon. Bildirim izni BİLEREK istenmiyor (Kullanıcı: "üstte bildirim simgesi
     // durmasın"): Android 13+ izinsiz de hep açık servise izin veriyor, bildirim sadece görünmüyor.
-    // Rehber ve arama sadece "annemi ara" için (verilmese de Vekil çalışır).
+    // Rehber ve arama sadece "annemi ara" için (verilmese de OpenDelegate çalışır).
     private val gerekliIzinler: List<String> = listOf(Manifest.permission.RECORD_AUDIO)
     private val istegeBagliIzinler = listOf(Manifest.permission.READ_CONTACTS, Manifest.permission.CALL_PHONE)
 

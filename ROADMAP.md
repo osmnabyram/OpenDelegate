@@ -4,6 +4,8 @@ Planlananlar; sıra ve tarih garanti değildir. / Planned items; order and dates
 
 ## Sırada / Next
 
+- **Web sohbeti ilerlemeleri / Web chat next steps:** hatırlatma ve brifing için Web Push, sohbet geçmişini yeniden açılışta gösterme, PWA kurulumu, parola sıfırlama. / Web Push for reminders and briefings, show chat history after restart, PWA install, password reset.
+- **Telegram'sız tam mesaj seti / Full channel-neutral messages:** yerleşik mesajlardaki "Telegram" ifadelerini kanala göre söylemek. / Make built-in messages channel-neutral instead of saying "Telegram".
 - **Tam çok dillilik / Full localization:** yerleşik komut ve bildirim mesajlarının da çevrilmesi (`DIL=en` şu an yalnızca asistanın cevaplarını, sesi ve tanımayı çevirir). / Translate built-in command and notification messages too (`DIL=en` currently covers only the assistant's answers, voice and recognition).
 - **Hafıza geri yükleme / Memory restore:** `/yedek` dosyasını geri yükleme. / Restore from a `/yedek` file.
 - **Takvime yazma ve e-posta / Calendar write access and email:** etkinlik ekleme ve Gmail (Google OAuth, izinler dikkatle). / Adding events and Gmail (Google OAuth, with careful permissions).
@@ -15,6 +17,6 @@ Planlananlar; sıra ve tarih garanti değildir. / Planned items; order and dates
 
 - APK'yı sürüm etiketiyle otomatik derleyip yayınlama. / Build and publish the APK automatically on version tags.
 - Çoklu kullanıcı ve roller (şirketler için). / Multiple users and roles (for companies).
-- iOS için Telegram dışı kullanım. / A non-Telegram way to use it on iOS.
+- Web sohbetine dosya, fotoğraf ve sesli mesaj yükleme; Web Push bildirimi. / File, photo and voice upload in the web chat; Web Push notifications.
 
 Fikriniz varsa GitHub Issues'a yazın. / Ideas welcome in GitHub Issues.

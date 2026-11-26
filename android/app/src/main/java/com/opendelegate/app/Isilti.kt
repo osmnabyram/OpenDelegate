@@ -1,4 +1,4 @@
-package com.vekilai.vekil
+package com.opendelegate.app
 
 import android.content.Context
 import android.graphics.Canvas
@@ -11,7 +11,7 @@ import android.widget.FrameLayout
 
 /**
  * Panelin kartı: koyu dolgu + kenarında dönen gri ışıltı (Gemini'nin
- * renkli kenar ışığının Vekil tonları). Işıltı padding alanına taşar;
+ * renkli kenar ışığının OpenDelegate tonları). Işıltı padding alanına taşar;
  * çocuklar padding'in içinde kalır. [guc] 0..1: dinlerken sese göre parlar.
  */
 class Isilti @JvmOverloads constructor(

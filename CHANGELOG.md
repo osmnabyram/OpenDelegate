@@ -1,8 +1,25 @@
 # Değişiklikler / Changelog
 
-Biçim: [Keep a Changelog](https://keepachangelog.com/). Sürümler [Releases](https://github.com/osmnabyram/VekilAi/releases) sayfasında.
+Biçim: [Keep a Changelog](https://keepachangelog.com/). Sürümler [Releases](https://github.com/osmnabyram/OpenDelegate/releases) sayfasında.
 
 ## [Yayınlanmadı / Unreleased]
+
+## [1.4.0] - 2026-11-26
+
+### Değişti / Changed
+- **Yeni ad: OpenDelegate.** README, rehberler, kurulum sihirbazı, asistanın kendini tanıtması, Android uygulama adı ve yönetim sayfası. Depo adı da OpenDelegate oldu. / **New name: OpenDelegate.** README, guides, setup wizard, the assistant's self-introduction, the Android app name and the admin page. The repository is renamed too.
+- Android paket adı `com.opendelegate.app` oldu; bu yüzden eski uygulama güncellenmez, **yeniden kurulur** (önce eskisini silin). / The Android package name is now `com.opendelegate.app`, so the old app does not update; **install it fresh** (remove the old one first).
+- Telefon uyandırma cümlesi "delegate bir bakar mısın" oldu. Sunucu eski "vekil" biçimini de ayıklar. / The phone wake phrase is now "delegate bir bakar mısın". The server still strips the old "vekil" form.
+- Render şablonu: servis adı `opendelegate`; `TELEGRAM_*` yerine `WEB_PAROLA`, `WEB_TOTP_SIR`, `OPENDELEGATE_SIR`. / Render blueprint: service name `opendelegate`; `WEB_PAROLA`, `WEB_TOTP_SIR`, `OPENDELEGATE_SIR` instead of `TELEGRAM_*`.
+
+### Eklendi / Added
+- **Web sohbeti (`/sohbet`):** Telegram'sız kullanım. Parola + doğrulama uygulaması (TOTP) girişi, deneme sınırı, güvenli çerez, CSRF ve CSP korumaları; cevaplar, onay düğmeleri, ekran görüntüleri ve dosyalar tarayıcıda. / **Web chat (`/sohbet`):** use without Telegram. Password + authenticator (TOTP) sign-in, attempt limits, secure cookie, CSRF and CSP protections; answers, approval buttons, screenshots and files in the browser.
+- `OPENDELEGATE_SIR`: Telegram yokken türetilen anahtarların tohumu. / `OPENDELEGATE_SIR`: seed for derived keys when there is no Telegram.
+- Kurulum sihirbazı: web parolası ve doğrulama uygulaması adımları; Telegram adımları kalktı. / Setup wizard: web password and authenticator steps; the Telegram steps are gone.
+- Kurulum rehberi: kendi alan adı (Render Custom Domains) adımı. / Setup guide: own-domain step (Render Custom Domains).
+
+### Kaldırıldı / Removed
+- Telegram artık zorunlu değil; `TELEGRAM_BOT_TOKEN` boşsa tamamen kapalı. / Telegram is no longer required; it is completely off when `TELEGRAM_BOT_TOKEN` is empty.
 
 ## [1.3.0] - 2026-11-25
 

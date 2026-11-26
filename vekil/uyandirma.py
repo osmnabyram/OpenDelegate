@@ -4,7 +4,7 @@ Neden manuel: Tapo P100'ü kontrol eden Python kütüphaneleri (python-tapo dahi
 yerel ağdan (KLAP protokolü) çalışır; Render (bulut) ev ağındaki prize ulaşamaz.
 TP-Link'in resmi uygulamasının kullandığı bulut yolu community kütüphanelerinde
 çözülmüş değil (21.11.2026 araştırıldı). Çözüm: Kullanıcı resmi Tapo uygulamasından
-(telefonundan, nerede olursa olsun çalışır) prizi kendisi kapatıp açıyor; Vekil sadece
+(telefonundan, nerede olursa olsun çalışır) prizi kendisi kapatıp açıyor; OpenDelegate sadece
 ajanın bağlanmasını bekliyor, prize hiç dokunmuyor.
 
 Akış (pc_uyandir):
@@ -60,7 +60,7 @@ def hazir() -> bool:
 
 
 async def pc_uyandir(bildir: Bildir | None = None) -> tuple[bool, str]:
-    """Ajan bağlanana kadar bekler (priz manuel; Vekil elektriğe dokunmaz).
+    """Ajan bağlanana kadar bekler (priz manuel; OpenDelegate elektriğe dokunmaz).
     (açıldı_mı, modele dönecek metin). Exception fırlatmaz ('dur' hariç: CancelledError yayılır)."""
     if gorevler.ajan_cevrimici():
         return True, "PC zaten açık, ajan bağlı."

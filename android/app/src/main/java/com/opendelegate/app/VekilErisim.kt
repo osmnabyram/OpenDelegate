@@ -1,4 +1,4 @@
-package com.vekilai.vekil
+package com.opendelegate.app
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
@@ -15,7 +15,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
 
 /**
- * Vekil'in telefonu ekrandan kullanması (Kullanıcı 21.11: "her şeye erişsin"): ekranı okur, öğelere dokunur,
+ * OpenDelegate'in telefonu ekrandan kullanması (Kullanıcı 21.11: "her şeye erişsin"): ekranı okur, öğelere dokunur,
  * yazar, kaydırır. Ayarlar > Erişilebilirlik'ten bir kez açılır. Şifre alanlarının içeriği okunmaz.
  * Ekran metni ve eylemler ana thread'de çağrılır.
  */

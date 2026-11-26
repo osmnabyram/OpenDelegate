@@ -1,11 +1,11 @@
-package com.vekilai.vekil
+package com.opendelegate.app
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 
-/** Telefon açılınca Vekil'i geri başlatır. */
+/** Telefon açılınca OpenDelegate'i geri başlatır. */
 class BootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent?) {

@@ -1,4 +1,4 @@
-package com.vekilai.vekil
+package com.opendelegate.app
 
 import android.app.Notification
 import android.content.ComponentName

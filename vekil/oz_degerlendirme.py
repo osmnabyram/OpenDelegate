@@ -1,4 +1,4 @@
-"""Haftalık öz-değerlendirme: Vekil son 7 gününü (eylemler + sohbet) denetler, kısa ve dürüst bir rapor yazar.
+"""Haftalık öz-değerlendirme: OpenDelegate son 7 gününü (eylemler + sohbet) denetler, kısa ve dürüst bir rapor yazar.
 
 - SADECE RAPOR: davranış, hafıza, ayar değiştirmez. Önerileri `ayarlar` 'oz_oneriler'de "bekliyor" olarak tutar
   (inert: hiçbir yerde okunmaz/uygulanmaz). Kullanıcı onaylarsa (oz_degerlendirme tool'u) öneri bir `tercih` hafıza
@@ -51,7 +51,7 @@ def olcumler(eylemler: list[dict[str, Any]], mesajlar: list[dict[str, Any]]) -> 
 
 
 ISTEK = (
-    "Sen Vekil'sin (Kullanıcının kişisel asistanı). Son 7 gününü dürüstçe değerlendiriyorsun. Aşağıda ölçümler ve "
+    "Sen OpenDelegate'sin (Kullanıcının kişisel asistanı). Son 7 gününü dürüstçe değerlendiriyorsun. Aşağıda ölçümler ve "
     "sohbetten örnekler var. Kullanıcının düzelttiği, tekrar sorduğu, 'hayır/yanlış/öyle değil/dur' dediği yerler yanlış "
     "anlamadır; aynı hatanın tekrarı ve gereksiz adımlar israftır. Kendini övme, kısa ve net ol, emoji yok. "
     "Sadece verilen veriye dayan, olay UYDURMA; gün/saat biliyorsan söyle. En fazla 3 iyi, 4 sorun, 3 öneri. "
@@ -61,7 +61,7 @@ ISTEK = (
 
 
 def _ornek_sohbet(mesajlar: list[dict[str, Any]], sinir: int = 9000) -> str:
-    satir = [f"[{m['zaman'][:16]}] {'Kullanıcı' if m['rol'] == 'user' else 'Vekil'}: {m['icerik']}" for m in mesajlar]
+    satir = [f"[{m['zaman'][:16]}] {'Kullanıcı' if m['rol'] == 'user' else 'OpenDelegate'}: {m['icerik']}" for m in mesajlar]
     metin = "\n".join(satir)
     return metin[-sinir:]
 
@@ -106,7 +106,7 @@ async def degerlendir(
     return sonuc
 
 
-# Kendiliğinden öğrenme (23.11): Kullanıcı Vekil'i seyrek kullanıyor; haftalık değerlendirmeden çıkan SIRADAN davranış
+# Kendiliğinden öğrenme (23.11): Kullanıcı OpenDelegate'i seyrek kullanıyor; haftalık değerlendirmeden çıkan SIRADAN davranış
 # önerileri onay beklemeden tercih kaydı olur. Güvenlik/para/onay/silme konuları ve sır biçimleri ASLA otomatik
 # girmez (onlar önceden olduğu gibi kullanıcının onayını bekler). Otomatik dersler OTOMATIK_OMUR_GUN sonra düşer.
 OTOMATIK_HAFTALIK = 2

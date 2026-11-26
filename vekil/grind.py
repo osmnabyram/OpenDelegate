@@ -1,4 +1,4 @@
-"""/grind: Vekil'in son 10 anlamlı geliştirmesi (commit geçmişi), gün gün gruplu, en yeni üstte.
+"""/grind: OpenDelegate'in son 10 anlamlı geliştirmesi (commit geçmişi), gün gün gruplu, en yeni üstte.
 
 Kaynak sırası: (1) `git log` (lokal), (2) gelisim.json (Render .git tutmuyor; push öncesi
 araclar/gelisim_yaz.py ile güncellenir), (3) GitHub API (GITHUB_TOKEN varsa), (4) yoksa ne eksik olduğunu söyler.
@@ -18,7 +18,7 @@ import httpx
 
 from zamanlayici import TR
 
-REPO = os.getenv("GITHUB_REPO", "osmnabyram/VekilAi")
+REPO = os.getenv("GITHUB_REPO", "osmnabyram/OpenDelegate")
 ADET = 10
 _KOK = Path(__file__).resolve().parent
 _AY = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]

@@ -43,7 +43,7 @@ class UygulamaCevabi(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(cevap, "Saat 15:30 efendim.")
         sistem = self.gorulen["mesajlar"][0]["content"]
-        self.assertIn("Sen Vekil'sin", sistem)
+        self.assertIn("Sen OpenDelegate'sin", sistem)
         self.assertIn("2026-11-21 15:30", sistem)
         self.assertIn("tenise Salı", sistem)
         self.assertIn("telefon görüşmesi değil", sistem)

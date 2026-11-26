@@ -1,4 +1,4 @@
-"""Vekil'in kendiliğinden yazması: konuştuğumuz ama sonucu belli olmayan bir konuyu ara ara sorar.
+"""OpenDelegate'in kendiliğinden yazması: konuştuğumuz ama sonucu belli olmayan bir konuyu ara ara sorar.
 
 - Açık konular: konuşma özetlerinden ve son mesajlardan (LLM ile, günde en fazla 1 kez) çıkarılan "sonucu henüz
   belli olmayan" kişisel konular (sınav, başvuru, görüşme, plan, sorun...) + yapılacaklar listesi.

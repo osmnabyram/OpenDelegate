@@ -1,4 +1,4 @@
-package com.vekilai.vekil
+package com.opendelegate.app
 
 import android.Manifest
 import android.content.Context
@@ -22,7 +22,7 @@ import java.text.Normalizer
 import java.util.Locale
 
 /**
- * Vekil'in telefonda yaptığı işler. Sunucu ne yapılacağını X-Eylem başlığında
+ * OpenDelegate'in telefonda yaptığı işler. Sunucu ne yapılacağını X-Eylem başlığında
  * JSON listesi olarak söyler (arama.telefon_eylemi); burada uygulanır.
  * [yap] hemen yapılanları yapar ve yapılamayanların kısa açıklamasını döner (hepsi olduysa null).
  * Müzik komutları cevap okunduktan sonra yapılır ([medyaKomutlari], [medya]).
@@ -116,11 +116,11 @@ object Eylem {
         "alarm" -> baslat(ctx, Intent(AlarmClock.ACTION_SET_ALARM)
             .putExtra(AlarmClock.EXTRA_HOUR, e.optInt("saat"))
             .putExtra(AlarmClock.EXTRA_MINUTES, e.optInt("dakika"))
-            .putExtra(AlarmClock.EXTRA_MESSAGE, e.optString("etiket").ifBlank { "Vekil" })
+            .putExtra(AlarmClock.EXTRA_MESSAGE, e.optString("etiket").ifBlank { "OpenDelegate" })
             .putExtra(AlarmClock.EXTRA_SKIP_UI, true), "Alarm kurulamadı.")
         "zamanlayici" -> baslat(ctx, Intent(AlarmClock.ACTION_SET_TIMER)
             .putExtra(AlarmClock.EXTRA_LENGTH, e.optInt("sure_sn"))
-            .putExtra(AlarmClock.EXTRA_MESSAGE, e.optString("etiket").ifBlank { "Vekil" })
+            .putExtra(AlarmClock.EXTRA_MESSAGE, e.optString("etiket").ifBlank { "OpenDelegate" })
             .putExtra(AlarmClock.EXTRA_SKIP_UI, true), "Zamanlayıcı kurulamadı.")
         "uygulama_ac" -> uygulamaAc(ctx, e.optString("uygulama"))
         "fener" -> fener(ctx, e.optBoolean("acik", true))
@@ -189,7 +189,7 @@ object Eylem {
     /** Rehberde ada tek bir kişi uyuyorsa onu arar; birden fazlaysa ya da yoksa aramaz, söyler. */
     private fun ara(ctx: Context, kisi: String): String? {
         if (ctx.checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-            return "Arama izni gerekli; Vekil uygulamasını açıp izin ver."
+            return "Arama izni gerekli; OpenDelegate uygulamasını açıp izin ver."
         }
         val (numara, sorun) = kisiBul(ctx, kisi)
         if (numara == null) return sorun
@@ -201,7 +201,7 @@ object Eylem {
     /** Rehberde ada tek bir kişi uyuyorsa (numara, null); yoksa ya da birden fazlaysa (null, neden). */
     fun kisiBul(ctx: Context, kisi: String): Pair<String?, String?> {
         if (ctx.checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-            return null to "Rehber izni gerekli; Vekil uygulamasını açıp izin ver."
+            return null to "Rehber izni gerekli; OpenDelegate uygulamasını açıp izin ver."
         }
         val kayitlar = mutableListOf<Pair<String, String>>()  // (ad, numara)
         ctx.contentResolver.query(

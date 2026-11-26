@@ -3,7 +3,7 @@
 Her `eklentiler/<ad>.py` dosyası şunları tanımlar:
   ARAC = {"ad": "...", "aciklama": "...", "parametreler": {JSON şeması}, "risk": "düşük" | "orta"}
   def calistir(argumanlar) -> str | tuple[bool, str]      # async def de olur
-Adı `_` ile başlayan dosyalar atlanır (örnek şablon). Bozuk bir eklenti diğerlerini ve Vekil'i durdurmaz.
+Adı `_` ile başlayan dosyalar atlanır (örnek şablon). Bozuk bir eklenti diğerlerini ve OpenDelegate'i durdurmaz.
 Eklenti kodu sunucuda TAM yetkiyle çalışır: yalnızca kendi yazdığınız ya da okuyup güvendiğiniz kodu koyun.
 """
 
@@ -23,7 +23,7 @@ import tools
 logger = logging.getLogger("vekil.eklenti")
 
 KLASOR = config.PROJE_DIZINI / "eklentiler"
-ZAMAN_ASIMI = 60  # sn; takılan eklenti Vekil'in turunu dondurmasın
+ZAMAN_ASIMI = 60  # sn; takılan eklenti OpenDelegate'in turunu dondurmasın
 _AD = re.compile(r"^[a-z][a-z0-9_]{2,40}$")
 _RISKLER = ("düşük", "orta")  # kritik/onaylı araç eklentiyle açılmaz
 
@@ -41,7 +41,7 @@ def yukle(klasor: Path | None = None) -> list[str]:
             continue
         try:
             ad = _kaydet(dosya)
-        except Exception as e:  # noqa: BLE001 - bozuk eklenti Vekil'i düşürmemeli
+        except Exception as e:  # noqa: BLE001 - bozuk eklenti OpenDelegate'i düşürmemeli
             logger.warning("Eklenti atlandı (%s): %s", dosya.name, e)
             continue
         yuklenen.append(ad)
@@ -61,7 +61,7 @@ def _kaydet(dosya: Path) -> str:
     if not _AD.match(ad):
         raise ValueError(f"geçersiz araç adı: {ad!r} (küçük harf, rakam, _; 3-41 karakter)")
     if ad in tools.TOOLLAR and ad not in _islevler:
-        raise ValueError(f"'{ad}' adı Vekil'in kendi aracıyla çakışıyor")
+        raise ValueError(f"'{ad}' adı OpenDelegate'in kendi aracıyla çakışıyor")
     aciklama = str(arac.get("aciklama", "")).strip()
     if not aciklama:
         raise ValueError("aciklama boş: model aracı ne zaman çağıracağını bilemez")

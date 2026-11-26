@@ -1,4 +1,4 @@
-"""Ölü adam anahtarı (kill switch): Kullanıcı sohbete sadece "kys" yazarsa Vekil kendini TAMAMEN kapatır.
+"""Ölü adam anahtarı (kill switch): Kullanıcı sohbete sadece "kys" yazarsa OpenDelegate kendini TAMAMEN kapatır.
 
 - Kilit `ayarlar` 'kilit'te kalıcı: Render yeniden başlasa, yeni sürüm gelse bile kilitli açılır.
 - Kilitliyken: hiçbir mesaj/komut/buton işlenmez, model çağrılmaz; spor, brifing, zamanlı işler, konu takibi,
@@ -42,7 +42,7 @@ _KURTARMA_TUZ = bytes.fromhex(config.KILIT_KURTARMA_TUZ or "00" * 16)
 _KURTARMA_OZET = bytes.fromhex(config.KILIT_KURTARMA_OZET or "")
 MAKS_DENEME = 5
 BEKLEME_SN = 15 * 60
-KAPALI_MESAJI = ("Vekil kendini kapattı. Hiçbir şey yapmıyorum: mesaj işlemiyorum, bilgisayara ve hesaplara "
+KAPALI_MESAJI = ("OpenDelegate kendini kapattı. Hiçbir şey yapmıyorum: mesaj işlemiyorum, bilgisayara ve hesaplara "
                  "dokunmuyorum. Açmak için şifreyi yaz.")
 
 kilitli = False

@@ -1,4 +1,4 @@
-package com.vekilai.vekil
+package com.opendelegate.app
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -6,7 +6,7 @@ import android.content.Intent
 
 /**
  * Sadece adb'den deneme: konuşmadan bir tur başlatır (kilit ekranı, eylemler, panel uçtan uca denensin).
- *   adb shell am broadcast -a com.vekilai.vekil.DENEME -n com.vekilai.vekil/.DenemeAlici [--es wav deneme.wav]
+ *   adb shell am broadcast -a com.opendelegate.app.DENEME -n com.opendelegate.app/.DenemeAlici [--es wav deneme.wav]
  * wav verilirse mikrofon yerine uygulama klasöründeki o 16 kHz mono WAV gönderilir.
  * Manifest'te android.permission.DUMP ile korunur: o izin sadece kabukta ve sistemde var.
  */

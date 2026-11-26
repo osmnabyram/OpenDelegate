@@ -1,7 +1,7 @@
 """Sabah brifingi: her sabah TEK Telegram mesajı.
 
 Bölümler (Kullanıcı seçer): plan (isteğe bağlı: takvim/plan kaynağı bağlanırsa), hava (Open-Meteo, key'siz),
-siber (Tavily haber araması -> model 3 madde seçer, 1'i AI/LLM güvenliği), durum (Vekil durumu).
+siber (Tavily haber araması -> model 3 madde seçer, 1'i AI/LLM güvenliği), durum (OpenDelegate durumu).
 İlk satır birebir "Günaydın <KULLANICI_ADI>"; bölüm başlıkları emojili; siber detayları katlanır (expandable blockquote).
 
 Ayar `ayarlar`'da (brifing:ayar): kategoriler, saat, şehir (ad + koordinat). Açılışta 1 okuma,
@@ -35,18 +35,18 @@ GUVENILIR_KAYNAKLAR = [  # siber haber araması sadece bunlardan (PR/reklam/list
     "darkreading.com", "cisa.gov", "arstechnica.com", "theregister.com", "wired.com", "helpnetsecurity.com",
 ]
 KATEGORILER = {
-    # SIRA = mesajdaki sıra (Kullanıcının istediği, yukarıdan aşağı): hava, günün notu, bugün, siber, Vekil, yapılacaklar
+    # SIRA = mesajdaki sıra (Kullanıcının istediği, yukarıdan aşağı): hava, günün notu, bugün, siber, OpenDelegate, yapılacaklar
     "hava": "hava durumu ve ne giymeli",
     "yorum": "günün notu: hava ve plana göre kısa öneri (1-2 cümle)",
     "plan": "bugünkü planın (randevular, uyarılar; bir plan kaynağı bağlıysa)",
     "siber": "en fazla 3 önemli siber güvenlik haberi (biri AI/LLM güvenliği)",
-    "durum": "Vekil durumu (telefon köprüsü, PC ajanı, bekleyen iş)",
+    "durum": "OpenDelegate durumu (telefon köprüsü, PC ajanı, bekleyen iş)",
     "yapilacak": "not ettiğin işler / hatırlatmalar (bitince silinir)",
 }
 # Bölüm başlıkları: Kullanıcı sabah ilk iş okurken görsel çağrışımla hızlı anlasın diye emojili (2026-11-14 isteği).
 # İlk satır ("Günaydın <ad>") emojisiz kalır; el sallama emojisi hiçbir yerde kullanılmaz.
 BASLIK = {"yorum": "💡 Günün notu", "plan": "📅 Bugün", "yapilacak": "✅ Yapılacaklar", "hava": "🌤 Hava",
-          "siber": "🛡 Siber güvenlik", "durum": "⚙️ Vekil"}
+          "siber": "🛡 Siber güvenlik", "durum": "⚙️ OpenDelegate"}
 
 
 def _hava_emoji(durum: str) -> str:
@@ -476,7 +476,7 @@ class Brifing:
             "Sıcak, saygılı ve net ('kanka' deme, gerekirse 'Kullanıcı' de), emoji yok, Türkçe. Sadece en önemli 1-2 şeyi söyle: yağmur/soğuk varsa hangi "
             "saatlerde dikkat etmeli ya da ne giymeli; BUGÜN antrenman ya da önemli iş varsa ne zaman hazırlanmalı "
             "(seans saatinden ~45 dk önce önerebilirsin). Rüzgardan bahsetme. Brifingde zaten yazan rakamları tekrar "
-            "sayma.\nDİKKAT: 'randevusu açılıyor' satırları İLERİ TARİHLİ derslerin randevu alımıdır; randevuyu Vekil "
+            "sayma.\nDİKKAT: 'randevusu açılıyor' satırları İLERİ TARİHLİ derslerin randevu alımıdır; randevuyu OpenDelegate "
             "kendisi alır, kullanıcının bir şey yapması ya da hazırlanması gerekmez. Bunları bugünkü antrenman sanma; "
             "bugün plan ancak 'randevun alındı' ya da 'bugün toplantı günü' yazıyorsa vardır.\n"
             "KURALLAR: sadece aşağıdaki veriyi kullan; saat, sayı, olay UYDURMA. Dikkat çekici bir şey yoksa tek kısa "
@@ -485,7 +485,7 @@ class Brifing:
         )
         yanit = await self._llm().chat.completions.create(
             model=config.DEEPSEEK_MODEL, temperature=0.5, max_tokens=1200, extra_body=DUSUNME_KAPALI,
-            messages=[{"role": "system", "content": "Kullanıcının kişisel asistanı Vekil'sin; sabah notu yazıyorsun."},
+            messages=[{"role": "system", "content": "Kullanıcının kişisel asistanı OpenDelegate'sin; sabah notu yazıyorsun."},
                       {"role": "user", "content": istek}],
         )
         metin = re.sub(r"\s+", " ", (yanit.choices[0].message.content or "")).strip().strip('"')

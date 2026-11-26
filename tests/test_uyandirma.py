@@ -1,5 +1,5 @@
 """Uzaktan PC açma (priz kullanıcı tarafından Tapo app'ten manuel açılır) ve ajanın
-uyanık tutma / uykudan dönüş mantığı. Vekil prize hiç dokunmaz, sadece ajanı bekler.
+uyanık tutma / uykudan dönüş mantığı. OpenDelegate prize hiç dokunmaz, sadece ajanı bekler.
 
 Çalıştır: python -m unittest tests.test_uyandirma
 """

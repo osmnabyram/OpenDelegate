@@ -1,4 +1,4 @@
-package com.vekilai.vekil
+package com.opendelegate.app
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +38,7 @@ import android.widget.TextView
  * Ekran kapalı ya da kilitliyken ekranı yakar ve kilit ekranının üstünde açılır ([KilitEkrani]).
  *
  * Sesli ya da yazılı: klavye düğmesiyle yazı moduna geçilir (Gemini gibi). Mikrofon düğmesi duruma göre:
- * dinlerken "durdur ve gönder", Vekil konuşurken "sesi kes", telefonda iş yaparken "durdur", iş bitince
+ * dinlerken "durdur ve gönder", OpenDelegate konuşurken "sesi kes", telefonda iş yaparken "durdur", iş bitince
  * "tekrar konuş"; yazı modunda "gönder". X her şeyi iptal edip kapatır. Kararı servis verir.
  *
  * Herkese açık metotlar her thread'den çağrılabilir; iş ana thread'de yürür. Panelin hali
@@ -91,7 +91,7 @@ class Panel(
 
     init { aktif = this }
 
-    /** [devam]: Vekil'in sorusuna cevap dinleniyor; soru panelde kalır. */
+    /** [devam]: OpenDelegate'in sorusuna cevap dinleniyor; soru panelde kalır. */
     fun dinliyor(devam: Boolean = false) = ana.post {
         soruYazi = ""
         soruKesin = false
@@ -138,7 +138,7 @@ class Panel(
         halUygula()
     }
 
-    /** Vekil telefonda ekrandan iş yapıyor; [adim] o an ne yaptığı. Mikrofon düğmesi "durdur" olur. */
+    /** OpenDelegate telefonda ekrandan iş yapıyor; [adim] o an ne yaptığı. Mikrofon düğmesi "durdur" olur. */
     fun calisiyor(adim: String) = ana.post {
         if (!acikOlmali) return@post
         cevapYazi = adim
@@ -190,7 +190,7 @@ class Panel(
 
     private var pinGiriliyor = false
 
-    /** Kilit açıldı: panel kilit ekranından uygulamaların üstüne taşınır (Vekil ekranı kullanacak). */
+    /** Kilit açıldı: panel kilit ekranından uygulamaların üstüne taşınır (OpenDelegate ekranı kullanacak). */
     fun overlayaGec() = ana.post {
         val e = ekran ?: return@post
         val v = kok
@@ -202,7 +202,7 @@ class Panel(
         if (acikOlmali && ac()) halUygula()
     }
 
-    /** Vekil ekrana parmakla dokunurken panel dokunmayı altındaki uygulamaya geçirir. */
+    /** OpenDelegate ekrana parmakla dokunurken panel dokunmayı altındaki uygulamaya geçirir. */
     fun dokunmaGecir(gecir: Boolean) = ana.post {
         val v = kok ?: return@post
         val p = pencere ?: return@post
@@ -354,9 +354,9 @@ class Panel(
         val (yazi, mod, parlaklik) = when (hal) {
             Hal.DINLIYOR -> Triple("DINLIYORUM", Dalga.Mod.DINLE, 0.45f)
             Hal.DUSUNUYOR -> Triple("DUSUNUYORUM", Dalga.Mod.DUSUN, 0.6f)
-            Hal.KONUSUYOR -> Triple("VEKIL", Dalga.Mod.KONUS, 0.65f)
+            Hal.KONUSUYOR -> Triple("OPENDELEGATE", Dalga.Mod.KONUS, 0.65f)
             Hal.CALISIYOR -> Triple("TELEFONDA CALISIYORUM", Dalga.Mod.DUSUN, 0.7f)
-            Hal.BOSTA -> Triple(if (yaziModunda) "YAZ" else "VEKIL", Dalga.Mod.DUR, 0.25f)
+            Hal.BOSTA -> Triple(if (yaziModunda) "YAZ" else "OPENDELEGATE", Dalga.Mod.DUR, 0.25f)
         }
         val durum = v.findViewById<TextView>(R.id.pDurum)
         if (yazi != cizilenDurum) {

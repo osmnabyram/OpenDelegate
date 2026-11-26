@@ -1,18 +1,18 @@
 <div align="center">
 
-<img src="docs/assets/vekil_icon.jpeg" width="140" alt="Vekil"/>
+<img src="docs/assets/vekil_icon.jpeg" width="140" alt="OpenDelegate"/>
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0d1117,100:30363d&height=140&section=header&text=Vekil&fontColor=ffffff&fontSize=56&animation=fadeIn" width="100%" alt=""/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0d1117,100:30363d&height=140&section=header&text=OpenDelegate&fontColor=ffffff&fontSize=56&animation=fadeIn" width="100%" alt=""/>
 
-<a href="https://github.com/osmnabyram/VekilAi">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=19&pause=1600&color=8B949E&center=true&vCenter=true&width=640&lines=Type+or+speak%2C+Vekil+gets+it+done;Your+computer+and+phone+from+one+chat;Open+source+%C2%B7+your+own+server+%C2%B7+your+data+stays+yours" alt="Vekil"/>
+<a href="https://github.com/osmnabyram/OpenDelegate">
+  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=500&size=19&pause=1600&color=8B949E&center=true&vCenter=true&width=640&lines=Type+or+speak%2C+OpenDelegate+gets+it+done;Your+computer+and+phone+from+one+chat;Open+source+%C2%B7+your+own+server+%C2%B7+your+data+stays+yours" alt="OpenDelegate"/>
 </a>
 
 <br/>
 
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white&style=flat-square)
 ![Android](https://img.shields.io/badge/Android-Kotlin-3DDC84?logo=android&logoColor=white&style=flat-square)
-![Telegram](https://img.shields.io/badge/Telegram-Bot-26A5E4?logo=telegram&logoColor=white&style=flat-square)
+![Web](https://img.shields.io/badge/Web-Chat-8A909A?style=flat-square)
 ![Model](https://img.shields.io/badge/Model-DeepSeek-4D6BFE?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-8B949E?style=flat-square)
 
@@ -22,15 +22,15 @@
 
 ---
 
-## What is Vekil?
+## What is OpenDelegate?
 
-Vekil ("proxy" in Turkish) is a **personal AI assistant that runs on your own server**. You write to it on Telegram or say
-"vekil, bir bakar mısın" to your phone; it thinks, uses tools and finishes the job.
+OpenDelegate ("proxy" in Turkish) is a **personal AI assistant that runs on your own server**. You write to it in the **web chat** in your browser or say
+"delegate, bir bakar mısın" to your phone; it thinks, uses tools and finishes the job. Telegram is not needed (it stays as an optional channel).
 
 It handles files and programs on your computer, sees the screen and uses the mouse and keyboard, opens apps on your phone,
 reads messages and sets alarms. No technical knowledge needed: no commands, no menus, just sentences.
 
-> Even for someone who is not comfortable with technology: say what you want, Vekil does the rest.
+> Even for someone who is not comfortable with technology: say what you want, OpenDelegate does the rest.
 
 The assistant talks to its user in Turkish. This page and the code comments are partly Turkish; the setup guide is
 available in English ([docs/KURULUM.en.md](docs/KURULUM.en.md)) and Turkish ([docs/KURULUM.md](docs/KURULUM.md)).
@@ -39,34 +39,35 @@ available in English ([docs/KURULUM.en.md](docs/KURULUM.en.md)) and Turkish ([do
 
 | | |
 |---|---|
+| **Web chat** | On your own address (`/sohbet`): sign in with a password and an authenticator code; answers and approval buttons appear in the browser, and it can be added to the phone home screen. No Telegram dependency |
 | **Computer control** | Files, terminal, programs, screenshots; works on its own by looking at the screen and using mouse and keyboard |
 | **Phone screen agent** | On Android: open apps, tap, type, read notifications, alarms, flashlight, calls; never touches payment or password fields |
-| **Voice assistant** | Always on in the phone, wakes on "vekil bir bakar mısın"; speaks Turkish (recognition: Groq Whisper, voice: Edge TTS) |
+| **Voice assistant** | Always on in the phone, wakes on "delegate bir bakar mısın"; speaks Turkish (recognition: Groq Whisper, voice: Edge TTS) |
 | **Persistent memory** | Knows you and learns your preferences; browse memory as a 3D **mind map** |
 | **Calendar (read-only)** | Answers "what is on today, do I have a meeting tomorrow" from the secret iCal address of Google Calendar; today's events go into the morning briefing. Never adds or deletes |
 | **Reminders and briefing** | Timed reminders, to-do list, morning briefing (weather, plan, news), topic follow-up |
 | **Self-improvement** | Reviews itself every week and turns ordinary lessons into rules; never touches money or security topics on its own |
 | **Internet and files** | Web search, page summaries, OneDrive (rclone), reads Word/Excel/PDF/PowerPoint, understands photos |
 | **Phone calls** | Can call you when something important happens (Twilio, optional) |
-| **Remote PC wake-up** | A smart plug plus a BIOS setting turns on a powered-off computer; Vekil waits for the agent to connect |
-| **Admin page** | `/yonetim` on Telegram: status, memory counts, PC agent, recent jobs (never shows conversation text) |
+| **Remote PC wake-up** | A smart plug plus a BIOS setting turns on a powered-off computer; OpenDelegate waits for the agent to connect |
+| **Admin page** | `/yonetim` in the chat: status, memory counts, PC agent, recent jobs (never shows conversation text) |
 | **Security** | Payments and banking are blocked in code; constant-time tokens, secret masking, rate limits, kill switch ([SECURITY.md](SECURITY.md)) |
 
 ## Screenshot
 
-<p align="center"><img src="docs/assets/uygulama.png" width="180" alt="Vekil Android app"/></p>
+<p align="center"><img src="docs/assets/uygulama.png" width="180" alt="OpenDelegate Android app"/></p>
 
-<p align="center"><img src="docs/assets/zihin_haritasi.jpg" width="760" alt="Vekil 3D mind map"/><br/><sub>3D mind map: every memory entry sits around a planet for its type.</sub></p>
+<p align="center"><img src="docs/assets/zihin_haritasi.jpg" width="760" alt="OpenDelegate 3D mind map"/><br/><sub>3D mind map: every memory entry sits around a planet for its type.</sub></p>
 
 ## How does it work?
 
 ```mermaid
 flowchart LR
-    U([You]) -- text / voice --> T[Telegram]
-    U -- "vekil, bir bakar mısın" --> A[Android app]
+    U([You]) -- text --> T[Web chat]
+    U -- "delegate, bir bakar mısın" --> A[Android app]
     T --> B
     A --> B
-    subgraph B[Vekil server - Render]
+    subgraph B[OpenDelegate server - Render]
       direction TB
       M[Model: DeepSeek] --- H[(Memory: Postgres)]
       M --- K[Tools]
@@ -85,28 +86,28 @@ flowchart LR
 
 > **Setting it up for someone with no technical background?** Step-by-step guide: [docs/KURULUM.en.md](docs/KURULUM.en.md)
 
-You need: Python 3.12, a Telegram account, a [DeepSeek](https://platform.deepseek.com) API key.
+You need: Python 3.12, a [DeepSeek](https://platform.deepseek.com) API key and an authenticator app on your phone (Google/Microsoft Authenticator).
 
 ```bash
-git clone https://github.com/osmnabyram/VekilAi.git
-cd VekilAi
+git clone https://github.com/osmnabyram/OpenDelegate.git
+cd OpenDelegate
 python -m venv .venv && . .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 python kurulum.py                                  # wizard: asks for keys, writes the .env file
-python vekil/main.py                               # write on Telegram, Vekil answers
+python vekil/main.py                               # open http://localhost:10000/sohbet in your browser
 ```
 
-The wizard writes `.env`, checks your bot token and finds your chat id itself.
+The wizard writes `.env`, takes your web chat password and generates the authenticator key.
 To set up by hand, copy [`.env.example`](.env.example) to `.env` and fill it in.
 
 ### Deploy to the cloud (Render)
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/osmnabyram/VekilAi)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/osmnabyram/OpenDelegate)
 
-The button reads `render.yaml` and prepares the service; the form asks for `DEEPSEEK_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` and (recommended) `DATABASE_URL`. Render generates the random keys itself. To set it up by hand:
+The button reads `render.yaml` and prepares the service; the form asks for `DEEPSEEK_API_KEY`, `WEB_PAROLA`, `WEB_TOTP_SIR` and (recommended) `DATABASE_URL` (`python kurulum.py` generates the `WEB_TOTP_SIR` value). Render generates the random keys itself. When it is up, sign in at `https://<your-service-address>/sohbet`. To set it up by hand:
 
 1. *New → Web Service →* this repo → **Language: Docker** → *Health Check Path* `/health`.
-2. Environment: `DEEPSEEK_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `WEBHOOK_SECRET`, `AJAN_SECRET`.
+2. Environment: `DEEPSEEK_API_KEY`, `WEB_PAROLA`, `WEB_TOTP_SIR`, `OPENDELEGATE_SIR`, `AJAN_SECRET`.
 3. For persistent memory add a [Neon](https://neon.tech) Postgres URL as `DATABASE_URL` (if empty, temporary SQLite is used).
 4. The free plan sleeps the service; set up a monitor (e.g. UptimeRobot) that requests `/health` every 5 minutes.
 
@@ -117,8 +118,8 @@ Copy the `ajan/` folder to your computer, rename `ajan/.env.example` to `.env`, 
 
 ### Android app
 
-**Ready-made APK:** to try it without building, download the signed APK from the [Releases](https://github.com/osmnabyram/VekilAi/releases) page.
-To build it yourself, open `android/` in Android Studio or build from the command line. The package name is `com.vekilai.vekil`.
+**Ready-made APK:** to try it without building, download the signed APK from the [Releases](https://github.com/osmnabyram/OpenDelegate/releases) page.
+To build it yourself, open `android/` in Android Studio or build from the command line. The package name is `com.opendelegate.app`.
 
 ```bash
 cd android
@@ -144,10 +145,11 @@ The last column says which are required.
 
 | Technology | What for | Required? |
 |---|---|---|
-| Python 3.12 and `pip install -r requirements.txt` | Vekil itself | Yes |
-| Telegram account and bot (@BotFather → `/newbot`) | Chatting with Vekil | Yes |
-| DeepSeek API account ([platform.deepseek.com](https://platform.deepseek.com)) | Vekil's brain | Yes |
-| Render account | Keeping Vekil running while your computer is off (Render builds the Docker image) | If running in the cloud |
+| Python 3.12 and `pip install -r requirements.txt` | OpenDelegate itself | Yes |
+| Authenticator app (Google/Microsoft Authenticator) | The 6-digit code for web chat sign-in | Recommended |
+| Telegram account and bot (@BotFather → `/newbot`) | An extra channel to chat from Telegram too | No |
+| DeepSeek API account ([platform.deepseek.com](https://platform.deepseek.com)) | OpenDelegate's brain | Yes |
+| Render account | Keeping OpenDelegate running while your computer is off (Render builds the Docker image) | If running in the cloud |
 | UptimeRobot or similar | Stops the free Render plan from sleeping: a request to `/health` every 5 minutes | If on Render free plan |
 | Neon Postgres | Persistent memory (otherwise temporary SQLite) | No |
 | Groq account | Voice message transcription | No |
@@ -155,7 +157,7 @@ The last column says which are required.
 | rclone and OneDrive | Cloud file tasks | No |
 | PC agent: `ajan/` folder, Python, `pip install mss` | Managing the computer remotely | No |
 | Android Studio and JDK | Building the phone app (the Vosk speech model downloads on first launch) | No |
-| Twilio | Vekil calling you on the phone | No |
+| Twilio | OpenDelegate calling you on the phone | No |
 
 To know where to put keys and addresses, look at the `.env` file: the wizard writes your answers there, and you can add
 missing ones by hand using the lines in [`.env.example`](.env.example). On Render, enter the same values in the service's *Environment* section.
@@ -167,7 +169,9 @@ All settings are environment variables; secrets are never written in code. The m
 | Variable | Description |
 |---|---|
 | `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL` | Model key and name (default `deepseek-flash`) |
-| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Bot and the single authorized chat |
+| `WEB_PAROLA`, `WEB_TOTP_SIR`, `WEB_OTURUM_SAAT` | Web chat: sign-in password (12+ characters), authenticator key (base32) and session length (hours, default 12). If `WEB_PAROLA` is empty the web chat is off |
+| `OPENDELEGATE_SIR` | Seed for derived links and keys; a long random value. Required when Telegram is not used |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Optional: the Telegram channel and its single authorized chat. If empty, Telegram is off |
 | `KULLANICI_ADI`, `SEHIR_AD`, `SEHIR_LAT`, `SEHIR_LON` | Briefing greeting and weather city |
 | `DIL` | Assistant language: `tr` (default) or `en`. With `en`, answers, spoken output and speech recognition are English; built-in command messages such as `/durum` stay Turkish |
 | `DATABASE_URL` | Persistent memory (Neon Postgres) |
@@ -177,12 +181,12 @@ All settings are environment variables; secrets are never written in code. The m
 | `AJAN_SECRET`, `VEKIL_URL` | PC agent identity and server address |
 | `KILIT_TUZ`, `KILIT_OZET`, `KILIT_OZET_SADE` | Kill switch (`kys`) password digest; the wizard generates it and the password itself is not stored. If empty, `kys` is off |
 | `KILIT_KURTARMA_TUZ`, `KILIT_KURTARMA_OZET` | Password-independent, per-installation recovery code digest (see [SECURITY.md](SECURITY.md)) |
-| `SESLI_TOKEN` | Android app key (derived from the bot token if empty; a separate random value is recommended) |
+| `SESLI_TOKEN` | Android app key (derived from the main secret if empty; a separate random value is recommended) |
 | `TWILIO_*`, `KULLANICI_TELEFON` | Phone calls (optional) |
 
 ## Make it yours
 
-Vekil is a **foundation**; add or remove what you need:
+OpenDelegate is a **foundation**; add or remove what you need:
 
 - **New tool (recommended):** drop a `.py` file into the [`eklentiler/`](eklentiler/README.md) folder; it loads without touching the core code. Template: [`eklentiler/_ornek.py`](eklentiler/_ornek.py).
 - **New built-in tool:** define a `Tool` in [`tools.py`](vekil/tools.py) and wire it into the tool dispatch in [`main.py`](vekil/main.py).
@@ -192,7 +196,7 @@ Vekil is a **foundation**; add or remove what you need:
 
 ## Security
 
-Vekil manages your computer and phone, so security is a core design goal: payments and banking are rejected in code,
+OpenDelegate manages your computer and phone, so security is a core design goal: payments and banking are rejected in code,
 all endpoints are protected by constant-time keys, secrets are masked in logs, and the kill switch (`kys`) locks everything.
 Details and how to report a vulnerability: [SECURITY.md](SECURITY.md).
 

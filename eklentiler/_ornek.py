@@ -1,4 +1,4 @@
-"""Örnek eklenti şablonu. Kullanmak için: bu dosyayı `_` olmadan kopyalayın (ör. `saat.py`), düzenleyin, Vekil'i yeniden başlatın.
+"""Örnek eklenti şablonu. Kullanmak için: bu dosyayı `_` olmadan kopyalayın (ör. `saat.py`), düzenleyin, OpenDelegate'i yeniden başlatın.
 
 `_` ile başlayan dosyalar yüklenmez. Ayrıntı: eklentiler/README.md
 """
@@ -6,7 +6,7 @@
 from datetime import datetime
 
 ARAC = {
-    "ad": "saat_sor",  # küçük harf, rakam, _ ; Vekil'in kendi araçlarıyla çakışmamalı
+    "ad": "saat_sor",  # küçük harf, rakam, _ ; OpenDelegate'in kendi araçlarıyla çakışmamalı
     # Model bu metne bakarak aracı NE ZAMAN çağıracağına karar verir; açık yazın.
     "aciklama": "[Örnek] Kullanıcı saati ya da tarihi sorarsa çağır. Başka konuda çağırma.",
     "parametreler": {"type": "object", "properties": {}},  # argüman gerekmiyorsa boş

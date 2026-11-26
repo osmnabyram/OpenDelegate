@@ -1,4 +1,4 @@
-"""Zihin haritası: Vekil'in kalıcı hafızasını (bilgiler tablosu) tarayıcıda 3B bir evren olarak gösterir.
+"""Zihin haritası: OpenDelegate'in kalıcı hafızasını (bilgiler tablosu) tarayıcıda 3B bir evren olarak gösterir.
 
     GET /harita/{token}        -> tek sayfa (static/harita.html; Three.js + bloom, CDN)
     GET /harita/{token}/veri   -> JSON: çekirdek, gruplar (halka düğümleri), kayıtlar, bağlar

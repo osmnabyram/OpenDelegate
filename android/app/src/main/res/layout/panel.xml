@@ -8,7 +8,7 @@
     android:paddingHorizontal="2dp"
     android:paddingBottom="2dp">
 
-    <com.vekilai.vekil.Isilti
+    <com.opendelegate.app.Isilti
         android:id="@+id/pKart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -100,7 +100,7 @@
                     android:layout_marginEnd="12dp"
                     android:layout_weight="1">
 
-                    <com.vekilai.vekil.Dalga
+                    <com.opendelegate.app.Dalga
                         android:id="@+id/pDalga"
                         android:layout_width="match_parent"
                         android:layout_height="44dp" />
@@ -110,7 +110,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@drawable/yazi_bg"
-                        android:hint="Vekil'e yaz"
+                        android:hint="OpenDelegate'e yaz"
                         android:importantForAutofill="no"
                         android:minHeight="46dp"
                         android:paddingHorizontal="16dp"
@@ -141,5 +141,5 @@
                 </FrameLayout>
             </LinearLayout>
         </LinearLayout>
-    </com.vekilai.vekil.Isilti>
+    </com.opendelegate.app.Isilti>
 </FrameLayout>

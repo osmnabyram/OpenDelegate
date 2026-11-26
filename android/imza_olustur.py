@@ -43,12 +43,12 @@ def main() -> int:
     if not kt:
         print("keytool bulunamadı. JDK kurun ya da JAVA_HOME'u Android Studio'nun jbr klasörüne ayarlayın.")
         return 1
-    sahip = input("Anahtar sahibi (şirket ya da adınız) [Vekil]: ").strip() or "Vekil"
+    sahip = input("Anahtar sahibi (şirket ya da adınız) [OpenDelegate]: ").strip() or "OpenDelegate"
     sifre = secrets.token_urlsafe(18)
     ANAHTAR.parent.mkdir(exist_ok=True)
     komut = [kt, "-genkeypair", "-v", "-keystore", str(ANAHTAR), "-alias", "vekil", "-keyalg", "RSA", "-keysize", "4096",
              "-validity", "10000", "-storepass", sifre, "-keypass", sifre,
-             "-dname", "CN=" + sahip.replace(",", " ") + ", O=Vekil"]
+             "-dname", "CN=" + sahip.replace(",", " ") + ", O=OpenDelegate"]
     if subprocess.run(komut, capture_output=True, text=True).returncode != 0:
         print("Anahtar üretilemedi.")
         return 1

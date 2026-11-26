@@ -1,4 +1,4 @@
-"""Vekil tool tanımları (Render tarafı).
+"""OpenDelegate tool tanımları (Render tarafı).
 
 Tool'lar burada ÇALIŞMAZ. Bu modül sadece şunları içerir:
 - modele tanıtılan JSON şemaları,
@@ -17,7 +17,7 @@ olmayan disk/sistem komutları ve ödeme onay ister. Kullanıcı izliyor, "dur" 
 
 Hassas yollar (.env, .ssh, tarayıcı profilleri, Credentials...) en az 🟡 sayılır: onaysız ama
 her zaman bilgi satırı + log bırakır. Ajan da yetki bayrağı olmayan yazma/terminal/hassas işi
-çalıştırmaz (ajan/ajan.py); 🟡 işler ajana Vekil'in yetkisiyle (onayli=True) gider.
+çalıştırmaz (ajan/ajan.py); 🟡 işler ajana OpenDelegate'in yetkisiyle (onayli=True) gider.
 OneDrive'da recursive silme yine YOK (onedrive.py), bu onay değil sabit kuraldır.
 """
 
@@ -363,13 +363,13 @@ TOOLLAR: dict[str, Tool] = {
             risk="orta",
             aciklama=(
                 "[PC] Açık bir pencereyi başka bir sanal masaüstüne taşır. Kullanıcının masaüstüne SADECE o açıkça istediyse "
-                "(Win+Tab numarası, ilki '1'); 'Vekil - ...' masaüstlerine serbest. Kullanıcıyı masaüstleri arasında geçirmez."
+                "(Win+Tab numarası, ilki '1'); 'OpenDelegate - ...' masaüstlerine serbest. Kullanıcıyı masaüstleri arasında geçirmez."
             ),
             parametreler={
                 "type": "object",
                 "properties": {
                     "pencere": {"type": "string", "description": "Başlık parçası, program adı ya da pencere_listele id'si."},
-                    "masaustu": {"type": "string", "description": "Hedef: numara ('2') ya da 'Vekil - <ad>'."},
+                    "masaustu": {"type": "string", "description": "Hedef: numara ('2') ya da 'OpenDelegate - <ad>'."},
                 },
                 "required": ["pencere", "masaustu"],
             },
@@ -416,7 +416,7 @@ TOOLLAR: dict[str, Tool] = {
                 "[Brifing] Her sabahki brifing mesajının ayarları. Kullanıcı 'brifinge X ekle', 'X'i çıkar', 'artık hava "
                 "durumu verme', 'siber haberleri de koy', 'brifingi 9'a al', 'şehri değiştir', 'brifingde ne var', "
                 "'brifingi şimdi bir dene' gibi bir şey dediğinde kullan. Bölümler: plan (bugünkü spor planı ve "
-                "uyarılar), yapilacak (not edilen işler), hava, siber (en fazla 3 önemli siber haber), durum (Vekil "
+                "uyarılar), yapilacak (not edilen işler), hava, siber (en fazla 3 önemli siber haber), durum (OpenDelegate "
                 "durumu), yorum (günün notu: hava ve plana göre kısa öneriler). Olmayan bir bölüm "
                 "isterse (döviz, gündem vb.) henüz olmadığını dürüstçe söyle, uydurma."
             ),
@@ -489,11 +489,11 @@ TOOLLAR: dict[str, Tool] = {
             aciklama="[OneDrive] İzinli bir kökün altında klasör oluşturur (ara klasörlerle birlikte). Varsa dokunmaz.",
             parametreler={
                 "type": "object",
-                "properties": {"yol": {"type": "string", "description": "Ör. 'Belgeler/Projeler/Vekil'."}},
+                "properties": {"yol": {"type": "string", "description": "Ör. 'Belgeler/Projeler/OpenDelegate'."}},
                 "required": ["yol"],
             },
         ),
-        # ---- Vekil ordusu (sadece Başvekil; işçi vekiller bunu göremez) ----
+        # ---- OpenDelegate ordusu (sadece Başvekil; işçi vekiller bunu göremez) ----
         Tool(
             ad="gorev_dagit",
             hedef="ordu",
@@ -705,7 +705,7 @@ TOOLLAR: dict[str, Tool] = {
                 "[PC gücü] Evdeki bilgisayarı uzaktan AÇAR (akıllı priz: elektrik gelince laptop hazırda bekletten "
                 "uyanır, 1-2 dk sürer). Kullanıcı bilgisayarı açmanı isterse (nasıl söylediği fark etmez) eylem=ac. "
                 "Bilgisayar gerektiren bir işte (ekran görüntüsü, dosya, terminal, bilgisayar_kullan) PC kapalıysa "
-                "bunu ayrıca çağırma: Vekil o işten önce kendisi açmayı dener. eylem=durum: PC açık mı, uzaktan açma "
+                "bunu ayrıca çağırma: OpenDelegate o işten önce kendisi açmayı dener. eylem=durum: PC açık mı, uzaktan açma "
                 "kurulu mu. Açılmazsa kullanıcıya dürüstçe söyle; ödeme/yükseltme önerme."
             ),
             parametreler={"type": "object", "required": ["eylem"], "properties": {
@@ -718,7 +718,7 @@ TOOLLAR: dict[str, Tool] = {
             aciklama=(
                 "[Telegram komutları] kullanıcının isteği bir bot komutuyla karşılanıyorsa (nasıl söylediği fark etmez) "
                 "komutu SEN çalıştır, kullanıcının /komut yazmasını bekleme: durum "
-                "(Vekil/PC/OneDrive durumu), zihin (zihin haritası linki), hafiza (kayıtlı "
+                "(OpenDelegate/PC/OneDrive durumu), zihin (zihin haritası linki), hafiza (kayıtlı "
                 "bilgiler), masaustu (masaüstleri), brifing (sabah brifingini şimdi gönder), grind (son "
                 "geliştirmeler), kuyruk (PC kapalıyken sıradaki işler), gecmis (son eylemler), vekiller (işçi "
                 "vekiller), izle (izlenen klasörler), hiz (son işlerin süreleri: 'neden yavaşsın'). Çıktı sohbete doğrudan gider."
@@ -732,7 +732,7 @@ TOOLLAR: dict[str, Tool] = {
             hedef="gelisim_gecmisi",
             risk="düşük",
             aciklama=(
-                "[Vekil] Kendi geliştirme geçmişin (son commit'ler, tarih ve saatiyle; /grind ile aynı). Kullanıcı "
+                "[OpenDelegate] Kendi geliştirme geçmişin (son commit'ler, tarih ve saatiyle; /grind ile aynı). Kullanıcı "
                 "'gelişmeleri göster', 'neler eklendi', 'son güncellemeler', 'commit geçmişin' gibi ne sorarsa BUNU "
                 "kullan; PC'de git çalıştırma. adet: kaç tane (varsayılan 20)."
             ),
@@ -770,7 +770,7 @@ TOOLLAR: dict[str, Tool] = {
             hedef="konu_takip",
             risk="düşük",
             aciklama=(
-                "[Konu takibi] Vekil açık kalan konuları haftada en fazla bir kez kendiliğinden sorar. Kullanıcı son "
+                "[Konu takibi] OpenDelegate açık kalan konuları haftada en fazla bir kez kendiliğinden sorar. Kullanıcı son "
                 "sorduğun konuyu bir daha sormamanı isterse (nasıl söylediği fark etmez: 'boşver', 'kapattım o işi', "
                 "'sorma artık'...) eylem=sustur. Hiçbir konuyu sormamanı isterse hepsini_sustur; tekrar sormana izin "
                 "verirse ac."
@@ -790,7 +790,7 @@ TOOLLAR: dict[str, Tool] = {
                 "anlat', 'bunu da sesli söyle', 'dinleyeyim', 'okur musun'...) eylem=cevabi_sesli: o turdaki SON "
                 "cevabın yazıldıktan sonra sesli de gider (metni argümana koyma). eylem=oku: sadece belirli bir metni "
                 "seslendirmek için (ör. bir dosyadaki yazıyı okut). "
-                "Vekil'in tek, sabit bir sesi var (değiştirilemez). eylem=ayarla: mod ('kapali' = sadece istenince, "
+                "OpenDelegate'in tek, sabit bir sesi var (değiştirilemez). eylem=ayarla: mod ('kapali' = sadece istenince, "
                 "'sesliye_sesli' = sesli mesaja sesli cevap, 'hepsi' = her cevap sesli de), hiz ('+10%', '-10%'). "
                 "Tercih kalıcı kaydedilir. eylem=acil: 'acil' dediği şey için ŞİMDİ sesli hatırlatma zinciri başlatır "
                 "(şimdi, 10 dk, 20 dk; cevap verirse durur, cevapsızsa yapılacaklara sıraya girer). Saatli acil için "
@@ -834,7 +834,7 @@ TOOLLAR: dict[str, Tool] = {
             risk="orta",
             aciklama=(
                 "[PC] C:\\vekil repo'sundaki bir kaynak dosyada eski_metin → yeni_metin değişikliği yapar (ilk eşleşme). "
-                "Vekil kendi kodunu düzeltmek ya da geliştirmek istediğinde kullan: aciklama alanına ne değiştirdiğini "
+                "OpenDelegate kendi kodunu düzeltmek ya da geliştirmek istediğinde kullan: aciklama alanına ne değiştirdiğini "
                 "ve neden yaz. Sadece C:\\vekil altındaki dosyalara dokunur."
             ),
             parametreler={

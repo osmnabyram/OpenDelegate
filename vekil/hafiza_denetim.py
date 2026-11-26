@@ -1,4 +1,4 @@
-"""Hafıza sağlık kontrolü: Vekil haftada bir (Pazar 20:00) kalıcı hafızasını SALT OKUMA ile tarar, bulguları
+"""Hafıza sağlık kontrolü: OpenDelegate haftada bir (Pazar 20:00) kalıcı hafızasını SALT OKUMA ile tarar, bulguları
 Kullanıcıya tek mesajla bildirir. Hiçbir şeyi kendisi silmez/değiştirmez; temizliği kullanıcı ister (hafizadan_sil).
 
 Bulgu türleri:

@@ -1,4 +1,4 @@
-package com.vekilai.vekil
+package com.opendelegate.app
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Hep açık dinleme servisi. Akış (OK Google gibi):
- *   "vekil bir bakar mısın" → bip + alt panel → konuşma canlı yazıya dökülür →
+ *   "delegate bir bakar mısın" → bip + alt panel → konuşma canlı yazıya dökülür →
  *   susunca ya da durdur'a basınca sunucuya gider → cevap panelde yazılır ve okunur.
  *
  * Paneldeki butonlar ana thread'den [panelMic] / [panelKapandi] ile gelir;
@@ -57,12 +57,15 @@ class VekilService : Service() {
         private const val ILK_SES_BEKLEME_MS = 5_000L  // panel açılıp konuşulmazsa kapanır
         private const val KUYRUK_MS = 800L  // sesle uyanınca bu süredeki ses uyanma cümlesinin sonu sayılır
 
-        // Uyanma cümlesi. Dört kelimenin dördü de modelin sözlüğünde var; tek kelimeye
-        // göre çok daha az yanlış uyanır.
-        private const val UYANMA_GRAMERI = "[\"vekil bir bakar mısın\", \"[unk]\"]"
+        // Uyanma cümlesi: "delegate bir bakar mısın". Vosk Türkçe modelinde "delegate" yok (sözlükte olmayan kelime
+        // gramerden sessizce düşer), "delege" var; Türkçe konuşan "delegate"i buna yakın söyler. Dört kelime birden
+        // aranır: tek kelimeye göre çok daha az yanlış uyanır.
+        private const val UYANMA_GRAMERI = "[\"delege bir bakar mısın\", \"[unk]\"]"
+        // Tanıyıcının yazabileceği ad biçimleri ("vekil": eski sürümle uyum).
+        private val UYANMA_ADLARI = listOf("delege", "delegat", "vekil")
 
-        const val ACTION_DINLE = "com.vekilai.vekil.DINLE"   // "vekil bir bakar mısın" demekle aynı
-        const val ACTION_KAPAT = "com.vekilai.vekil.KAPAT"   // dinlemeyi tamamen kapat
+        const val ACTION_DINLE = "com.opendelegate.app.DINLE"   // "delegate bir bakar mısın" demekle aynı
+        const val ACTION_KAPAT = "com.opendelegate.app.KAPAT"   // dinlemeyi tamamen kapat
         const val EXTRA_DENEME_WAV = "deneme_wav"          // sadece adb denemesi: mikrofon yerine bu ses
         // Sunucu buna göre telefonda iş yaptırır: 2 = alarm, fener...; 3 = ekranı da kullanır (mesaj, her iş).
         const val SURUM = 3
@@ -105,7 +108,7 @@ class VekilService : Service() {
     @Volatile private var denemeSesi: Pair<ByteArray, String>? = null  // DenemeAlici: sonraki tur bu sesle (veri, tür)
     @Volatile private var bekleyenMedya: List<String> = emptyList()  // cevap okununca yapılacak müzik komutları
     @Volatile private var bekleyenIsler: List<JSONObject> = emptyList()  // cevap okununca: mesaj, ekranda
-    @Volatile private var devamDinle = false  // Vekil soru sordu: cevabı uyanma cümlesi beklemeden dinle
+    @Volatile private var devamDinle = false  // OpenDelegate soru sordu: cevabı uyanma cümlesi beklemeden dinle
     @Volatile private var ajanDur = false     // ekrandan iş yaparken durdur'a basıldı
     @Volatile private var bekleyenYazi: String? = null  // panelden yazılan soru: sıradaki tur bununla
     @Volatile private var bekleyenSesEki: String? = null  // yazıdan sese geçildi: bu metne devam dinlenecek
@@ -194,7 +197,7 @@ class VekilService : Service() {
         }
     }
 
-    /** Panelde klavyeye geçildi: dinliyorsa kaydı bırak (gönderme), Vekil konuşuyorsa sustur. */
+    /** Panelde klavyeye geçildi: dinliyorsa kaydı bırak (gönderme), OpenDelegate konuşuyorsa sustur. */
     private fun panelYaziyaGec() {
         when (durum) {
             Durum.DINLIYOR -> yaziyaGecildi = true
@@ -350,11 +353,11 @@ class VekilService : Service() {
                 beslendi = true
 
                 // Cümle bitmesini beklemeden de uyanır (ara sonuçta dört kelime birden duyulunca):
-                // "vekil bir bakar mısın, hava nasıl" tek nefeste söylenince sorunun başı kaçmasın.
+                // "delegate bir bakar mısın, hava nasıl" tek nefeste söylenince sorunun başı kaçmasın.
                 val tam = taniyici.acceptWaveForm(bytes, bytes.size)
-                // Ham metinde "vekil" yoksa JSON ayrıştırmaya gerek yok (uyanma cümlesi şart koşar).
+                // Ham metinde uyanma adı yoksa JSON ayrıştırmaya gerek yok (uyanma cümlesi şart koşar).
                 val ham = if (tam) taniyici.result else taniyici.partialResult
-                if (!elleTetik && !ham.contains("vekil")) continue
+                if (!elleTetik && UYANMA_ADLARI.none { ham.contains(it) }) continue
                 val duyulan = JSONObject(ham).optString(if (tam) "text" else "partial")
                 val sesle = !elleTetik && uyanmaCumlesi(duyulan)
                 if (!elleTetik && !sesle) continue
@@ -402,7 +405,7 @@ class VekilService : Service() {
                 rec.stop()
                 rec.startRecording()
                 bekliyor()
-                // Vekil soru sorduysa ("gönderelim mi?") cevap uyanma cümlesi beklenmeden dinlenir;
+                // OpenDelegate soru sorduysa ("gönderelim mi?") cevap uyanma cümlesi beklenmeden dinlenir;
                 // panel yazı modundaysa kullanıcı yazarak cevaplar.
                 if (devamDinle && !panel.yaziModunda) elleTetik = true else devamDinle = false
             }
@@ -415,8 +418,8 @@ class VekilService : Service() {
     }
 
     private fun uyanmaCumlesi(metin: String): Boolean {
-        // Üçü de duyulmalı: "vekil ... bakar" sık yanlış uyanıyordu, "mısın/misin" şart.
-        if (!metin.contains("vekil") || !metin.contains("bakar")) return false
+        // Üçü de duyulmalı: "delegate ... bakar" sık yanlış uyanıyordu, "mısın/misin" şart.
+        if (UYANMA_ADLARI.none { metin.contains(it) } || !metin.contains("bakar")) return false
         return metin.contains("mısın") || metin.contains("misin")
     }
 
@@ -430,7 +433,7 @@ class VekilService : Service() {
 
     private fun bekliyor() {
         guncelle(Durum.BEKLIYOR)
-        bildirimGuncelle("> 'vekil bir bakar mısın' de")
+        bildirimGuncelle("> 'delegate bir bakar mısın' de")
     }
 
     /**
@@ -537,12 +540,12 @@ class VekilService : Service() {
     }
 
     /**
-     * Vekil telefonu ekrandan kullanır: ekranı okur, sunucudaki model bir sonraki 1-3 eylemi seçer
+     * OpenDelegate telefonu ekrandan kullanır: ekranı okur, sunucudaki model bir sonraki 1-3 eylemi seçer
      * (tıkla, yaz, kaydır...), erişilebilirlik servisi yapar; iş bitene kadar. Sonuç cümlesi döner.
      */
     private suspend fun ekranAjani(gorev: String): String {
         val erisim = VekilErisim.aktif
-            ?: return "Telefonu kullanmam için izin gerekli efendim: Vekil uygulamasındaki TELEFONU KULLANMA düğmesine bas."
+            ?: return "Telefonu kullanmam için izin gerekli efendim: OpenDelegate uygulamasındaki TELEFONU KULLANMA düğmesine bas."
         guncelle(Durum.CALISIYOR)
         bildirimGuncelle("> TELEFONDA CALISIYOR...")
         panel.calisiyor("Başlıyorum")
@@ -595,7 +598,7 @@ class VekilService : Service() {
         }
     }
 
-    /** Ekrandan yapılan işin sonucunu Vekil'in sesiyle söyler; ses gelmezse yazı panelde kalır. */
+    /** Ekrandan yapılan işin sonucunu OpenDelegate'in sesiyle söyler; ses gelmezse yazı panelde kalır. */
     private suspend fun seslendir(metin: String) {
         val ctx = applicationContext
         val istek = Request.Builder().url("${Config.renderUrl(ctx)}/seslendir/${Config.sesliToken(ctx)}")
@@ -633,7 +636,7 @@ class VekilService : Service() {
         // Canlı yazı: biten cümleler + o an söylenen kısım.
         val biten = StringBuilder()
         var anlik = ""
-        // true dönerse: "vekil ... bakar mısın" yeniden duyuldu, kullanıcı yarıda kesip yeniden başladı.
+        // true dönerse: "delegate ... bakar mısın" yeniden duyuldu, kullanıcı yarıda kesip yeniden başladı.
         fun canli(bytes: ByteArray): Boolean {
             var yeniden = false
             anlik = if (serbest.acceptWaveForm(bytes, bytes.size)) {
@@ -734,7 +737,7 @@ class VekilService : Service() {
                     panel.bosta(when (yanit.code) {
                         422 -> "Anlayamadım, bir daha söyler misin?"
                         401 -> "Token yanlış. AYARLAR'dan kontrol et."
-                        else -> "Vekil şu an cevap veremedi (${yanit.code})."
+                        else -> "OpenDelegate şu an cevap veremedi (${yanit.code})."
                     })
                     return null
                 }
@@ -797,7 +800,7 @@ class VekilService : Service() {
     /** Oynatma bitene ya da durdur/X'e basılana kadar bekler (mikrofon kendi sesini duymasın). */
     private suspend fun mp3_oynat(mp3: ByteArray) {
         guncelle(Durum.OYNATILIYOR)
-        bildirimGuncelle("> VEKIL KONUSUYOR...")
+        bildirimGuncelle("> OPENDELEGATE KONUSUYOR...")
 
         val gecici = java.io.File(cacheDir, "vekil_cevap.mp3")
         gecici.writeBytes(mp3)
@@ -883,10 +886,10 @@ class VekilService : Service() {
             Icon.createWithResource(this, R.drawable.ic_mic), "Konuş", servisIntenti(1, ACTION_DINLE)
         ).build()
         val kapat = Notification.Action.Builder(
-            Icon.createWithResource(this, R.drawable.ic_kapat), "Vekil'i kapat", servisIntenti(2, ACTION_KAPAT)
+            Icon.createWithResource(this, R.drawable.ic_kapat), "OpenDelegate'i kapat", servisIntenti(2, ACTION_KAPAT)
         ).build()
         return Notification.Builder(this, KANAL_ID)
-            .setContentTitle("Vekil")
+            .setContentTitle("OpenDelegate")
             .setContentText(metin)
             .setSmallIcon(R.drawable.ic_mic)
             .setContentIntent(ac)
@@ -908,7 +911,7 @@ class VekilService : Service() {
             getString(R.string.channel_name),
             NotificationManager.IMPORTANCE_MIN
         ).apply {
-            description = "Vekil arka planda dinliyor"
+            description = "OpenDelegate arka planda dinliyor"
             setShowBadge(false)
         }
         nm.createNotificationChannel(kanal)

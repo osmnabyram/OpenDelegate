@@ -4,7 +4,7 @@ Açılışta çalışır; `ayarlar`'daki "tohum:<surum>" işareti varsa hiçbir 
 sonradan /unut ile silerse kayıt geri gelmez. Yeni bilgi eklemek için yeni bir SURUM ve sadece
 yeni/değişen kayıtlar eklenir.
 
-Kendi profilini buraya koymak zorunda değilsin: Vekil'e Telegram'dan "bunu hatırla: ..." demen yeter.
+Kendi profilini buraya koymak zorunda değilsin: OpenDelegate'e Telegram'dan "bunu hatırla: ..." demen yeter.
 İstersen KAYITLAR listesine ("not", "profil_1", "Adım X, ... yaşındayım") gibi satırlar ekleyip
 yeni bir SURUM yazabilirsin (profil_* kayıtları haritada PROFİL gezegeni olur).
 """

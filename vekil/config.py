@@ -1,4 +1,4 @@
-"""Vekil yapılandırması.
+"""OpenDelegate yapılandırması.
 
 Gizli değerlerin hepsi .env dosyasından okunur, koda hiçbir key yazılmaz.
 Model, base_url gibi ayarlar da .env'den değiştirilebildiği için kod
@@ -30,7 +30,7 @@ DEEPSEEK_BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-flash")
 GORSEL_MODEL = os.getenv("GORSEL_MODEL", "deepseek-flash")  # ekran görüntüsü inceleme (görsel destekli olmalı)
 
-# --- Telegram (isteğe bağlı: boşsa Vekil yalnızca web sohbeti ve telefon uygulamasıyla çalışır) ---
+# --- Telegram (isteğe bağlı: boşsa OpenDelegate yalnızca web sohbeti ve telefon uygulamasıyla çalışır) ---
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 # Türetilen bağlantı ve anahtarların tohumu. Telegram kullanılıyorsa bot token'ı; kullanılmıyorsa OPENDELEGATE_SIR.
 ANA_SIR = TELEGRAM_BOT_TOKEN or _zorunlu("OPENDELEGATE_SIR")
@@ -90,7 +90,7 @@ SEHIR_LON = float(os.getenv("SEHIR_LON", "28.9784"))
 RCLONE_CONFIG = os.getenv("RCLONE_CONFIG", "").strip()
 RCLONE_BIN = os.getenv("RCLONE_BIN", "rclone").strip()
 ONEDRIVE_REMOTE = os.getenv("ONEDRIVE_REMOTE", "vekilod").strip()  # rclone config'teki remote adı
-# Vekil'in bakabileceği OneDrive kök klasörleri (virgülle).
+# OpenDelegate'in bakabileceği OneDrive kök klasörleri (virgülle).
 ONEDRIVE_KLASORLER = [
     k.strip() for k in os.getenv("ONEDRIVE_KLASORLER", "Masaüstü,Belgeler").split(",") if k.strip()
 ]
@@ -145,7 +145,7 @@ CIKTI_LIMITI = 4000  # modele dönen tool çıktısının en fazla karakter say�
 MAKS_PC_TUR = int(os.getenv("MAKS_PC_TUR", "25"))  # bir bilgisayar_kullan görevinde en fazla tur
 PC_DURGUN_ESIK = int(os.getenv("PC_DURGUN_ESIK", "3"))  # ekran bu kadar tur üst üste aynıysa: ilerleme yok, dur
 
-# --- Vekil ordusu (Başvekil işi işçi vekillere dağıtır; her işçi ayrı token harcar) ---
+# --- OpenDelegate ordusu (Başvekil işi işçi vekillere dağıtır; her işçi ayrı token harcar) ---
 MAKS_VEKIL = int(os.getenv("MAKS_VEKIL", "4"))  # bir dağıtımda en fazla kaç işçi
 MAKS_ISCI_ADIM = int(os.getenv("MAKS_ISCI_ADIM", "25"))  # bir işçinin en fazla model turu
 ISCI_ZAMAN_ASIMI = int(os.getenv("ISCI_ZAMAN_ASIMI", "0"))  # 0 = süre sınırı YOK (Kullanıcı: uzun işler kesilmesin)

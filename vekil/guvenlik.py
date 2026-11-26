@@ -188,7 +188,7 @@ def acilis_denetimi() -> list[str]:
         if not config.WEB_TOTP_SIR:
             uyari.append("WEB_TOTP_SIR boş: web sohbeti yalnızca parolayla korunuyor (doğrulama uygulaması önerilir)")
     elif not config.TELEGRAM_BOT_TOKEN:
-        uyari.append("Ne WEB_PAROLA ne TELEGRAM_BOT_TOKEN var: Vekil'e yazılı erişim yolu yok (yalnızca telefon uygulaması)")
+        uyari.append("Ne WEB_PAROLA ne TELEGRAM_BOT_TOKEN var: OpenDelegate'e yazılı erişim yolu yok (yalnızca telefon uygulaması)")
     return uyari
 
 

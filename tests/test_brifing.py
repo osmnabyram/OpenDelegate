@@ -288,9 +288,9 @@ class Mesaj(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("UYDURMA", m)  # listede olmayan haber numarası atlandı
         self.assertNotIn("<script>", m)
         self.assertIn("&lt;b&gt;", m)  # dış metin HTML olarak kaçışlandı
-        self.assertIn("<b>⚙️ Vekil</b>: telefon köprüsü bağlı · PC kapalı", m)
+        self.assertIn("<b>⚙️ OpenDelegate</b>: telefon köprüsü bağlı · PC kapalı", m)
         sira = [m.index(x) for x in ("Hava · ", "<b>💡 Günün notu</b>", "<b>📅 Bugün</b>",
-                                     "<b>🛡 Siber güvenlik</b>", "<b>⚙️ Vekil</b>", "<b>✅ Yapılacaklar</b>")]
+                                     "<b>🛡 Siber güvenlik</b>", "<b>⚙️ OpenDelegate</b>", "<b>✅ Yapılacaklar</b>")]
         self.assertEqual(sira, sorted(sira))  # Kullanıcının sırası: hava, not, siber, bugün, yapılacaklar, durum
 
     async def test_kategori_cikinca_bolum_ve_istek_yok(self):
@@ -568,7 +568,7 @@ class SadeBrifing(unittest.IsolatedAsyncioTestCase):
         b, _, gonderilen, _ = kur(durum=lambda: [("Telefon köprüsü", "bağlı"), ("PC", "kapalı"), ("Bekleyen iş", "yok")])
         b.ayar["kategoriler"] = ["durum"]
         await b.gonder_simdi()
-        self.assertIn("<b>⚙️ Vekil</b>: Telefon köprüsü <b>BAĞLI</b> · PC <b>KAPALI</b> · Bekleyen iş <b>YOK</b>",
+        self.assertIn("<b>⚙️ OpenDelegate</b>: Telefon köprüsü <b>BAĞLI</b> · PC <b>KAPALI</b> · Bekleyen iş <b>YOK</b>",
                       gonderilen[0])
 
     async def test_uzun_not_iki_cumleye_iner(self):

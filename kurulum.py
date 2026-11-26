@@ -1,4 +1,4 @@
-"""Vekil kurulum sihirbazı: solda resim, sağda sorular, altta İleri/Geri. Sonunda .env dosyasını yazar.
+"""OpenDelegate kurulum sihirbazı: solda resim, sağda sorular, altta İleri/Geri. Sonunda .env dosyasını yazar.
 
 Çalıştır: python kurulum.py          (pencere açılır)
           python kurulum.py --cli    (pencere yoksa ya da istenirse terminalde sorar)
@@ -30,28 +30,28 @@ KULLANIM = ["Dosya ve bilgisayar işleri", "Hatırlatma ve planlama", "Araştır
             "Müşteri / iş takibi", "Telefon asistanı (sesli)"]
 
 SAYFALAR: list[dict[str, Any]] = [
-    {"baslik": "Vekil'e hoş geldiniz",
-     "metin": "Vekil, bilgisayarınızı ve telefonunuzu yazarak ya da konuşarak yöneten kişisel yapay zeka asistanınızdır.\n\n"
+    {"baslik": "OpenDelegate'e hoş geldiniz",
+     "metin": "OpenDelegate, bilgisayarınızı ve telefonunuzu yazarak ya da konuşarak yöneten kişisel yapay zeka asistanınızdır.\n\n"
               "Bu sihirbaz sizi birkaç soruyla tanır, anahtarlarınızı doğrular ve kurulumu bitirir. "
               "Yaklaşık 3 dakika sürer.",
      "alanlar": []},
     {"baslik": "Sizi tanıyalım",
-     "metin": "Vekil'in sizinle çalışma biçimi bu cevaplara göre şekillenir. Sonradan sohbetten de değiştirebilirsiniz.",
+     "metin": "OpenDelegate'in sizinle çalışma biçimi bu cevaplara göre şekillenir. Sonradan sohbetten de değiştirebilirsiniz.",
      "alanlar": [("KULLANICI_ADI", "İsminiz", "yazi", ""),
                  ("meslek", "Ne iş yaparsınız? (ör. inşaat mühendisi, işletme sahibi, yazılımcı)", "yazi", ""),
-                 ("takim", "Vekil'i kimler kullanacak?", "secim", ["Sadece ben", "Küçük ekip / şirket"]),
+                 ("takim", "OpenDelegate'i kimler kullanacak?", "secim", ["Sadece ben", "Küçük ekip / şirket"]),
                  ("sehir", "Yaşadığınız şehir (hava durumu için)", "yazi", "İstanbul")]},
     {"baslik": "Neyle ilgilenecek?",
-     "metin": "Vekil'den en çok hangi işlerde yardım bekliyorsunuz? Birden fazla seçebilirsiniz.",
+     "metin": "OpenDelegate'den en çok hangi işlerde yardım bekliyorsunuz? Birden fazla seçebilirsiniz.",
      "alanlar": [("kullanim", "Kullanım alanları", "coklu", KULLANIM)]},
     {"baslik": "Cihazlarınız",
-     "metin": "Hangi cihazlarla çalışacağınızı bilmek, Vekil'in doğru araçları önermesini sağlar.",
+     "metin": "Hangi cihazlarla çalışacağınızı bilmek, OpenDelegate'in doğru araçları önermesini sağlar.",
      "alanlar": [("pc_os", "Bilgisayarınız", "secim", ["Windows", "macOS", "Linux", "Bilgisayar kullanmıyorum"]),
                  ("pc_acik", "Bilgisayar ne kadar açık?", "secim",
                   ["Genelde açık", "Gerektiğinde açarım", "Akıllı priz ile uzaktan açarım"]),
                  ("telefon", "Telefonunuz", "secim", ["Android", "iPhone", "Telefon asistanı istemiyorum"])]},
     {"baslik": "Yapay zeka anahtarı",
-     "metin": "Vekil'in beyni DeepSeek modelidir. platform.deepseek.com adresinden API anahtarı alın "
+     "metin": "OpenDelegate'in beyni DeepSeek modelidir. platform.deepseek.com adresinden API anahtarı alın "
               "(kullanım başına ödenir, günlük kullanım çok düşük maliyetlidir).",
      "alanlar": [("DEEPSEEK_API_KEY", "DeepSeek API anahtarı", "gizli", "")],
      "dogrula": "deepseek"},
@@ -130,7 +130,7 @@ def _temiz(metin: str) -> str:
 
 
 def profil_metni(d: dict[str, str]) -> str:
-    """Cevaplardan Vekil'in hafızasına girecek tek paragraf."""
+    """Cevaplardan OpenDelegate'in hafızasına girecek tek paragraf."""
     parcalar = []
     if d.get("KULLANICI_ADI"):
         parcalar.append(f"Kullanıcının adı {d['KULLANICI_ADI']}.")
@@ -260,7 +260,7 @@ KURULACAKLAR = [
     ("Python 3.12 + pip paketleri", "pip install -r requirements.txt (zorunlu)"),
     ("Telegram hesabı ve bot", "@BotFather'dan /newbot (zorunlu)"),
     ("DeepSeek API hesabı", "platform.deepseek.com (zorunlu)"),
-    ("Render hesabı", "Vekil'i buluta almak için; Docker imajını Render kendisi derler"),
+    ("Render hesabı", "OpenDelegate'i buluta almak için; Docker imajını Render kendisi derler"),
     ("UptimeRobot (ya da benzeri)", "ücretsiz Render planında uyumasın diye /health'e 5 dk'da bir istek"),
     ("Neon Postgres", "kalıcı hafıza için (isteğe bağlı; yoksa geçici SQLite)"),
     ("Groq hesabı", "sesli mesajlar için (isteğe bağlı)"),
@@ -286,7 +286,7 @@ def pencere() -> int:
 
     ARKA, PANEL, METIN, SOLUK, VURGU, HATA = "#0d1117", "#161b22", "#e6edf3", "#8b949e", "#2f81f7", "#f85149"
     kok = tk.Tk()
-    kok.title("Vekil Kurulum")
+    kok.title("OpenDelegate Kurulum")
     kok.geometry("860x600")
     kok.resizable(False, False)
     kok.configure(bg=ARKA)
@@ -304,7 +304,7 @@ def pencere() -> int:
         sol.resim = resim  # type: ignore[attr-defined]
     except tk.TclError:
         tk.Label(sol, text="VEKIL", fg=METIN, bg="#000000", font=("Segoe UI", 28, "bold")).pack(pady=80)
-    tk.Label(sol, text="Vekil", fg=METIN, bg="#000000", font=("Segoe UI", 20, "bold")).pack()
+    tk.Label(sol, text="OpenDelegate", fg=METIN, bg="#000000", font=("Segoe UI", 20, "bold")).pack()
     tk.Label(sol, text="Kurulum sihirbazı", fg=SOLUK, bg="#000000", font=("Segoe UI", 10)).pack()
     adim_etiketi = tk.Label(sol, text="", fg=SOLUK, bg="#000000", font=("Segoe UI", 9))
     adim_etiketi.pack(side="bottom", pady=18)
@@ -446,7 +446,7 @@ def pencere() -> int:
 
 def terminal() -> int:
     d: dict[str, str] = {}
-    print("Vekil kurulumu\n")
+    print("OpenDelegate kurulumu\n")
     for s in SAYFALAR:
         if s.get("son"):
             break

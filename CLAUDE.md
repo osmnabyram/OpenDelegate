@@ -2,9 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# Vekil — geliştirici notları
+# OpenDelegate — geliştirici notları
 
-Vekil: Telegram ve Android sesli uygulamasıyla konuşulan, PC'yi ve telefonu yönetebilen kişisel yapay zeka asistanı. Bu depo **temel sürümdür**; her müşteri/kullanıcı için üzerine eklenip çıkarılır.
+OpenDelegate: web sohbeti (Telegram isteğe bağlı) ve Android sesli uygulamasıyla konuşulan, PC'yi ve telefonu yönetebilen kişisel yapay zeka asistanı. Bu depo **temel sürümdür**; her müşteri/kullanıcı için üzerine eklenip çıkarılır.
 
 ## Komutlar
 
@@ -21,6 +21,7 @@ Testleri `-t .` ile çalıştır: `tests` paket olarak yüklenir ve sahte env ay
 
 Uygulama modülleri `vekil/` altındadır (kökte yalnızca `kurulum.py`, `ajan/`, `android/`, `tests/`, `docs/`). `python vekil/main.py` ile çalışır; modüller birbirini düz `import config` gibi içe aktarır (`vekil/` yola otomatik girer).
 
+- `web_sohbet.py` + `static/sohbet.*`: web sohbeti (giriş: parola + TOTP, `WebBot` = Telegram `Bot` taklidi, rotalar). `main.web_mesaj_isle` / `web_dugme_isle` mesajı ve düğmeleri mevcut işleyicilere yönlendirir. `TELEGRAM_BOT_TOKEN` boşsa `calis(None)`: Telegram hiç kurulmaz, arka plan mesajları `web_bot`'a gider. Yeni özellik `bot.xxx` metodu kullanıyorsa `WebBot`'a da ekle.
 - `main.py`: Telegram işleyicileri, ajan turu (`ajan_turu`), araç dağıtımı (`tool.hedef`), `SYSTEM_PROMPT`, açılış (`calis`), web uygulaması (`/jobs/*`, `/health`, `/harita/*`, `/webhook`).
 - `tools.py`: Araç tanımları + risk/onay (`risk_degerlendir`, `onay_gerekir`).
 - `config.py`: Tüm ortam değişkenleri burada okunur; gizli değer koda yazılmaz.
@@ -47,7 +48,7 @@ Uygulama modülleri `vekil/` altındadır (kökte yalnızca `kurulum.py`, `ajan/
 
 ## Android derleme
 
-Paket adı `com.vekilai.vekil`. Satış için `python android/imza_olustur.py` (bir kez) + `./gradlew assembleRelease` imzalı APK üretir; `python android/musteri_apk.py` müşteriye özel (adres/anahtar gömülü) APK üretir (`BuildConfig.VARSAYILAN_*`, `Config.kt` yedek olarak okur); anahtar `android/imza/` ve `keystore.properties` git dışıdır, yedeklenmelidir.
+Paket adı `com.opendelegate.app`. Satış için `python android/imza_olustur.py` (bir kez) + `./gradlew assembleRelease` imzalı APK üretir; `python android/musteri_apk.py` müşteriye özel (adres/anahtar gömülü) APK üretir (`BuildConfig.VARSAYILAN_*`, `Config.kt` yedek olarak okur); anahtar `android/imza/` ve `keystore.properties` git dışıdır, yedeklenmelidir.
 
 ```bash
 cd android

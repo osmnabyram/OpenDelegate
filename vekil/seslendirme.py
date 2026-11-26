@@ -1,4 +1,4 @@
-"""Sesli çıkış: Vekil cevaplarını Türkçe sesli not olarak gönderir + "acil" sesli hatırlatma zinciri.
+"""Sesli çıkış: OpenDelegate cevaplarını Türkçe sesli not olarak gönderir + "acil" sesli hatırlatma zinciri.
 
 Motor: edge-tts (Microsoft Edge'in sinir ağı sesleri; ücretsiz, key yok). TEK ses: tr-TR-AhmetNeural (15.11 gece Giuseppe yerine; sadece Türkçe)
 (Kullanıcı telefonda duyup her yerde istedi). Ses seçimi yok, sadece mod/hız. Çıktı MP3; Telegram sendVoice MP3'ü sesli not olarak kabul eder
@@ -35,7 +35,7 @@ logger = logging.getLogger("ses")
 
 AYAR_ANAHTAR = "ses_ayar"
 ZINCIR_ANAHTAR = "acil_zincir"
-# Vekil'in TEK, imza sesi (Kullanıcı 15.11 seçti, 6 aday dinledi): çok dilli, doğal, sıradan "asistan sesi" değil.
+# OpenDelegate'in TEK, imza sesi (Kullanıcı 15.11 seçti, 6 aday dinledi): çok dilli, doğal, sıradan "asistan sesi" değil.
 # Değiştirilemez; sadece mod ve hız ayarlanır.
 # 15.11 gece: Giuseppe (çok dilli) telefonda dile kaydı (Azeri/İngilizce okudu); kullanıcı telefonda Ahmet'i duyup
 # "her yerde aynı ses olsun" dedi. Artık TEK ses Ahmet: sadece Türkçe, kayma yok.
@@ -252,7 +252,7 @@ class Ses:
         return False, "eylem şunlardan biri olmalı: oku, cevabi_sesli, ayarla, durum, acil, acil_dur."
 
     def durum(self) -> str:
-        ad = "Vekil'in kendi sesi"
+        ad = "OpenDelegate'in kendi sesi"
         mod = {"kapali": "sadece istersen", "sesliye_sesli": "sesli mesaja sesli cevap",
                "hepsi": "her cevap sesli de"}[self.ayar["mod"]]
         return f"ses {ad} ({self.ayar['ses']}), {mod}, hız {self.ayar['hiz']}"

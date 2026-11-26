@@ -1,10 +1,10 @@
-"""Telefon araması: Vekil kullanıcıyı arar, karşılıklı konuşur (Twilio, deneme hesabı).
+"""Telefon araması: OpenDelegate kullanıcıyı arar, karşılıklı konuşur (Twilio, deneme hesabı).
 
 Akış:
   ara() -> hat (Twilio REST) kullanıcının telefonunu çaldırır -> Kullanıcı açınca Twilio POST /arama/{token}/basla
-  -> TwiML: Vekil'in sesiyle (Giuseppe, edge-tts MP3 <Play>) ilk cümle + <Gather input=speech tr-TR>
+  -> TwiML: OpenDelegate'in sesiyle (Giuseppe, edge-tts MP3 <Play>) ilk cümle + <Gather input=speech tr-TR>
   -> Kullanıcı konuşunca POST /cevap: metin -> DeepSeek (küçük araç seti) -> ses -> yine Play + Gather
-  -> arama bitince (Vekil durumu 10 sn'de bir Twilio'ya sorar): konuştuysa özet, açmadıysa "seni aradım"
+  -> arama bitince (OpenDelegate durumu 10 sn'de bir Twilio'ya sorar): konuştuysa özet, açmadıysa "seni aradım"
      Telegram'a; harcanan dakika sayılır. Deneme hesabı aramaya ek parametre (StatusCallback, Timeout...)
      kabul etmiyor (400 "limited parameter access"): arama SADECE To/From/Url ile başlatılır.
 
@@ -58,16 +58,16 @@ DUSUNME_SURESI = 150.0  # sn; bir cevabın (iş dahil) üst sınırı. Twilio'nu
 # alınmadı ("please check your URL"). Her webhook cevabı en fazla ~2.5 sn'de dönmeli (test_sure_butcesi bekçi).
 ILK_BEKLEME = 2.0  # sn; cevap bu sürede hazırsa direkt söylenir, değilse "bir saniye, bakıyorum"
 BEKLEME_ADIMI = 2.0  # sn; /bekle en fazla bu kadar tutar
-DOLGU_HAZIR = 0.5  # sn; bekleme sesleri Vekil açılırken üretiliyor: hazır değilse sessizlik
+DOLGU_HAZIR = 0.5  # sn; bekleme sesleri OpenDelegate açılırken üretiliyor: hazır değilse sessizlik
 WEBHOOK_BUTCESI = 3.0  # sn; tek bir Twilio isteğine cevabın üst sınırı (sabit toplamları bunu aşmamalı)
-SES_TAKILDI = "Efendim, sesim takıldı, cevabı Telegram'a yazdım."
-UZUN_IS = 12.0  # sn; bundan uzun süren iş: "bitince Telegram'a yazarım" deyip konuşmaya devam (15.11: bütün
+SES_TAKILDI = "Efendim, sesim takıldı, cevabı sohbete yazdım."
+UZUN_IS = 12.0  # sn; bundan uzun süren iş: "bitince sohbete yazarım" deyip konuşmaya devam (15.11: bütün
 # kopmalar 20 sn'yi aşan bekleme turlarında oldu; Twilio uzun turda bir sonraki isteği göndermeden kapattı)
-IPUCLARI = "randevu,hava durumu,Vekil,hatırlat,yapılacaklar,telefon"
+IPUCLARI = "randevu,hava durumu,Delegate,hatırlat,yapılacaklar,telefon"
 DONGU_IZ_ESIGI = 0.5  # sn; sunucu döngüsü bundan uzun tıkanırsa teknik ize yaz (Twilio isteği kapıda bekler)
 DOLGU_ILK = "Bir saniye efendim, bakıyorum."
 DOLGU_SONRA = ("Hâlâ bakıyorum efendim, az kaldı.", "Üzerinde çalışıyorum, bir saniye daha.")
-DOLGU_UZUN = "İş biraz uzun sürüyor efendim, bitince sonucu Telegram'a yazarım. Başka bir şey var mı?"
+DOLGU_UZUN = "İş biraz uzun sürüyor efendim, bitince sonucu sohbete yazarım. Başka bir şey var mı?"
 SENTEZ_SURESI = 8.0  # sn; Twilio ses dosyasını isteyince en fazla bu kadar beklenir (webhook süresine girmez)
 AYNI_ANDA_SENTEZ = 2  # edge-tts'e aynı anda en fazla bu kadar istek (fazlası takılı kalıyordu)
 HAZIR_BEKLEME = 2.0  # sn; webhook içinde Play'e vermeden önce sesin hazır olmasını en fazla bu kadar bekle
@@ -80,7 +80,7 @@ KOTA_UYARI_DK = 15
 KOTA_UYARI_GUN = 3
 BITTI = ("completed", "busy", "no-answer", "failed", "canceled")
 
-TELEFON_SISTEMI = """Sen Vekil'sin: Kullanıcının kişisel asistanı. Şu an kullanıcıyla TELEFONDA konuşuyorsun.
+TELEFON_SISTEMI = """Sen OpenDelegate'sin: Kullanıcının kişisel asistanı. Şu an kullanıcıyla TELEFONDA konuşuyorsun.
 - Söylediğin her şey sesli okunur: 1-3 kısa cümle. Liste, emoji, sembol, link, kod yok. Saatleri "on beş otuz" değil "15:30" yaz, ses okur.
 - SADECE Türkçe kelime kullan; İngilizce/yabancı kelime yok ("ok" değil "tamam", "test" değil "deneme", "sorry"
   değil "kusura bakma"). Ses çok dilli: yabancı kelime görünce başka dile kayıyor.
@@ -90,7 +90,7 @@ TELEFON_SISTEMI = """Sen Vekil'sin: Kullanıcının kişisel asistanı. Şu an k
 - Hızlı araçlar: hava_durumu (hava/sıcaklık/yağmur/ne giyeyim: ~1 sn, isi_yap DEĞİL bunu kullan), zamanla,
   yapilacak, hafizaya_yaz, telefonu_kapat. Bunların sonucunu kullanıcıya telefonda söyle.
 - Bunların dışındaki HER iş için (internette arama, haber, bilgisayar, dosya, OneDrive...) isi_yap kullan: iş
-  Telegram'da başlar, sen BEKLEMEZSİN; "Tamam efendim, yapıyorum, sonucu Telegram'a atacağım" de ve telefonu_kapat
+  sohbette başlar, sen BEKLEMEZSİN; "Tamam efendim, yapıyorum, sonucu sohbete atacağım" de ve telefonu_kapat
   çağır. "Telefondan yapamam" DEME.
 - Silme, kapatma, taşıma gibi geri alınamaz işlerde ses yanlış duymuş olabilir: isi_yap'tan ÖNCE ne anladığını
   tek cümleyle söyle ve kullanıcı "evet" deyince yap.
@@ -99,10 +99,10 @@ TELEFON_SISTEMI = """Sen Vekil'sin: Kullanıcının kişisel asistanı. Şu an k
 - "Devam edeyim mi" diye sorma; iş bitti mi kısaca söyle."""
 
 # Android uygulaması (/dinle): telefon görüşmesinin 5 sn sınırı yok, cevap panelde de yazılıyor. Kullanıcı 21.11:
-# "yoldayım, 2 dakika bir şey soracağım, her seferinde Telegram'a mı gireceğim" -> bilgi burada cevaplanır.
+# "yoldayım, 2 dakika bir şey soracağım, her seferinde sohbete mı gireceğim" -> bilgi burada cevaplanır.
 _UYG_HAFIZA: list = [0.0, ""]  # [son çekilme (monotonic), hafıza bloğu]
 
-UYGULAMA_SISTEMI = """Sen Vekil'sin: Kullanıcının kişisel asistanı. Kullanıcı telefonundaki Vekil uygulamasına sesli soruyor; \
+UYGULAMA_SISTEMI = """Sen OpenDelegate'sin: Kullanıcının kişisel asistanı. Kullanıcı telefonundaki OpenDelegate uygulamasına sesli soruyor; \
 bu bir telefon görüşmesi değil. Cevabın ekrandaki panelde yazılır ve sesli okunur.
 - 1-3 kısa cümle. Liste, emoji, sembol, link, kod yok. Saatleri "15:30" gibi yaz.
 - Türkçe konuş, yabancı kelime kullanma (ses Türkçe okur).
@@ -110,12 +110,12 @@ bu bir telefon görüşmesi değil. Cevabın ekrandaki panelde yazılır ve sesl
 - Hitabın hep "efendim"; "kanka" deme. Sıcak, saygılı, sade.
 - Ses tanıma yanlış duymuş olabilir: anlamı bağlamdan çıkar. Saat, isim, sayı gibi kritik bir şeyden emin değilsen
   kısaca sor.
-- Cevabı BURADA ver; kullanıcı yolda olabilir, onu Telegram'a yönlendirme:
+- Cevabı BURADA ver; kullanıcı yolda olabilir, onu sohbete yönlendirme:
   - genel bilgi, tarih, hesap, çeviri, tavsiye: kendi bilginle cevapla;
   - güncel bilgi (bugün hangi özel gün, haber, maç, fiyat, bir yer açık mı...): webde_ara;
   - hava: hava_durumu; hatırlatma: zamanla; yapılacaklar: yapilacak; not: hafizaya_yaz.
 - isi_yap SADECE bilgisayarda yapılacak işler (ekran görüntüsü, dosya, program), OneDrive, uzun araştırma ya da
-  Kullanıcı "Telegram'a at" derse. O zaman "Tamam efendim, yapıyorum, sonucu Telegram'a atacağım" de.
+  Kullanıcı "sohbete at" derse. O zaman "Tamam efendim, yapıyorum, sonucu sohbete atacağım" de.
 - Silme, düzenleme, güncelleme dahil istenen her işi yap. Ne silineceği netse ("07:30 alarmını sil") doğrudan yap;
   sadece ses yanlış duymuş olabilecek belirsiz durumlarda ya da toplu silmede (tüm fotoğraflar, bir sohbetin
   tamamı) önce tek cümleyle sor, kullanıcı "evet" deyince yap.
@@ -359,7 +359,7 @@ def tek_cumle(metin: str) -> str:
     return govde + (son or "")
 
 
-# Twilio'nun kendi sesi (<Say>) KULLANILMAZ: Kullanıcı sadece Vekil'in sesini (Giuseppe) istiyor (15.11).
+# Twilio'nun kendi sesi (<Say>) KULLANILMAZ: Kullanıcı sadece OpenDelegate'in sesini (Giuseppe) istiyor (15.11).
 def _soyle(ses_url: str) -> str:
     return f"<Play>{escape(ses_url)}</Play>"
 
@@ -397,7 +397,7 @@ class Gorusme:
     yapilanlar: list[str] = field(default_factory=list)
     acilis_sesi: str | None = None  # arka planda üretilen açılış sesinin URL'si
     konustu: bool = False
-    basladi: bool = False  # Twilio Vekil'e ulaştı (/basla geldi)
+    basladi: bool = False  # Twilio OpenDelegate'e ulaştı (/basla geldi)
     bos: int = 0
     tur: int = 0
     sid: str = ""
@@ -407,7 +407,7 @@ class Gorusme:
     dolgu_no: int = 0
     onceki: "asyncio.Task[str] | None" = None  # uzun sürüp bırakılan iş: yeni tur onu bekler
     iz: list[str] = field(default_factory=list)  # teşhis: son adımlar (görüşme yarıda koparsa özete yazılır)
-    kapattik: bool = False  # görüşmeyi Vekil kapattı (Hangup); değilse koptu ya da kullanıcı kapattı
+    kapattik: bool = False  # görüşmeyi OpenDelegate kapattı (Hangup); değilse koptu ya da kullanıcı kapattı
     sistem_gorevi: "asyncio.Task[str] | None" = None  # hafıza bloğu: telefon çalarken okunur
 
 
@@ -451,7 +451,7 @@ class Arama:
 
     async def yukle(self) -> None:
         self.durum = dict(await self.oku(ANAHTAR) or {})
-        self.isindir()  # bekleme sesleri Vekil açılırken üretilsin: arama gelince hepsi hazır
+        self.isindir()  # bekleme sesleri OpenDelegate açılırken üretilsin: arama gelince hepsi hazır
         if self.izle and self._olcer is None:  # canlıda: sunucu döngüsü tıkanıyor mu (teşhis; testlerde kapalı)
             self._olcer = asyncio.ensure_future(self._dongu_olc())  # _gorevler'e girmez: hiç bitmeyen döngü
 
@@ -486,7 +486,7 @@ class Arama:
     async def ara(self, neden: str, acilis: str, *, otomatik: bool, acil: bool = False) -> tuple[bool, str]:
         """Kullanıcıyı arar. (başladı mı, açıklama). Arama kullanıcı açmadan döner; sonucu /durum bildirir."""
         if self.kilitli():
-            return False, "Vekil kilitli, arama yapmıyorum."
+            return False, "OpenDelegate kilitli, arama yapmıyorum."
         if any(not g.sid or time.time() - g.baslangic < 600 for g in self.gorusmeler.values()):
             return False, "Zaten bir telefon görüşmesi sürüyor."
         g = self._gunluk()  # sadece sayaç (durum bilgisi); sınır yok
@@ -589,7 +589,7 @@ class Arama:
     async def basla(self, gid: str) -> str:
         gor = self.gorusmeler.get(gid)
         if gor is None or self.kilitli():
-            return twiml_kapat(self._ses_uret("Vekil şu an konuşamıyor, Telegram'dan yazacağım."))
+            return twiml_kapat(self._ses_uret("OpenDelegate şu an konuşamıyor, sohbetten yazacağım."))
         gor.basladi = True
         gor.iz.append(f"{self._sn(gor)}s açtın")
         sistem = TELEFON_SISTEMI + f"\nŞu an: {self.simdi():%Y-%m-%d %H:%M} (Türkiye).\nBu aramanın sebebi: {gor.neden}" + config.DIL_TALIMATI
@@ -603,18 +603,18 @@ class Arama:
                         {"role": "assistant", "content": gor.acilis}]
         gor.kayit.append(("Ben", gor.acilis))
         acilis = (await self._hazir(gor.acilis_sesi or self._ses_uret(gor.acilis), 1.5)  # çalarken üretildi
-                  or await self._hazir(self._kalici("Efendim, Vekil ben, dinliyorum."), 0.3))
+                  or await self._hazir(self._kalici("Efendim, OpenDelegate ben, dinliyorum."), 0.3))
         return twiml_dinle(acilis, self._yol(f"cevap?g={gid}"))
 
     async def cevap(self, gid: str, duyulan: str) -> str:
         gor = self.gorusmeler.get(gid)
         if gor is None:
-            return twiml_kapat(self._ses_uret("Bağlantım koptu efendim, Telegram'dan devam edelim."))
+            return twiml_kapat(self._ses_uret("Bağlantım koptu efendim, sohbetten devam edelim."))
         duyulan = (duyulan or "").strip()
         if not duyulan:
             gor.bos += 1
             if gor.bos >= 2:
-                return await self._soyle_kapat(gor, "Seni duyamıyorum efendim, kapatıyorum. Telegram'dan yazarım.")
+                return await self._soyle_kapat(gor, "Seni duyamıyorum efendim, kapatıyorum. sohbetten yazarım.")
             return await self._soyle_dinle(gor, "Seni duyamadım, tekrar söyler misin?")
         gor.bos = 0
         gor.tur += 1
@@ -636,7 +636,7 @@ class Arama:
         """Twilio 'bakıyorum' sesinden sonra buraya döner: cevap hazırsa söyle, değilse bir dolgu daha."""
         gor = self.gorusmeler.get(gid)
         if gor is None:
-            return twiml_kapat(self._kalici("Bağlantım koptu efendim, Telegram'dan devam edelim."))
+            return twiml_kapat(self._kalici("Bağlantım koptu efendim, sohbetten devam edelim."))
         gor.iz.append(f"{self._sn(gor)}s bekle isteği")
         if gor.bekleyen is None:
             return twiml_dinle(await self._hazir(self._kalici("Dinliyorum efendim.")), self._yol(f"cevap?g={gid}"))
@@ -684,14 +684,14 @@ class Arama:
             logger.warning("telefon düşünme hatası: %s", type(e).__name__)
             gor.iz.append(f"{self._sn(gor)}s düşünme hatası ({type(e).__name__})")
             uzun = isinstance(e, asyncio.TimeoutError)
-            metin = ("Efendim, bu iş çok uzun sürdü, sonucu Telegram'a yazarım." if uzun
+            metin = ("Efendim, bu iş çok uzun sürdü, sonucu sohbete yazarım." if uzun
                      else "Efendim, bir şey ters gitti, bir daha söyler misin?")
             kapat = False
             # Yarım kalan tur (cevapsız tool çağrısı) sonraki her cevapta 400 verdirir: temizle, düz tur bırak.
             del gor.mesajlar[n:]
             gor.mesajlar += [{"role": "user", "content": duyulan}, {"role": "assistant", "content": metin}]
         if gor.tur >= MAKS_TUR and not kapat:
-            metin, kapat = metin + " Uzun oldu, gerisini Telegram'dan konuşalım.", True
+            metin, kapat = metin + " Uzun oldu, gerisini sohbetten konuşalım.", True
         gor.kayit.append(("Ben", metin))
         url = await self._hazir(self._ses_uret(metin), 2 * SENTEZ_SURESI + 2)  # Twilio isteyince hazır olsun
         if url is None:  # üretilemedi: hazır olmayan dosya = kopma; yazıya düş
@@ -731,8 +731,8 @@ class Arama:
     def isindir(self) -> None:
         """Sık sesler (bekleme, duyamadım...) önceden üretilir; hazır olanlara dokunmaz, bozulanı yeniden üretir."""
         for m in (DOLGU_ILK, *DOLGU_SONRA, DOLGU_UZUN, "Dinliyorum efendim.", "Seni duyamadım, tekrar söyler misin?",
-                  "Seni duyamıyorum efendim, kapatıyorum. Telegram'dan yazarım.", SES_TAKILDI,
-                  "Efendim, Vekil ben, dinliyorum."):
+                  "Seni duyamıyorum efendim, kapatıyorum. sohbetten yazarım.", SES_TAKILDI,
+                  "Efendim, OpenDelegate ben, dinliyorum."):
             self._kalici(m)
 
     async def _soyle_dinle(self, gor: Gorusme, metin: str) -> str:
@@ -780,7 +780,7 @@ class Arama:
                     if ok:
                         gor.yapilanlar.append(sonuc)
                 else:
-                    sonuc = "Bu araç telefonda yok; Telegram'dan yapılır. Kullanıcıya öyle söyle."
+                    sonuc = "Bu araç telefonda yok; sohbetten yapılır. Kullanıcıya öyle söyle."
                 gor.mesajlar.append({"role": "tool", "tool_call_id": c.id, "content": sonuc[:1500]})
             if kapat and icerik:
                 return icerik, True
@@ -815,7 +815,7 @@ class Arama:
                 sistem += ("\n- WhatsApp mesajı: önce kime ne yazacağını tek cümleyle sor (ör. 'Ahmet'e \"geliyorum\" "
                            "yazayım mı efendim?'); kullanıcı 'evet' deyince telefonda_yap(eylem=mesaj).\n"
                            "- Telefonda yapılacak başka HER iş (alarm silmek, bir uygulamada bir şey bulmak, ayar "
-                           "değiştirmek...): telefonda_yap(eylem=ekranda, gorev=...); Vekil telefonu ekrandan kendisi "
+                           "değiştirmek...): telefonda_yap(eylem=ekranda, gorev=...); OpenDelegate telefonu ekrandan kendisi "
                            "kullanır. 'Telefondan yapamam' DEME.")
             hedef = eylemler
 
@@ -877,7 +877,7 @@ class Arama:
         await self.kota_kontrol()
 
     async def _teshis(self, gor: Gorusme) -> str:
-        """Konuşamadık: neden? (Twilio Vekil'e ulaştı mı, imza tuttu mu, Twilio'nun notu)."""
+        """Konuşamadık: neden? (Twilio OpenDelegate'e ulaştı mı, imza tuttu mu, Twilio'nun notu)."""
         if gor.basladi:
             parca = ["Teknik not: arama bana ulaştı ama konuşma başlamadı"]
         elif self.imza_hatasi:
@@ -957,11 +957,11 @@ class Arama:
         soyle = re.sub(r"\s+", " ", str(arg.get("soyle") or "")).strip()
         neden = re.sub(r"\s+", " ", str(arg.get("neden") or "")).strip() or soyle or "sen istedin"
         if not soyle:
-            acilis = "Efendim, Vekil ben. Aramamı istemiştin, dinliyorum."
-        elif "vekil" in soyle.casefold():  # model zaten kendini tanıttıysa tekrar etme
+            acilis = "Efendim, OpenDelegate ben. Aramamı istemiştin, dinliyorum."
+        elif any(a in soyle.casefold() for a in ("opendelegate", "delegate", "vekil")):  # model zaten kendini tanıttıysa tekrar etme
             acilis = soyle
         else:
-            acilis = "Efendim, Vekil ben. " + soyle
+            acilis = "Efendim, OpenDelegate ben. " + soyle
         ok, mesaj = await self.ara(neden, acilis, otomatik=False)
         return ok, (mesaj + " Açınca konuşuruz; bitince özetini buraya yazarım.") if ok else mesaj
 

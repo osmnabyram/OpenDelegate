@@ -1,7 +1,7 @@
 """Android sesli asistan endpoint'leri.
 
 POST /dinle/{token}      — ses baytları (WAV/OGG/MP3) gönderilir, MP3 döner.
-  Akış: Groq Whisper → Vekil beyni (arama.uygulama_cevabi) → edge-tts → MP3
+  Akış: Groq Whisper → OpenDelegate beyni (arama.uygulama_cevabi) → edge-tts → MP3
 POST /sor/{token}        — {"metin": ..., "sessiz": bool} yazılı soru (paneldeki klavye); sessizse ses üretilmez
 POST /seslendir/{token}  — {"metin": ...} → MP3 (telefonda ekrandan yapılan işin sonucunu söylemek için)
 """
@@ -25,17 +25,17 @@ import seslendirme
 
 logger = logging.getLogger("vekil.sesli")
 
-# Uygulama kayda uyanma anından başlıyor (cümlenin başı kaçmasın diye): sesin başında "vekil", "bakar mısın"
+# Uygulama kayda uyanma anından başlıyor (cümlenin başı kaçmasın diye): sesin başında "delegate" ("vekil": eski ad), "bakar mısın"
 # ya da sadece "mısın" kalabiliyor. Sadece EN BAŞTAKİ uyanma parçası atılır; "Bir alarm kur" gibi cümleler kalır.
 _UYANMA = re.compile(
-    r"^[\s,.:;!?]*(?:vekil\b[\s,.:;!?]*)?(?:(?:bir\s+)?bakar\s+)?(?:m[ıi]s[ıi]n(?:[ıi]z)?\b)?[\s,.:;!?]*",
+    r"^[\s,.:;!?]*(?:(?:vekil|(?:open\s*)?(?:delegate|delege(?:yt|t)?))\b[\s,.:;!?]*)?(?:(?:bir\s+)?bakar\s+)?(?:m[ıi]s[ıi]n(?:[ıi]z)?\b)?[\s,.:;!?]*",
     re.IGNORECASE)
 
 # Whisper'a sık geçen adlar (yazımı doğru çıksın). Bilerek cümle DEĞİL: Whisper sessizlikte ipucunu aynen geri
 # okuyabiliyor; iş isteyen bir örnek cümle ("ekran görüntüsü al...") istenmemiş bir işi başlatabilirdi.
-_IPUCU = "Vekil, efendim, Telegram, OneDrive, alarm, fener, ekran görüntüsü."
+_IPUCU = "Delegate, OpenDelegate, efendim, Telegram, OneDrive, alarm, fener, ekran görüntüsü."
 
-# Whisper sessizlikte ya da gürültüde bunları uyduruyor (Türkçe altyazı verisinden); Vekil'e söylenmez.
+# Whisper sessizlikte ya da gürültüde bunları uyduruyor (Türkçe altyazı verisinden); OpenDelegate'e söylenmez.
 # "Teşekkürler" burada YOK: Kullanıcı cevaptan sonra gerçekten diyebilir.
 _UYDURMA = {"altyazı m.k.", "altyazı m.k", "altyazı: m.k.", "izlediğiniz için teşekkür ederim.",
             "izlediğiniz için teşekkürler.", "abone olmayı unutmayın."}
@@ -133,7 +133,7 @@ async def _cevapla(request: Request, metin: str, sessiz: bool) -> Response:
     ara = beyin() if beyin is not None else None
     if ara is None:
         logger.error("sesli: beyin kurulu değil")
-        return Response("Vekil şu an sesli cevap veremiyor.", status_code=503)
+        return Response("OpenDelegate şu an sesli cevap veremiyor.", status_code=503)
 
     global _son_soru
     if _saat() - _son_soru > _GECMIS_OMUR_SN:
@@ -177,7 +177,7 @@ async def _cevapla(request: Request, metin: str, sessiz: bool) -> Response:
 
 
 async def seslendir(request: Request) -> Response:
-    """Telefonda ekrandan yapılan işin sonucunu Vekil'in sesiyle söyler."""
+    """Telefonda ekrandan yapılan işin sonucunu OpenDelegate'in sesiyle söyler."""
     if not guvenlik.token_esit(request.path_params["token"], config.SESLI_TOKEN):
         return Response("yetkisiz", status_code=401)
     if not guvenlik.uygulama_siniri.izin_var():

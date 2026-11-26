@@ -11,11 +11,11 @@ if (imzaDosyasi.exists()) {
 }
 
 android {
-    namespace = "com.vekilai.vekil"
+    namespace = "com.opendelegate.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.vekilai.vekil"
+        applicationId = "com.opendelegate.app"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

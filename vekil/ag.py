@@ -22,7 +22,7 @@ import httpx
 
 MAKS_YONLENDIRME = 5
 # Dürüst kimlik: kendini tarayıcı gibi göstermiyoruz (Wikimedia gibi siteler bunu ister).
-TARAYICI = "Mozilla/5.0 (compatible; VekilBot/1.0; +https://github.com/osmnabyram/VekilAi) kisisel-asistan"
+TARAYICI = "Mozilla/5.0 (compatible; OpenDelegateBot/1.0; +https://github.com/osmnabyram/OpenDelegate) kisisel-asistan"
 
 
 class AgHatasi(Exception):

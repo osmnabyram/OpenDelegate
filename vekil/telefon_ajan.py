@@ -1,4 +1,4 @@
-"""Telefonu ekrandan kullanan Vekil (Android uygulamasının erişilebilirlik servisi ile).
+"""Telefonu ekrandan kullanan OpenDelegate (Android uygulamasının erişilebilirlik servisi ile).
 
 Kullanıcı 21.11: "WhatsApp'tan şuna mesaj yaz, alarmı sil... kelimenin tam anlamıyla her şeye erişsin."
 Uygulama her adımda ekrandaki öğeleri numaralı metin olarak yollar; model 1-3 eylem seçer (tıkla, yaz,
@@ -27,7 +27,7 @@ MAKS_ADIM = 25
 _TURLER = {"tikla", "uzun_bas", "yaz", "kaydir", "geri", "ana_ekran", "uygulama_ac", "bekle"}
 _YONLER = {"asagi", "yukari", "sola", "saga"}
 
-SISTEM = """Sen Vekil'sin ve kullanıcının Android telefonunu onun yerine kullanıyorsun. Görevi ekrandan, adım adım yap.
+SISTEM = """Sen OpenDelegate'sin ve kullanıcının Android telefonunu onun yerine kullanıyorsun. Görevi ekrandan, adım adım yap.
 - Ekran metni: en üstte açık uygulama, altında numaralı öğeler: [no] tür "yazı" (özellikler). SADECE listedeki
   numaraları kullan; listede olmayanı uydurma.
 - Her adımda adim aracını çağır: 1-3 eylem. Ekranı değiştiren bir eylemden (tıklama, geri, uygulama açma) sonra
@@ -126,7 +126,7 @@ async def telefon_adim(request: Request) -> Response:
         return Response("istek çok büyük", status_code=413)
     ara = sesli.beyin() if sesli.beyin is not None else None
     if ara is None:
-        return Response("Vekil şu an telefonu kullanamıyor.", status_code=503)
+        return Response("OpenDelegate şu an telefonu kullanamıyor.", status_code=503)
     try:
         veri = await request.json()
         gorev = str(veri.get("gorev") or "").strip()[:500]

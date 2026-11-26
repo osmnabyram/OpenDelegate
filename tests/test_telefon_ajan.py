@@ -1,4 +1,4 @@
-"""Vekil telefonu ekrandan kullanıyor (/telefon) ve sonucu söylüyor (/seslendir).
+"""OpenDelegate telefonu ekrandan kullanıyor (/telefon) ve sonucu söylüyor (/seslendir).
 
 Kullanıcı 21.11: "WhatsApp'tan şuna mesaj yaz, alarmı sil... her şeye erişsin." Model her adımda 1-3 eylem
 seçer; bozuk eylem uygulamaya gitmez, ödeme gibi adımlarda durması talimatta yazılı.

@@ -1,4 +1,4 @@
-"""Vekil hafızası: Postgres (Neon, kalıcı) ya da SQLite (lokal / yedek).
+"""OpenDelegate hafızası: Postgres (Neon, kalıcı) ya da SQLite (lokal / yedek).
 
 DATABASE_URL varsa Postgres kullanılır (Render'da: Neon, deploy'larda silinmez).
 Yoksa SQLite (config.DB_YOLU); Render'da bu geçicidir, her deploy'da sıfırlanır.
@@ -598,13 +598,13 @@ def kuyruk_bayatlari_isaretle(saat: int) -> list[dict[str, Any]]:
 
 @_sessiz([])
 def kuyruk_yarim_kalanlar() -> list[dict[str, Any]]:
-    """Açılışta: 'isleniyor'da kalan işler (Vekil iş sürerken yeniden başladı). Tekrar ÇALIŞTIRILMAZ."""
+    """Açılışta: 'isleniyor'da kalan işler (OpenDelegate iş sürerken yeniden başladı). Tekrar ÇALIŞTIRILMAZ."""
     satirlar = _calistir(
         "SELECT id, olusturuldu, chat_id, tur, payload FROM bekleyen_gorevler WHERE durum = 'isleniyor' ORDER BY id",
         sonuc="hepsi",
     )
     for g in satirlar:
-        kuyruk_bitir.__wrapped__(g["id"], "hata", "Vekil iş sürerken yeniden başladı; PC'de çalışmış olabilir.")
+        kuyruk_bitir.__wrapped__(g["id"], "hata", "OpenDelegate iş sürerken yeniden başladı; PC'de çalışmış olabilir.")
     return satirlar
 
 
@@ -657,7 +657,7 @@ def izleme_kaldir(kural_id: int) -> bool:
 
 
 # --------------------------------------------------------------------------
-# Vekil kadrosu (ordu.py bellekte tutar; DB'ye sadece açılışta ve ad değişince gidilir)
+# OpenDelegate kadrosu (ordu.py bellekte tutar; DB'ye sadece açılışta ve ad değişince gidilir)
 # --------------------------------------------------------------------------
 
 @_sessiz(None)

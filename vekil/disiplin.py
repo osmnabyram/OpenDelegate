@@ -1,4 +1,4 @@
-"""Çalışma disiplini: Vekil'in işi OTONOM bitirmesi + sadece gerçek kısırdöngüde durması (Başvekil ve işçiler).
+"""Çalışma disiplini: OpenDelegate'in işi OTONOM bitirmesi + sadece gerçek kısırdöngüde durması (Başvekil ve işçiler).
 
 Kurallar (bir tur = kullanıcının tek mesajına verilen cevap ya da bir işçinin görevi):
 - Başarısız bir çağrı, arada durumu değiştiren BAŞARILI bir işlem olmadan aynen tekrar ÇALIŞTIRILMAZ

@@ -1,8 +1,8 @@
-"""Yönetim sayfası: Vekil'in durumu, hafıza sayıları ve son işler tek sayfada (salt okuma).
+"""Yönetim sayfası: OpenDelegate'in durumu, hafıza sayıları ve son işler tek sayfada (salt okuma).
 
 Adres: /yonetim/<token>. Token, bot anahtarından ayrı bir etiketle türetilir (koda gömülü sır yok);
 yanlış token 404 verir. Sayfaya konuşma metni, eylem argümanı ya da sonuç GİTMEZ: yalnızca sayılar ve araç adları.
-Model maliyeti gösterilmez: Vekil token kullanımını saklamıyor (DeepSeek panelinden bakın).
+Model maliyeti gösterilmez: OpenDelegate token kullanımını saklamıyor (DeepSeek panelinden bakın).
 """
 
 from __future__ import annotations

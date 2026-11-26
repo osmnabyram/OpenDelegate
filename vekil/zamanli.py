@@ -1,7 +1,7 @@
 """Saatli hatırlatma ve zamanlanmış görev: "15:00'te dürt", "her gün 22:00'de rapor klasörünü yedekle".
 
 - tur 'hatirlat': saati gelince kullanıcıya Telegram mesajı.
-- tur 'gorev'   : saati gelince Vekil işi KENDİSİ yapar (Kullanıcı o an istemiş gibi bir ajan turu; normal risk
+- tur 'gorev'   : saati gelince OpenDelegate işi KENDİSİ yapar (Kullanıcı o an istemiş gibi bir ajan turu; normal risk
                   kuralları geçerli).
 - tekrar: 'yok' | 'gunluk' | 'haftalik'.
 - Saklama: `ayarlar` 'zamanli' (açılışta 1 okuma, değişiklikte 1 yazma). Saat kontrolü bellekte, 20 sn'de bir:

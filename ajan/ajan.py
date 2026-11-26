@@ -1,25 +1,25 @@
-"""Vekil PC ajanı — PC açıkken Vekil'in (Render) bu bilgisayardaki eli.
+"""OpenDelegate PC ajanı — PC açıkken OpenDelegate'in (Render) bu bilgisayardaki eli.
 
 Ne yapar:
-    Her YOKLAMA_ARALIGI saniyede bir Vekil'e GET /jobs/pending atar
+    Her YOKLAMA_ARALIGI saniyede bir OpenDelegate'e GET /jobs/pending atar
     (X-Ajan-Secret ile kendini tanıtır), gelen görevleri çalıştırır ve
     sonucu POST /jobs/result ile geri yollar. Hata olursa hata metnini
     yollar; asla çökmez, bağlantı koparsa bekleyip tekrar dener.
 
 Güvenlik:
     - Sadece şu görevleri bilir: dosya_oku, dosya_listele, dosya_yaz,
-      dosya_sil, terminal_calistir, dosya_kaydet (Vekil'in internetten
+      dosya_sil, terminal_calistir, dosya_kaydet (OpenDelegate'in internetten
       indirdiği dosyayı PC'ye kaydeder), ekran_goruntusu (bellekte alınır,
       diske yazılmaz), program_ac (brave/code/explorer), pencere_listele,
       pencere_kontrol (odakla/küçült/kapat; klavye-mouse yok), masaustu_durum / masaustu_olustur /
       masaustu_kaldir / pencere_tasi (Windows sanal masaüstleri). Başka bir şey gelirse reddeder.
     - Sanal masaüstü: VirtualDesktopAccessor.dll (bu klasörde, SHA256 sabit) belgelenmemiş Windows
       API'sini kullanır. Her çağrı AYRI bir alt süreçte yapılır (python ajan.py --masaustu ...):
-      DLL çökerse ajan ayakta kalır. Sadece adı "Vekil - " ile başlayan masaüstleri oluşturulur/silinir;
+      DLL çökerse ajan ayakta kalır. Sadece adı "OpenDelegate - " ile başlayan masaüstleri oluşturulur/silinir;
       kullanıcının masaüstlerine (ilki dahil) asla dokunulmaz.
-    - Arka planda: periyodik senkron (rclone sync) ve dosya izleme (kurallar Vekil'den;
+    - Arka planda: periyodik senkron (rclone sync) ve dosya izleme (kurallar OpenDelegate'den;
       sadece yeni dosya adlarını bildirir). Telegram'a doğrudan yazmaz.
-    - Onay Vekil tarafında (Telegram) alınır. Ajan ikinci bir kontrol yapar:
+    - Onay OpenDelegate tarafında (Telegram) alınır. Ajan ikinci bir kontrol yapar:
       yazma/silme/terminal/ekran görüntüsü ve hassas yollar (.env, .ssh, tarayıcı
       profilleri, Credentials...) için görevde "onayli": true yoksa çalıştırmaz.
     - Sırlar sadece bu klasördeki .env'de durur.
@@ -87,7 +87,7 @@ MAKS_DOSYA_BOYUTU = 5 * 1024 * 1024
 MAKS_YAZMA = 1 * 1024 * 1024
 MAKS_LISTE = 200
 
-# Uzaktan açılış (Vekil akıllı prizle elektriği verir, BIOS 'Wake on AC' laptopu hazırda bekletten uyandırır):
+# Uzaktan açılış (OpenDelegate akıllı prizle elektriği verir, BIOS 'Wake on AC' laptopu hazırda bekletten uyandırır):
 # Windows kimse dokunmadan uyandıysa ~2 dk sonra kendini geri uyutur. Ajan görev çalıştırırken, bittikten sonra
 # ve uykudan dönüş algılanınca UYANIK_TUT_SN boyunca sistemi ve ekranı uyanık tutar, süre dolunca bırakır
 # (Windows'un kendi ayarları geçerli olur). Kullanıcının elle uyutmasını (kapak, menü, güç düğmesi) ENGELLEMEZ:
@@ -158,7 +158,7 @@ def _coz(veri: bytes) -> str:
         return veri.decode(_oem_kod_sayfasi(), errors="replace")
 
 
-# Hassas yollar — Vekil'deki tools.py ile aynı liste; değiştirirsen ikisini birlikte güncelle.
+# Hassas yollar — OpenDelegate'deki tools.py ile aynı liste; değiştirirsen ikisini birlikte güncelle.
 _HASSAS = [
     re.compile(p)
     for p in (
@@ -387,7 +387,7 @@ def dosya_sil(yol: str, *, onayli: bool = False) -> str:
     return f"Dosya silindi: {p}"
 
 
-_IPTAL = threading.Event()  # o anki görev için Vekil "dur" dedi mi (nabız iş parçacığı kurar)
+_IPTAL = threading.Event()  # o anki görev için OpenDelegate "dur" dedi mi (nabız iş parçacığı kurar)
 
 
 def _surec_agacini_kapat(surec: subprocess.Popen) -> None:
@@ -448,13 +448,13 @@ def _geri_cekil(bekleme: float, hizli: bool) -> float:
 
 
 def _nabiz_dongusu(gorev_id: str, bitti: threading.Event) -> None:
-    """Görev sürerken 5 sn'de bir Vekil'e 'hâlâ çalışıyorum' der (çevrimdışı sayılmasın) ve iptali öğrenir."""
+    """Görev sürerken 5 sn'de bir OpenDelegate'e 'hâlâ çalışıyorum' der (çevrimdışı sayılmasın) ve iptali öğrenir."""
     while not bitti.wait(5):
         try:
             yanit = _istek("GET", f"/jobs/devam?id={gorev_id}", zaman_asimi=15)
             if (yanit or {}).get("iptal"):
                 _IPTAL.set()
-        except Exception:  # noqa: BLE001 — eski Vekil (uç nokta yok) ya da ağ: sessizce devam
+        except Exception:  # noqa: BLE001 — eski OpenDelegate (uç nokta yok) ya da ağ: sessizce devam
             pass
 
 
@@ -466,7 +466,7 @@ def terminal_calistir(komut: str, calisma_dizini: str | None = None, *, onayli: 
     if not cwd.is_dir():
         raise NotADirectoryError(f"Çalışma dizini bulunamadı: {cwd}")
     # Süre sınırı YOK (Kullanıcı: uzun komutlar kesilmesin). Komut biter ya da kullanıcı "dur" derse (_IPTAL, nabız
-    # iş parçacığı Vekil'den öğrenir) süreç ağacıyla kapatılır. TERMINAL_ZAMAN_ASIMI > 0 ise isteğe bağlı üst sınır.
+    # iş parçacığı OpenDelegate'den öğrenir) süreç ağacıyla kapatılır. TERMINAL_ZAMAN_ASIMI > 0 ise isteğe bağlı üst sınır.
     # Çıktı boruya değil geçici dosyaya: 'start /b' ile arkada kalan bir süreç (ör. gradle daemon) borunun ucunu
     # miras alınca okuma hiç bitmiyordu; ajan o işte asılı kalıp sonraki her görevi bekletti (21.11). Artık
     # kabuk bitince dönülür, arkada kalan süreç dosyaya yazmaya devam etse de beklenmez.
@@ -524,7 +524,7 @@ def _bos_yol(klasor: Path, ad: str) -> Path:
 
 
 def dosya_kaydet(dosya_id: str, klasor: str, ad: str, boyut: int, *, onayli: bool = False) -> str:
-    """Vekil'in internetten indirdiği dosyayı Vekil'den çekip bu PC'ye kaydeder."""
+    """OpenDelegate'in internetten indirdiği dosyayı OpenDelegate'den çekip bu PC'ye kaydeder."""
     if not onayli:
         raise PermissionError("İndirme için kullanıcı onayı gerekli.")
     if not re.fullmatch(r"[0-9a-f]{32}", str(dosya_id)):
@@ -550,7 +550,7 @@ def dosya_kaydet(dosya_id: str, klasor: str, ad: str, boyut: int, *, onayli: boo
 
 # --------------------------------------------------------------------------
 # Ekran görüntüsü (mss + stdlib). Resim DİSKE YAZILMAZ: bellekte alınır,
-# küçültülür, PNG'ye çevrilir ve doğrudan Vekil'e gönderilir.
+# küçültülür, PNG'ye çevrilir ve doğrudan OpenDelegate'e gönderilir.
 # --------------------------------------------------------------------------
 
 EKRAN_MAKS_PNG = 8 * 1024 * 1024  # Render'ın kabul ettiği en büyük resim; aşarsa (4K+ ekran) küçültülür
@@ -705,7 +705,7 @@ def ekran_otursun(ekran: str = "otomatik", en_az: float = 0.15, en_cok: float = 
 
 
 def ekran_goruntusu(ekran: str = "ana", *, onayli: bool = False, hazir: Kare | None = None) -> tuple[str, dict[str, Any]]:
-    """Ekran görüntüsü alır (ana ekran / numara / 'hepsi'); PNG'yi base64 olarak Vekil'e döner.
+    """Ekran görüntüsü alır (ana ekran / numara / 'hepsi'); PNG'yi base64 olarak OpenDelegate'e döner.
 
     hazir: ekran_otursun'un döndüğü kare (tekrar yakalamadan onu kodla)."""
     if not onayli:
@@ -793,7 +793,7 @@ _TARAYICI_TAKMA_ADLARI = {"chrome", "google chrome", "tarayici", "tarayıcı", "
 def program_ac(program: str, hedef: str = "", masaustu: str = "", *, onayli: bool = False) -> str:
     """İzin listesindeki bir programı başlatır: brave <http(s) url>, code <klasör/dosya>, explorer <klasör>.
 
-    masaustu: hedef sanal masaüstü ('Vekil - <ad>' ya da Win+Tab sırasıyla '1', '2'...). Verilirse program
+    masaustu: hedef sanal masaüstü ('OpenDelegate - <ad>' ya da Win+Tab sırasıyla '1', '2'...). Verilirse program
     YENİ pencerede açılır, yeni pencere bulunup oraya taşınır. Taşıma olmazsa program yine açık kalır
     (bulunulan masaüstünde) ve sonuç bunu söyler: iş yarım kalmaz.
     """
@@ -1026,7 +1026,7 @@ def _one_getir(hwnd: int, bekle: float = 0.2) -> bool:
 VDA_DLL = DIZIN / "VirtualDesktopAccessor.dll"
 # github.com/Ciantic/VirtualDesktopAccessor sürüm 2024-12-16-windows11 (354816 bayt). Değişirse yüklenmez.
 VDA_SHA256 = "8740c572a1c000e3b87ffeb1e4c397eae9af3bd4a2abdc3bcffacab4493f8ff5"
-VEKIL_ONEKI = "Vekil - "
+VEKIL_ONEKI = "OpenDelegate - "
 VDA_ZAMAN_ASIMI = 25
 
 
@@ -1087,7 +1087,7 @@ def _vda_adlar(d: Any) -> list[str]:
 
 
 def _vda_cozumle(d: Any, masaustu: Any, sadece_vekil: bool) -> tuple[int, str]:
-    """'Vekil - X' adı ya da Win+Tab sırası ('1'...) -> (0 tabanlı no, ad)."""
+    """'OpenDelegate - X' adı ya da Win+Tab sırası ('1'...) -> (0 tabanlı no, ad)."""
     adlar = _vda_adlar(d)
     m = str(masaustu or "").strip()
     if m.isdigit() and not sadece_vekil:
@@ -1165,7 +1165,7 @@ def masaustu_durum(*, onayli: bool = False) -> str:
     """Sanal masaüstleri (JSON). Salt okuma; desteklenmiyorsa 'destek': false ve nedeni."""
     try:
         v = _vda("durum")
-    except Exception as e:  # noqa: BLE001 - destek yok: Vekil masaüstüsüz çalışır
+    except Exception as e:  # noqa: BLE001 - destek yok: OpenDelegate masaüstüsüz çalışır
         return json.dumps({"destek": False, "neden": str(e)}, ensure_ascii=False)
     return json.dumps({"destek": True, "sayi": v["sayi"], "aktif": v["aktif"], "adlar": v["adlar"]}, ensure_ascii=False)
 
@@ -1178,7 +1178,7 @@ def masaustu_olustur(ad: str, *, onayli: bool = False) -> str:
 
 
 def masaustu_kaldir(ad: str, kapat: bool = False, *, onayli: bool = False) -> str:
-    """'Vekil - ' masaüstünü siler. İçinde pencere varsa: kapat=False -> silmez; kapat=True -> WM_CLOSE, kapanmayan
+    """'OpenDelegate - ' masaüstünü siler. İçinde pencere varsa: kapat=False -> silmez; kapat=True -> WM_CLOSE, kapanmayan
     pencere kalırsa yine silmez (Windows silinen masaüstünün pencerelerini kullanıcının masaüstüne taşırdı)."""
     if not onayli:
         raise PermissionError("Masaüstü silmek için yetki gerekli.")
@@ -1198,7 +1198,7 @@ def pencere_tasi(pencere: str, masaustu: str, *, onayli: bool = False) -> str:
 
 # --------------------------------------------------------------------------
 # Fare / klavye (ctypes SendInput; 0 paket). Koordinatlar NORMALİZE 0-1000:
-# Vekil ekranın çözünürlüğünü/küçültmesini bilmeden konum verir, ajan bunu
+# OpenDelegate ekranın çözünürlüğünü/küçültmesini bilmeden konum verir, ajan bunu
 # SendInput'un 0-65535 mutlak uzayına çevirir (ana ekran). Her girdi bir alt
 # düzey Windows olayı; deneme=True iken hiçbir şey gönderilmez, ne yapılacağı döner.
 # --------------------------------------------------------------------------
@@ -1450,7 +1450,7 @@ def _imlec_normale_don() -> bool:
 
 
 def imlec_ayarla(mod: str = "bot", *, onayli: bool = False) -> str:
-    """Sistem imlecini bot moduna (kırmızı) alır ya da normale döndürür. Sadece Vekil çağırır."""
+    """Sistem imlecini bot moduna (kırmızı) alır ya da normale döndürür. Sadece OpenDelegate çağırır."""
     mod = str(mod or "bot").strip().lower()
     if mod in ("normal", "geri", "kapat"):
         return "İmleç normale döndürüldü." if _imlec_normale_don() else "İmleç zaten normaldi (ya da döndürülemedi)."
@@ -1535,7 +1535,7 @@ def bilgisayar_adim(eylemler: list[dict[str, Any]] | None = None, ekran: str = "
             else:
                 raise ValueError(f"bilinmeyen eylem türü: {tur}")
             sonuclar.append({"ok": True, "metin": metin})
-        except Exception as ex:  # noqa: BLE001 - hata Vekil'e dönsün, kalan eylemler iptal
+        except Exception as ex:  # noqa: BLE001 - hata OpenDelegate'e dönsün, kalan eylemler iptal
             sonuclar.append({"ok": False, "metin": f"{type(ex).__name__}: {ex}"})
             break
         # menü/pencere/sayfa açan adım: ekran durulsun; diğerleri arasında küçük bir nefes yeter
@@ -1598,7 +1598,7 @@ def bilgisayar_bak(ekran: str = "ana", *, onayli: bool = False) -> tuple[str, di
 
 
 # --------------------------------------------------------------------------
-# Spor randevu köprüsü: site Vekil'in bulut IP'sini (403) reddediyor; istekler ev bağlantısından gider.
+# Spor randevu köprüsü: site OpenDelegate'in bulut IP'sini (403) reddediyor; istekler ev bağlantısından gider.
 # --------------------------------------------------------------------------
 
 
@@ -1656,12 +1656,12 @@ def gorevi_calistir(gorev: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
     argumanlar = gorev.get("argumanlar") or {}
     if not isinstance(argumanlar, dict):
         return False, "HATA: argümanlar bir nesne olmalı.", {}
-    argumanlar = {k: v for k, v in argumanlar.items() if k != "onayli"}  # onay sadece Vekil'den gelir
+    argumanlar = {k: v for k, v in argumanlar.items() if k != "onayli"}  # onay sadece OpenDelegate'den gelir
     try:
         sonuc = fonksiyon(**argumanlar, onayli=bool(gorev.get("onayli")))
     except TypeError as e:
         return False, f"HATA: geçersiz parametre: {e}", {}
-    except Exception as e:  # noqa: BLE001 - her hata Vekil'e geri dönmeli
+    except Exception as e:  # noqa: BLE001 - her hata OpenDelegate'e geri dönmeli
         return False, f"HATA ({type(e).__name__}): {e}", {}
     if isinstance(sonuc, tuple):  # (metin, ek) — ör. ekran görüntüsü
         return True, sonuc[0], sonuc[1]
@@ -1669,7 +1669,7 @@ def gorevi_calistir(gorev: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
 
 
 # --------------------------------------------------------------------------
-# Vekil ile haberleşme
+# OpenDelegate ile haberleşme
 # --------------------------------------------------------------------------
 
 def _istek(yontem: str, yol: str, govde: dict[str, Any] | None = None, zaman_asimi: float = 20) -> Any:
@@ -1698,7 +1698,7 @@ def sonucu_gonder(gorev_id: str, basarili: bool, sonuc: str, ek: dict[str, Any] 
         except (urllib.error.URLError, OSError) as e:
             log.warning("Sonuç gönderilemedi (%s), deneme %d/3", e, deneme + 1)
         time.sleep(2)
-    log.error("Görev %s sonucu Vekil'e ulaştırılamadı.", gorev_id[:8])
+    log.error("Görev %s sonucu OpenDelegate'e ulaştırılamadı.", gorev_id[:8])
 
 
 # --------------------------------------------------------------------------
@@ -1706,7 +1706,7 @@ def sonucu_gonder(gorev_id: str, basarili: bool, sonuc: str, ek: dict[str, Any] 
 # --------------------------------------------------------------------------
 
 class Senkron:
-    """30 dk'da bir (ve açılışta) rclone sync. Ard arda 3 hatada Vekil üzerinden TEK bildirim."""
+    """30 dk'da bir (ve açılışta) rclone sync. Ard arda 3 hatada OpenDelegate üzerinden TEK bildirim."""
 
     def __init__(self) -> None:
         self.sonraki = time.monotonic()  # açılışta hemen
@@ -1778,8 +1778,8 @@ class Senkron:
                     try:
                         _istek("POST", "/jobs/olay", {"tur": "senkron_hata", "mesaj": ozet})
                         self.bildirildi = True  # bu hata serisi için bir daha yazmaz
-                    except Exception as e:  # noqa: BLE001 - Vekil'e ulaşılamazsa sonraki hatada tekrar dener
-                        log.warning("Senkron bildirimi Vekil'e gönderilemedi: %s", e)
+                    except Exception as e:  # noqa: BLE001 - OpenDelegate'e ulaşılamazsa sonraki hatada tekrar dener
+                        log.warning("Senkron bildirimi OpenDelegate'e gönderilemedi: %s", e)
         except Exception:  # noqa: BLE001 - thread asla ajanı düşürmesin
             log.exception("Senkron thread'inde beklenmeyen hata")
         finally:
@@ -1788,8 +1788,8 @@ class Senkron:
 
 
 # --------------------------------------------------------------------------
-# Dosya izleme: kurallar Vekil'den gelir (Postgres'te kalıcı); ajan os.scandir ile tarar,
-# sadece YENİ dosyaları Vekil'e bildirir. Anlık görüntü sadece bellekte (diskte dosya yok).
+# Dosya izleme: kurallar OpenDelegate'den gelir (Postgres'te kalıcı); ajan os.scandir ile tarar,
+# sadece YENİ dosyaları OpenDelegate'e bildirir. Anlık görüntü sadece bellekte (diskte dosya yok).
 # --------------------------------------------------------------------------
 
 IZLEME_ARALIK_SN = float(os.getenv("IZLEME_ARALIK_SN", "60"))
@@ -1806,7 +1806,7 @@ class Izleyici:
         self.sonraki = time.monotonic()
 
     def surum_geldi(self, surum: Any) -> None:
-        """Vekil'in bildirdiği kural sürümü değiştiyse kuralları yeniden çeker."""
+        """OpenDelegate'in bildirdiği kural sürümü değiştiyse kuralları yeniden çeker."""
         if surum is None or surum == self.surum:
             return
         yanit = _istek("GET", "/jobs/izleme")
@@ -1886,7 +1886,7 @@ class Izleyici:
             try:
                 _istek("POST", "/jobs/olay", {"tur": "izleme", "kural_id": kid, "yeni": yeni[:20], "toplam": len(yeni)})
             except urllib.error.HTTPError as e:
-                if e.code == 404:  # kural Vekil'de kaldırılmış
+                if e.code == 404:  # kural OpenDelegate'de kaldırılmış
                     self.surum = None
             except Exception as e:  # noqa: BLE001 - bildirilemeyenler bir sonraki taramada tekrar denensin
                 log.warning("İzleme bildirimi gönderilemedi: %s", e)
@@ -1897,7 +1897,7 @@ def main() -> int:
     if not VEKIL_URL or not AJAN_SECRET:
         log.error(".env içinde VEKIL_URL ve AJAN_SECRET olmalı (%s).", DIZIN / ".env")
         return 1
-    log.info("Vekil ajanı başladı -> %s (yoklama %ss)", VEKIL_URL, YOKLAMA_ARALIGI)
+    log.info("OpenDelegate ajanı başladı -> %s (yoklama %ss)", VEKIL_URL, YOKLAMA_ARALIGI)
     _imlec_normale_don()  # önceki oturum bot imlecini asılı bıraktıysa temizle
     senkron = Senkron()
     izleyici = Izleyici()
@@ -1914,23 +1914,23 @@ def main() -> int:
         duvar = time.time()
         if _uyanis_mi(onceki_bas, duvar, gorev_suresi):
             log.info("Uykudan dönüş algılandı: bağlantı yenileniyor, %.0f dk uyanık kalınacak.", UYANIK_TUT_SN / 60)
-            uyanik.uzat(time.monotonic())  # Vekil uzaktan açtıysa iş gelene kadar Windows geri uyutmasın
+            uyanik.uzat(time.monotonic())  # OpenDelegate uzaktan açtıysa iş gelene kadar Windows geri uyutmasın
             hizli_bitis = time.monotonic() + UYANIS_HIZLI_SN
             bekleme = YOKLAMA_ARALIGI
         onceki_bas, gorev_suresi = duvar, 0.0
         uyanik.kontrol(time.monotonic())
-        if senkron.zamani_geldi_mi():  # Vekil'e ulaşılamasa da çalışır (arka planda, yoklamayı bekletmez)
+        if senkron.zamani_geldi_mi():  # OpenDelegate'e ulaşılamasa da çalışır (arka planda, yoklamayı bekletmez)
             senkron.baslat()
         anlik = False  # uzun yoklama çalıştıysa bir sonraki istek beklemeden atılır
         try:
             bas = time.monotonic()
             yanit = _istek("GET", f"/jobs/pending?bekle={UZUN_YOKLAMA:g}", zaman_asimi=UZUN_YOKLAMA + 20)
-            # Eski Vekil 'bekle'yi tanımaz ve hemen döner ("uzun" yok): o zaman eski uyku düzeni sürer.
+            # Eski OpenDelegate 'bekle'yi tanımaz ve hemen döner ("uzun" yok): o zaman eski uyku düzeni sürer.
             # Sunucu "uzun" deyip boş elle anında dönerse de (beklenmedik) döngü kızışmasın diye uyunur.
             anlik = bool((yanit or {}).get("uzun")) and (
                 bool((yanit or {}).get("gorevler")) or time.monotonic() - bas >= UZUN_YOKLAMA / 2)
             if bagli is not True:
-                log.info("Vekil'e bağlandı.")
+                log.info("OpenDelegate'e bağlandı.")
                 bagli = True
             bekleme = YOKLAMA_ARALIGI
             try:  # izleme kuralları değiştiyse çek; zamanı geldiyse tara (hata olsa da görevleri bekletmez)
@@ -1959,14 +1959,14 @@ def main() -> int:
                 sicak_bitis = time.monotonic() + SICAK_SURE
         except urllib.error.HTTPError as e:
             if e.code == 403:
-                log.error("Vekil 403 döndü: AJAN_SECRET Render'dakiyle aynı mı?")
+                log.error("OpenDelegate 403 döndü: AJAN_SECRET Render'dakiyle aynı mı?")
             else:
-                log.warning("Vekil HTTP %s döndü.", e.code)
+                log.warning("OpenDelegate HTTP %s döndü.", e.code)
             bagli = False
             bekleme = _geri_cekil(bekleme, time.monotonic() < hizli_bitis)
         except (urllib.error.URLError, OSError, ValueError) as e:
             if bagli is not False:
-                log.warning("Vekil'e ulaşılamıyor (%s). Tekrar denenecek.", e)
+                log.warning("OpenDelegate'e ulaşılamıyor (%s). Tekrar denenecek.", e)
             bagli = False
             bekleme = _geri_cekil(bekleme, time.monotonic() < hizli_bitis)
         except Exception:  # noqa: BLE001 - ajan asla çökmesin

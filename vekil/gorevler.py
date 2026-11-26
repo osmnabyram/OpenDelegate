@@ -1,7 +1,7 @@
 """PC ajanı için görev kuyruğu (bellekte, geçici).
 
 Akış:
-    Vekil (onaydan sonra) -> calistir() görevi kuyruğa ekler
+    OpenDelegate (onaydan sonra) -> calistir() görevi kuyruğa ekler
     ajan.py -> GET /jobs/pending  -> bekleyenleri_al(): görev "alindi" olur
     ajan.py -> POST /jobs/result  -> sonuc_yaz(): görevi bekleyen coroutine uyanır
 

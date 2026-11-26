@@ -1,4 +1,4 @@
-package com.vekilai.vekil
+package com.opendelegate.app
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -79,7 +79,7 @@ object Config {
         return true
     }
 
-    // Telefonun kilit PIN'i (Kullanıcı 22.11: kilitliyken Vekil açabilsin). Sadece cihazda, Android Keystore ile
+    // Telefonun kilit PIN'i (Kullanıcı 22.11: kilitliyken OpenDelegate açabilsin). Sadece cihazda, Android Keystore ile
     // şifreli; sunucuya, loga ya da koda ASLA gitmez.
     fun pinKaydet(ctx: Context, pin: String) {
         val c = Cipher.getInstance("AES/GCM/NoPadding").apply { init(Cipher.ENCRYPT_MODE, pinAnahtari()) }
@@ -111,7 +111,7 @@ object Config {
         }.generateKey()
     }
 
-    // Kullanıcı anahtarla kapattıysa uygulama açılışında ve telefon açılışında Vekil kendiliğinden kalkmaz.
+    // Kullanıcı anahtarla kapattıysa uygulama açılışında ve telefon açılışında OpenDelegate kendiliğinden kalkmaz.
     fun kapatildi(ctx: Context) = prefs(ctx).getBoolean(KEY_KAPALI, false)
     fun kapatildiYaz(ctx: Context, kapali: Boolean) = prefs(ctx).edit().putBoolean(KEY_KAPALI, kapali).apply()
 

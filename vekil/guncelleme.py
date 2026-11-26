@@ -1,4 +1,4 @@
-"""Güncelleme bildirimi: Render yeni sürümü açınca kullanıcıya Telegram'dan "Vekil güncellendi" + yenilikler.
+"""Güncelleme bildirimi: Render yeni sürümü açınca kullanıcıya Telegram'dan "OpenDelegate güncellendi" + yenilikler.
 
 - Sürüm: Render'ın verdiği RENDER_GIT_COMMIT (kısa hali). Aynı sürümle yeniden başlama -> mesaj yok.
 - Yenilikler: degisiklikler.json'daki en üstteki not (her kullanıcıya görünür değişiklikte Claude ekler).
@@ -47,7 +47,7 @@ async def bildir(
     yeni_commit = bool(commit) and commit != kayit.get("commit")
     if not (yeni_not or yeni_commit):
         return False
-    satir = ["Vekil güncellendi" + (f" ({commit})" if commit else "") + "."]
+    satir = ["OpenDelegate güncellendi" + (f" ({commit})" if commit else "") + "."]
     if yeni_not:
         # Arka arkaya birkaç push olup ara sürümler hiç açılmadıysa: görülmemiş notların HEPSİ (en fazla 5)
         onceki = kayit.get("not_no")

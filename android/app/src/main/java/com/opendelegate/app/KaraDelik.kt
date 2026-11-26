@@ -1,4 +1,4 @@
-package com.vekilai.vekil
+package com.opendelegate.app
 
 import android.content.Context
 import android.graphics.Canvas
@@ -18,7 +18,7 @@ import kotlin.random.Random
 
 /**
  * Ana ekrandaki "bilinç": kara delik. Ortada olay ufku (siyah), çevresinde ışığı bükülmüş kızıl halka ve
- * yörüngede dönen kızıl-siyah toz. Beklerken yavaşça döner ve nefes alır. Dokununca ve Vekil çalışırken
+ * yörüngede dönen kızıl-siyah toz. Beklerken yavaşça döner ve nefes alır. Dokununca ve OpenDelegate çalışırken
  * toz çok az hızlanır, kara delik biraz daha göze batar (dalga, titreme yok).
  * Sadece ekranda görünürken çizer (pil).
  */
@@ -39,7 +39,7 @@ class KaraDelik @JvmOverloads constructor(
     private val boya = Paint(Paint.ANTI_ALIAS_FLAG)
     private val cizgi = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeCap = Paint.Cap.ROUND }
     private var hale: RadialGradient? = null
-    // Tüm görünüm Vekil'in o anki durumundan türer ve yumuşak geçişle değişir (pat diye atlama yok).
+    // Tüm görünüm OpenDelegate'in o anki durumundan türer ve yumuşak geçişle değişir (pat diye atlama yok).
     private var enerji = 0f   // 0 sakin .. 1 dinliyor/yanıtlıyor
     private var uyku = 0f     // 1: servis kapalı, sönük ve çok yavaş
     private var tetikBitis = 0L

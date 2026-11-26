@@ -98,7 +98,7 @@ class UctanUca(unittest.TestCase):
                              gonder_metin=gonder, oku=oku, yaz=yaz, izle=False)
 
         async def ara_ucu(request):
-            ok, m = await self.a.ara("istek", "Kanka, Vekil ben. Dinliyorum.", otomatik=False)
+            ok, m = await self.a.ara("istek", "Kanka, OpenDelegate ben. Dinliyorum.", otomatik=False)
             return PlainTextResponse(next(iter(self.a.gorusmeler)) if ok else "HATA " + m)
 
         self.app = Starlette(routes=[*arama.rotalar(lambda: self.a), Route("/t/ara", ara_ucu, methods=["POST"])])
@@ -169,7 +169,7 @@ class UctanUca(unittest.TestCase):
 
     def test_ben_kapatmadiysam_son_istekler_ozette(self):
         senaryo = [lambda m: SimpleNamespace(content="Bugün hava güzel.", tool_calls=None)]
-        self.calistir(senaryo, ["hava nasıl"])  # sonra Twilio "completed" (Vekil kapatmadı)
+        self.calistir(senaryo, ["hava nasıl"])  # sonra Twilio "completed" (OpenDelegate kapatmadı)
         ozet = self.telegram[-1]
         self.assertIn("Teknik iz (ben kapatmadım)", ozet)
         self.assertIn("cevap 200", ozet)

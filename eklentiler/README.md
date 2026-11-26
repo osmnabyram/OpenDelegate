@@ -6,12 +6,12 @@ Müşteriye özel araçları ana koda dokunmadan buraya koyun. / Put customer-sp
 
 1. `_ornek.py` dosyasını `_` olmadan kopyalayın (ör. `takvim.py`).
 2. `ARAC` içinde araç adı, açıklama, parametreler ve riski; `calistir` içinde işi yazın.
-3. Vekil'i yeniden başlatın (Render'da *Manual Deploy*). Açılış logunda `Eklenti yüklendi: <ad>` görünür.
+3. OpenDelegate'i yeniden başlatın (Render'da *Manual Deploy*). Açılış logunda `Eklenti yüklendi: <ad>` görünür.
 
 Kurallar:
 - `_` ile başlayan dosyalar yüklenmez.
-- Bozuk eklenti atlanır, Vekil çalışmaya devam eder (log'a uyarı düşer).
-- Araç adı Vekil'in kendi araçlarıyla çakışamaz.
+- Bozuk eklenti atlanır, OpenDelegate çalışmaya devam eder (log'a uyarı düşer).
+- Araç adı OpenDelegate'in kendi araçlarıyla çakışamaz.
 - `risk` yalnızca `düşük` ya da `orta` olabilir; ödeme ve kritik işlemler eklentiyle açılmaz.
 - Her çağrı 60 saniye ile sınırlıdır.
 - API anahtarlarını koda değil ortam değişkenine (`os.environ`) koyun.
@@ -22,11 +22,11 @@ Kurallar:
 
 1. Copy `_ornek.py` without the leading `_` (e.g. `calendar.py`).
 2. Define the tool name, description, parameters and risk in `ARAC`, and the work in `calistir`.
-3. Restart Vekil (on Render: *Manual Deploy*). The startup log shows `Eklenti yüklendi: <name>`.
+3. Restart OpenDelegate (on Render: *Manual Deploy*). The startup log shows `Eklenti yüklendi: <name>`.
 
 Rules:
 - Files starting with `_` are skipped.
-- A broken plugin is skipped and Vekil keeps running (a warning is logged).
+- A broken plugin is skipped and OpenDelegate keeps running (a warning is logged).
 - The tool name must not collide with a built-in tool.
 - `risk` can only be `düşük` (low) or `orta` (medium); payments and critical actions cannot be enabled by a plugin.
 - Each call is limited to 60 seconds.

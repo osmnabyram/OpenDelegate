@@ -199,7 +199,7 @@ def kayit_onerisi(a: Analiz, gun: date) -> tuple[str, str] | None:
     if a.tur == "not":
         konu = a.konu or "not"
         yol = f"klasorler/notlar/{konu}-{gun.isoformat()}.txt"
-        icerik = (f"{a.baslik or konu.capitalize()}\nTarih: {gun:%d.%m.%Y}\nKaynak: Telegram fotoğrafı (Vekil)\n\n"
+        icerik = (f"{a.baslik or konu.capitalize()}\nTarih: {gun:%d.%m.%Y}\nKaynak: Telegram fotoğrafı (OpenDelegate)\n\n"
                   f"{a.metin or a.ozet}\n{belirsiz}")
         return yol, icerik
     f = a.fis or {}
@@ -213,7 +213,7 @@ def kayit_onerisi(a: Analiz, gun: date) -> tuple[str, str] | None:
     if kalemler:
         satirlar.append("Kalemler:")
         satirlar += [f"  - {k['ad'] or '[okunmuyor]'}: {k['tutar'] or '[okunmuyor]'}" for k in kalemler]
-    icerik = "\n".join(satirlar) + f"\nKaydedildi: {gun:%d.%m.%Y} (Telegram fotoğrafı, Vekil)\n{belirsiz}"
+    icerik = "\n".join(satirlar) + f"\nKaydedildi: {gun:%d.%m.%Y} (Telegram fotoğrafı, OpenDelegate)\n{belirsiz}"
     return yol, icerik
 
 

@@ -36,7 +36,7 @@ class Bildirim(unittest.IsolatedAsyncioTestCase):
         depo = Depo()
         giden = await self._calis(depo, "abc1234def")
         self.assertEqual(len(giden), 1)
-        self.assertTrue(giden[0].startswith("Vekil güncellendi (abc1234)."))
+        self.assertTrue(giden[0].startswith("OpenDelegate güncellendi (abc1234)."))
         self.assertIn("• Brifinge emoji geldi.", giden[0])
         self.assertIn("Yenilikler:\n• eski\n• Brifinge emoji geldi.\n• Pist butonu.", giden[0])  # ilk bildirim: görülmemiş notların hepsi, eskiden yeniye
         self.assertEqual(await self._calis(depo, "abc1234def"), [])  # aynı sürüm: Render yeniden başladı
@@ -47,13 +47,13 @@ class Bildirim(unittest.IsolatedAsyncioTestCase):
         uc_not = [{"no": 4, "maddeler": ["dört"]}, {"no": 3, "maddeler": ["üç"]}, {"no": 2, "maddeler": ["iki"]},
                   {"no": 1, "maddeler": ["bir"]}]
         giden = await self._calis(depo, "ddd4444", notlar=uc_not)  # 2 ve 3 hiç açılmadan 4 geldi
-        self.assertEqual(giden[0], "Vekil güncellendi (ddd4444).\nYenilikler:\n• iki\n• üç\n• dört")
+        self.assertEqual(giden[0], "OpenDelegate güncellendi (ddd4444).\nYenilikler:\n• iki\n• üç\n• dört")
 
     async def test_not_yoksa_kisa_mesaj(self):
         depo = Depo()
         await self._calis(depo, "aaa1111")
         giden = await self._calis(depo, "bbb2222")  # yeni commit ama yeni not yok
-        self.assertEqual(giden, ["Vekil güncellendi (bbb2222).\nKüçük düzeltmeler."])
+        self.assertEqual(giden, ["OpenDelegate güncellendi (bbb2222).\nKüçük düzeltmeler."])
 
     async def test_commit_bilgisi_yoksa_nota_bakar(self):
         depo = Depo()

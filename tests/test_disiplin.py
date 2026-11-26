@@ -1,4 +1,4 @@
-"""disiplin.py testleri: Vekil işi bitirene kadar çalışsın, sadece gerçek kısırdöngüde dursun.
+"""disiplin.py testleri: OpenDelegate işi bitirene kadar çalışsın, sadece gerçek kısırdöngüde dursun.
 
 Çalıştır: python -m unittest tests.test_disiplin
 """

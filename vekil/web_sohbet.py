@@ -1,4 +1,4 @@
-"""Web sohbeti: Telegram'a gerek kalmadan tarayıcıdan Vekil ile konuşma.
+"""Web sohbeti: Telegram'a gerek kalmadan tarayıcıdan OpenDelegate ile konuşma.
 
 Üç parça:
   - Giriş: parola (+ isteğe bağlı TOTP), süreli HttpOnly çerez, yanlış denemede bekleme.
@@ -7,7 +7,7 @@
 
 Güvenlik: yanlış giriş hep aynı cevabı verir; durum değiştiren her istek oturum çerezi + `X-OD` başlığı ister
 (başka sitenin formu bu başlığı koyamaz); sayfa betikleri ayrı dosyadır ve CSP `script-src 'self'` ile sınırlıdır;
-Vekil'in HTML'i beyaz listeden süzülür (script, img, olay özellikleri atılır).
+OpenDelegate'in HTML'i beyaz listeden süzülür (script, img, olay özellikleri atılır).
 """
 
 from __future__ import annotations
@@ -144,7 +144,7 @@ def parola_dogru(parola: str) -> bool:
 
 
 # --------------------------------------------------------------------------
-# HTML süzgeci: Vekil'in (Telegram HTML'i) mesajı sayfaya güvenle girer
+# HTML süzgeci: OpenDelegate'in (Telegram HTML'i) mesajı sayfaya güvenle girer
 # --------------------------------------------------------------------------
 
 class _Suzgec(HTMLParser):

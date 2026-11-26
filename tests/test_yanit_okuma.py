@@ -26,7 +26,7 @@ class YanitBaglami(unittest.TestCase):
 
     def test_vekil_raporu(self):
         b = main._yanit_baglami(mesaj(eski("Ödev dosyasını yazdım, testler geçti.")))
-        self.assertIn("Vekil'in mesajı", b)
+        self.assertIn("OpenDelegate'in mesajı", b)
         self.assertIn("Ödev dosyasını yazdım", b)
         self.assertIn("ses(eylem=oku", b)
         self.assertNotIn("özetleyip", b)

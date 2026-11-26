@@ -167,13 +167,13 @@ class Kurallar(Temel):
 class Konusma(Temel):
     async def test_basla_vekil_sesi_ve_turkce_dinleme(self):
         await self.kur()
-        await self.a.ara("toplantı", "Kanka, Vekil ben. Toplantın var.", otomatik=False)
+        await self.a.ara("toplantı", "Kanka, OpenDelegate ben. Toplantın var.", otomatik=False)
         x = await self.a.basla(self.gid())
         self.assertIn("<Play>https://vekil.test/arama/tok/ses/", x)
         self.assertIn('language="tr-TR"', x)
         self.assertIn('input="speech"', x)
         sid = x.split("/ses/")[1].split(".mp3")[0]
-        self.assertEqual(await self.a.ses_al(sid), "MP3Kanka, Vekil ben, Toplantın var.".encode())  # tek cümle (dil kayması)
+        self.assertEqual(await self.a.ses_al(sid), "MP3Kanka, OpenDelegate ben, Toplantın var.".encode())  # tek cümle (dil kayması)
         self.assertIn("tenis yapar", self.a.gorusmeler[self.gid()].mesajlar[0]["content"])
 
     async def test_arac_cagrisi_sonra_cevap(self):
@@ -219,7 +219,7 @@ class Konusma(Temel):
         self.assertIn("<Hangup/>", await self.a.cevap(g, "  "))
         self.assertEqual(self.konusan, [])
 
-    async def test_kadin_sesi_yok_hep_vekil_sesi(self):  # Kullanıcı: sadece Vekil sesi; <Say> yedeği yok
+    async def test_kadin_sesi_yok_hep_vekil_sesi(self):  # Kullanıcı: sadece OpenDelegate sesi; <Say> yedeği yok
         await self.kur(sentez_bozuk=True)
         await self.a.ara("istek", "Kanka & selam", otomatik=False)
         x = await self.a.basla(self.gid())
@@ -282,8 +282,8 @@ class Konusma(Temel):
 
     async def test_acilista_tanitim_tekrari_yok(self):
         await self.kur()
-        await self.a.ayarla({"eylem": "ara", "soyle": "Kanka ben Vekil, test için arıyorum."})
-        self.assertEqual(self.a.gorusmeler[self.gid()].acilis, "Kanka ben Vekil, test için arıyorum.")
+        await self.a.ayarla({"eylem": "ara", "soyle": "Kanka ben OpenDelegate, test için arıyorum."})
+        self.assertEqual(self.a.gorusmeler[self.gid()].acilis, "Kanka ben OpenDelegate, test için arıyorum.")
 
     async def test_bilinmeyen_gorusme_kibarca_kapanir(self):
         await self.kur()
@@ -302,7 +302,7 @@ class Sonuc(Temel):
 
     async def test_ozet_ve_dakika(self):
         await self.kur()
-        await self.a.ara("istek", "Kanka, Vekil ben.", otomatik=False)
+        await self.a.ara("istek", "Kanka, OpenDelegate ben.", otomatik=False)
         g = self.gid()
         await self.a.basla(g)
         self.cevaplar = [mesaj(cagrilar=[cagri("zamanla", {"eylem": "ekle"})]), mesaj("Tamam.")]
