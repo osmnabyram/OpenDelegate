@@ -531,7 +531,7 @@ class HavaYedek(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("üzgar", govde)
         self.assertNotIn("Kaynak", govde)  # sade: kaynak yazılmaz
         metno = next(r for r in istekler if r.url.host == "api.met.no")
-        self.assertIn("VekilBot", metno.headers["user-agent"])  # MET Norway kimlik ister
+        self.assertIn("OpenDelegateBot", metno.headers["user-agent"])  # MET Norway kimlik ister
 
     async def test_ikisi_de_olmazsa_sebep_gorunur(self):
         b, _ = self._kur(429)
