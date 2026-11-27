@@ -213,7 +213,7 @@ def veri_olustur(kayitlar: list[dict[str, str]]) -> dict[str, Any]:
     kokler = [_kokler(f"{k['anahtar'].replace('_', ' ')} {k['deger']}") for k in kayitlar]
     baglar = [{"a": dugumler[a]["id"], "b": dugumler[b]["id"], "w": w} for a, b, w in baglar_cikar(kokler)]
     return {
-        "cekirdek": {"ad": "VEKİL", "aciklama": "Kalıcı hafıza", "toplam": len(kayitlar)},
+        "cekirdek": {"ad": "OPENDELEGATE", "aciklama": "Kalıcı hafıza", "toplam": len(kayitlar)},
         "gruplar": sorted(gruplar.values(), key=lambda g: g["sira"]),
         "dugumler": dugumler,
         "baglar": baglar,

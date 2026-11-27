@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Uzak ekran</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070506;--kart:rgba(255,255,255,.05);--kart2:rgba(255,255,255,.1);--yazi:#f3eeee;--ikincil:#9a8d8f;
+  --vurgu:#ff2e3a;--vurgu2:#a30f1c;--hata:#ff5560;--cizgi:rgba(255,255,255,.1)}
+*{box-sizing:border-box}
+body{margin:0;color:var(--yazi);font:15px/1.45 Inter,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+  background:radial-gradient(900px 500px at 12% -10%,rgba(255,46,58,.16),transparent 60%),
+  radial-gradient(800px 500px at 100% 0,rgba(163,15,28,.18),transparent 55%),var(--bg);background-attachment:fixed}
+button,select,input{background:var(--kart);color:var(--yazi);border:1px solid var(--cizgi);border-radius:12px;
+  padding:9px 14px;min-height:44px;font:inherit;font-size:16px;font-weight:500;touch-action:manipulation;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+select{appearance:none;-webkit-appearance:none;padding-right:30px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%239a8d8f' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 11px center}
+button{cursor:pointer;transition:border-color .15s,background .15s,transform .08s}
+button:hover{border-color:rgba(255,46,58,.75)}button:active{background:var(--kart2);transform:scale(.97)}
+button.acik{background:linear-gradient(135deg,var(--vurgu),var(--vurgu2));color:#fff;border-color:transparent}
+button.kes{border-color:rgba(255,85,96,.55);color:var(--hata);background:rgba(255,46,58,.08)}
+input{flex:1;min-width:0;font-weight:400}input::placeholder{color:var(--ikincil)}
+input:focus,select:focus{outline:none;border-color:var(--vurgu)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+#giris{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  padding:16px;text-align:center}
+#giris .logo{width:76px;height:76px;border-radius:22px;display:grid;place-items:center;margin-bottom:6px;
+  background:linear-gradient(135deg,var(--vurgu),var(--vurgu2));box-shadow:0 12px 40px rgba(255,46,58,.4)}
+#giris .logo svg{width:38px;height:38px}
+#giris h1{margin:0;font:700 30px/1.1 Sora,Inter,sans-serif;letter-spacing:-.02em}
+#giris p{margin:0;color:var(--ikincil);max-width:300px}
+#giris #baglan{background:linear-gradient(135deg,var(--vurgu),var(--vurgu2));border:0;color:#fff;font:600 18px Sora,Inter,sans-serif;
+  padding:15px 42px;min-height:56px;border-radius:16px;margin-top:8px;box-shadow:0 10px 30px rgba(255,46,58,.4)}
+#giris #baglan[disabled]{opacity:.6}
+#gdurum{min-height:20px;font-size:14px;color:var(--ikincil)}
+#gdurum.hata{color:var(--hata)}
+#uygulama{display:none;padding:12px 16px}
+#durum{color:var(--ikincil);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+#durum.hata{color:var(--hata)}
+#ust{justify-content:space-between;flex-wrap:nowrap}
+#ust .sag{display:flex;gap:8px;flex:none}
+#kap{overflow:auto;max-width:100%;max-height:75vh;border:1px solid var(--cizgi);border-radius:14px;line-height:0;
+  box-shadow:0 18px 60px rgba(0,0,0,.55);background:#000}
+#ic{position:relative;width:100%;margin:0 auto}
+#resim{width:100%;height:auto;cursor:crosshair;display:block;user-select:none;-webkit-user-drag:none;
+  -webkit-touch-callout:none;touch-action:pan-x pan-y}
+#kap{touch-action:pan-x pan-y}
+#halka{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border:3px solid #ff2e3a;border-radius:50%;
+  pointer-events:none;display:none;box-shadow:0 0 0 2px rgba(255,255,255,.7)}
+#menu{display:none;position:fixed;top:8px;right:8px;z-index:30;width:48px;height:48px;padding:0;
+  flex-direction:column;align-items:center;justify-content:center;gap:5px;background:rgba(20,10,12,.9)}
+#menu span{display:block;width:24px;height:3px;background:var(--yazi);border-radius:2px}
+body.tam{overflow:hidden}
+body.tam #uygulama{padding:0}
+body.tam #menu{display:flex}
+body.tam #kap{position:fixed;inset:0;max-height:none;max-width:none;border:0;border-radius:0;background:#000;z-index:10}
+/* Menü SAĞDA, ince şerit; panel kendi içinde aşağı-yukarı kayar. Açıkken panel dışına dokunmak paneli kapatır. */
+body.tam #araclar{display:none;position:fixed;top:0;bottom:0;right:0;width:min(300px,72vw);overflow-y:auto;
+  z-index:20;background:rgba(12,6,8,.95);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-left:1px solid var(--cizgi);padding:64px 12px 24px;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+body.tam.menuacik #araclar{display:block}
+body.tam #araclar .bar{flex-direction:column;align-items:stretch;flex-wrap:nowrap}
+body.tam #ust{flex-direction:column;align-items:stretch}
+body.tam #ust .sag{flex-direction:column}
+body.tam #durum{white-space:normal}
+body.tam #araclar select,body.tam #araclar button,body.tam #araclar input{width:100%}
+</style></head><body>
+<div id="giris">
+  <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="12.5" rx="2.2"/><path d="M8 20.5h8M12 16.5v4"/></svg></div>
+  <h1>Uzak ekran</h1>
+  <p>Bilgisayarınıza güvenli bağlanmak için dokunun.</p>
+  <button id="baglan">Bağlantı kur</button>
+  <div id="gdurum"></div>
+</div>
+<div id="uygulama">
+  <button id="menu" aria-label="Menü"><span></span><span></span><span></span></button>
+  <div id="araclar">
+    <div class="bar" id="ust">
+      <span id="durum">Bağlanıyor...</span>
+      <span class="sag">
+        <button id="tam">Tam ekran</button>
+        <button id="kes" class="kes">Bağlantıyı kes</button>
+      </span>
+    </div>
+    <div class="bar">
+      <select id="monitor" title="Monitör"><option value="ana">Ana ekran</option><option value="1">Ekran 1</option>
+        <option value="2">Ekran 2</option><option value="hepsi">Hepsi</option></select>
+      <select id="aralik" title="Tazeleme"><option value="oto" selected>Otomatik</option><option value="1">1 sn</option><option value="2">2 sn</option><option value="3">3 sn</option>
+        <option value="5">5 sn</option><option value="0">Elle</option></select>
+      <select id="yakin" title="Yakınlaştır"><option value="" hidden>Zoom</option><option value="100">Sığdır</option><option value="200">2x</option>
+        <option value="300">3x</option><option value="400">4x</option></select>
+      <button id="yenile">Yenile</button>
+      <button id="sag" title="Sonraki tık sağ tık">Sağ tık</button>
+      <button id="cift" title="Sonraki tık çift tık">Çift tık</button>
+    </div>
+    <div class="bar">
+      <input id="metin" placeholder="Yazılacak metin" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button id="yaz">Yaz</button>
+      <button data-tus="enter">Enter</button><button data-tus="esc">Esc</button><button data-tus="tab">Tab</button>
+      <button data-tus="backspace">Sil</button>
+      <input id="tuslar" placeholder="ctrl+c, alt+tab..." autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button id="tusgonder">Tuş</button>
+      <button id="yukari">Yukarı kaydır</button><button id="asagi">Aşağı kaydır</button>
+    </div>
+  </div>
+  <div id="kap"><div id="ic"><img id="resim" alt="Ekran" draggable="false"><div id="halka"></div></div></div>
+</div>
+<script>
+const taban=location.pathname.replace(/\/+$/,'');
+const $=id=>document.getElementById(id);
+let hash='',sagTik=false,ciftTik=false,zamanlayici=null,url=null,bagli=false,oturum='';
+let bekleyenEylem=0,siradaki=Promise.resolve(),pollIptal=null,pollSurer=false,sonrakiTimer=null;
+// Bilet (sohbetteki bağlantıdan açılınca): adres çubuğundan hemen silinir, geçmişe yazılmaz
+// Sekme açık kaldıkça sessionStorage'da durur: bağlantıyı kesip yeniden kurunca onay istemez
+let bilet='';
+try{
+  const m=location.hash.match(/b=([\w-]+)/);
+  if(m){bilet=m[1];sessionStorage.setItem('b',bilet);history.replaceState(null,'',location.pathname)}
+  else bilet=sessionStorage.getItem('b')||'';
+}catch(e){}
+let zoom=100;
+// Cihaz adı (sohbet bildirimi için): Chrome'un Client Hints model bilgisi; yoksa sunucu User-Agent'tan çözer
+async function cihazModeli(){
+  try{
+    const u=navigator.userAgentData;
+    if(u&&u.getHighEntropyValues){const v=await u.getHighEntropyValues(['model']);if(v.model)return v.model}
+  }catch(e){}
+  return '';
+}
+
+const durum=(m,h)=>{$('durum').textContent=m;$('durum').className=h?'hata':''};
+const gdurum=(m,h)=>{$('gdurum').textContent=m;$('gdurum').className=h?'hata':''};
+const baslik=()=>({'X-Oturum':oturum});
+
+// Resmin "sığdır" genişliği (px): tam ekranda ekrana oranıyla sığar, değilse kutunun genişliği. Zoom bunun yüzdesi.
+function tabanGenislik(){
+  const r=$('resim');
+  if(document.body.classList.contains('tam')&&r.naturalWidth)
+    return Math.floor(Math.min(innerWidth,innerHeight*r.naturalWidth/r.naturalHeight));
+  return Math.max(200,document.documentElement.clientWidth-34); // sayfa kenar boşlukları + çerçeve
+}
+function boyutla(){$('ic').style.width=Math.round(tabanGenislik()*zoom/100)+'px'}
+function zoomAyarla(z){
+  zoom=Math.max(100,Math.min(600,z));boyutla();
+  const sec=$('yakin');sec.value=[...sec.options].some(o=>+o.value===Math.round(zoom))?String(Math.round(zoom)):'';
+}
+function oturumBitti(m){
+  if(!bagli)return;
+  kapat();gdurum(m||'Oturum sona erdi, tekrar bağlanın.',true);
+}
+async function kareAl(y){
+  if(y.status===401||y.status===403){oturumBitti('Oturum sona erdi, tekrar bağlanın.');return false}
+  if(y.status===204){durum('Güncel');return true}
+  if(!y.ok){let m='Hata '+y.status;try{m=(await y.json()).hata||m}catch(e){}durum(m,true);return false}
+  hash=y.headers.get('X-Hash')||'';
+  const b=await y.blob();const yeni=URL.createObjectURL(b);
+  $('resim').src=yeni;if(url)URL.revokeObjectURL(url);url=yeni;
+  let a={};try{a=JSON.parse(y.headers.get('X-Aktif')||'{}')}catch(e){}
+  durum((a.baslik||a.surec||'Güncel')+' · '+new Date().toLocaleTimeString('tr-TR'));
+  return true;
+}
+let durgun=0; // üst üste kaç tazelemede ekran değişmedi
+async function tazele(){
+  if(!bagli||pollSurer||bekleyenEylem>0||document.hidden)return;
+  pollSurer=true;pollIptal=new AbortController();const t0=performance.now();
+  try{
+    const y=await fetch(taban+'/ekran?e='+$('monitor').value+'&h='+hash,{headers:baslik(),signal:pollIptal.signal});
+    if(bagli){
+      const degisti=y.status!==204;
+      if(await kareAl(y)){
+        durgun=degisti?0:durgun+1;
+        $('durum').textContent+=' · '+Math.round(performance.now()-t0)+' ms';
+      }
+    }
+  }catch(e){if(e.name!=='AbortError')durum('Bağlantı yok',true)}
+  finally{pollSurer=false;pollIptal=null}
+}
+// Eylemler asla düşmez: sırayla gider, ekran tazelemesi varsa iptal edilip eylem öne geçer
+function eylem(govde){
+  if(!bagli)return;
+  bekleyenEylem++;
+  if(pollIptal)pollIptal.abort();
+  durum('Gönderiliyor...');
+  siradaki=siradaki.then(async()=>{
+    try{
+      govde.e=$('monitor').value;
+      const y=await fetch(taban+'/eylem',{method:'POST',headers:{...baslik(),'Content-Type':'application/json'},body:JSON.stringify(govde)});
+      if(bagli)await kareAl(y);
+    }catch(e){durum('Bağlantı yok',true)}
+    finally{
+      bekleyenEylem--;
+      if(bekleyenEylem===0){
+        $('halka').style.display='none';
+        durgun=0;clearTimeout(sonrakiTimer);sonrakiTimer=setTimeout(tazele,1200); // sayfa geç yüklenirse sonucu yakala
+      }
+    }
+  });
+}
+// Zincirli tazeleme: bir istek BİTMEDEN yenisi başlamaz (yol yavaşsa kendiliğinden yavaşlar, istek yığılmaz).
+// "Otomatik": ekran hareketliyken hızlı (0,6 sn + yolun süresi), durgunken kademeli yavaşlar (en çok 5 sn):
+// boşuna ekran yakalayıp PC'yi, OpenDelegate'in işlerini ve mobil veriyi yormaz.
+function kur(){
+  clearTimeout(zamanlayici);
+  const s=$('aralik').value;
+  if(!bagli||s==='0')return;
+  const bekle=s==='oto'?Math.min(5000,600+durgun*500):(+s)*1000;
+  zamanlayici=setTimeout(async()=>{await tazele();kur()},bekle);
+}
+function tamAyarla(ac){
+  document.body.classList.toggle('tam',ac);document.body.classList.remove('menuacik');
+  $('tam').textContent=ac?'Tam ekrandan çık':'Tam ekran';boyutla();
+}
+async function tamAc(){
+  tamAyarla(true);
+  try{await document.documentElement.requestFullscreen()}catch(e){}
+}
+function tamKapat(){
+  tamAyarla(false);
+  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+}
+function kapat(){
+  bagli=false;oturum='';zoomAyarla(100);clearTimeout(zamanlayici);clearTimeout(sonrakiTimer);
+  if(pollIptal)pollIptal.abort();tamKapat();
+  $('uygulama').style.display='none';$('giris').style.display='flex';
+  $('baglan').disabled=false;
+  $('resim').removeAttribute('src');if(url){URL.revokeObjectURL(url);url=null}hash='';
+}
+function acildi(sid){
+  oturum=sid;bagli=true;hash='';gdurum('');
+  $('giris').style.display='none';$('uygulama').style.display='block';
+  durum('Bağlanıyor...');kur();tazele();
+}
+async function baglan(){
+  $('baglan').disabled=true;gdurum('Bağlanıyor...');
+  try{
+    const y=await fetch(taban+'/baglan',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({b:bilet,m:await cihazModeli()})});
+    const j=await y.json().catch(()=>({}));
+    if(!y.ok){gdurum(j.hata||('Hata '+y.status),true);$('baglan').disabled=false;return}
+    if(j.oturum){acildi(j.oturum);return}
+    // Sohbette onay bekleniyor
+    gdurum('Sohbette bağlantı isteğini onaylayın...');
+    const bitis=Date.now()+125000;
+    while(Date.now()<bitis){
+      await new Promise(r=>setTimeout(r,1500));
+      const d=await fetch(taban+'/durum?id='+encodeURIComponent(j.bekle)).then(r=>r.json()).catch(()=>({}));
+      if(d.oturum){acildi(d.oturum);return}
+      if(d.durum==='red'){gdurum('Bağlantı reddedildi.',true);$('baglan').disabled=false;return}
+      if(d.durum==='yok')break;
+    }
+    gdurum('Onay gelmedi, tekrar deneyin.',true);$('baglan').disabled=false;
+  }catch(e){gdurum('Bağlantı kurulamadı.',true);$('baglan').disabled=false}
+}
+async function kes(){
+  const s=oturum;kapat();gdurum('Bağlantı kesildi.');
+  try{await fetch(taban+'/kes',{method:'POST',headers:{'X-Oturum':s},keepalive:true})}catch(e){}
+}
+$('baglan').onclick=baglan;$('kes').onclick=kes;
+$('tam').onclick=()=>document.body.classList.contains('tam')?tamKapat():tamAc();
+$('menu').onclick=()=>document.body.classList.toggle('menuacik');
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&document.body.classList.contains('tam'))tamAyarla(false)});
+$('resim').addEventListener('load',boyutla);addEventListener('resize',boyutla);
+// İki parmakla yakınlaştırma: parmakların ortası sabit kalır; kaydırma tarayıcının kendi kaydırması
+let pinch=null,pinchSon=0;
+const kapEl=$('kap');
+const orta=t=>({x:(t[0].clientX+t[1].clientX)/2,y:(t[0].clientY+t[1].clientY)/2,d:Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)});
+kapEl.addEventListener('touchstart',ev=>{
+  if(ev.touches.length!==2)return;
+  const o=orta(ev.touches),r=kapEl.getBoundingClientRect(),ic=$('ic');
+  pinch={d0:o.d||1,z0:zoom,ox:(kapEl.scrollLeft+o.x-r.left)/ic.offsetWidth,oy:(kapEl.scrollTop+o.y-r.top)/ic.offsetHeight};
+},{passive:true});
+kapEl.addEventListener('touchmove',ev=>{
+  if(!pinch||ev.touches.length!==2)return;
+  ev.preventDefault();
+  const o=orta(ev.touches);zoomAyarla(pinch.z0*o.d/pinch.d0);
+  const r=kapEl.getBoundingClientRect(),ic=$('ic');
+  kapEl.scrollLeft=pinch.ox*ic.offsetWidth-(o.x-r.left);
+  kapEl.scrollTop=pinch.oy*ic.offsetHeight-(o.y-r.top);
+},{passive:false});
+const pinchBitir=ev=>{if(pinch&&ev.touches.length<2){pinch=null;pinchSon=Date.now()}};
+kapEl.addEventListener('touchend',pinchBitir);kapEl.addEventListener('touchcancel',pinchBitir);
+$('resim').addEventListener('click',ev=>{
+  if(Date.now()-pinchSon<500)return; // zoom bırakılırken oluşan sahte tık
+  // Menü açıkken ekrana dokunmak sadece menüyü kapatır; PC'ye tık gitmez
+  if(document.body.classList.contains('menuacik')){document.body.classList.remove('menuacik');return}
+  const r=ev.currentTarget.getBoundingClientRect();
+  const x=(ev.clientX-r.left)/r.width*1000,y=(ev.clientY-r.top)/r.height*1000;
+  const h=$('halka');h.style.left=(ev.clientX-r.left)+'px';h.style.top=(ev.clientY-r.top)+'px';
+  h.style.display='block'; // eylem bitene dek kalır (anında geri bildirim)
+  eylem({tur:'tikla',x:Math.round(x*10)/10,y:Math.round(y*10)/10,tus:sagTik?'sag':'sol',cift:ciftTik});
+  sagTik=ciftTik=false;$('sag').classList.remove('acik');$('cift').classList.remove('acik');
+});
+$('sag').onclick=e=>{sagTik=!sagTik;e.target.classList.toggle('acik',sagTik)};
+$('cift').onclick=e=>{ciftTik=!ciftTik;e.target.classList.toggle('acik',ciftTik)};
+$('yenile').onclick=()=>{hash='';tazele()};
+$('yakin').onchange=()=>{if($('yakin').value)zoomAyarla(+$('yakin').value)};
+$('aralik').onchange=kur;$('monitor').onchange=()=>{hash='';tazele()};
+$('yaz').onclick=()=>{const m=$('metin').value;if(m){eylem({tur:'yaz',metin:m});$('metin').value=''}};
+$('metin').addEventListener('keydown',ev=>{if(ev.key==='Enter')$('yaz').click()});
+document.querySelectorAll('[data-tus]').forEach(b=>b.onclick=()=>eylem({tur:'tus',tuslar:b.dataset.tus}));
+$('tusgonder').onclick=()=>{const t=$('tuslar').value.trim();if(t){eylem({tur:'tus',tuslar:t});$('tuslar').value=''}};
+$('yukari').onclick=()=>eylem({tur:'kaydir',yon:'yukari'});
+$('asagi').onclick=()=>eylem({tur:'kaydir',yon:'asagi'});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)tazele()});
+</script></body></html>

@@ -227,11 +227,11 @@
 <div id="ipucu">sürükle: döndür · tekerlek: yakınlaş · tıkla: detay · merkez: beyin</div>
 <div id="bildirim"></div>
 <div class="serit" id="serit-ust"></div><div class="serit" id="serit-alt"></div>
-<div id="kart"><b>VEKİL</b><span>ZİHİN HARİTASI</span></div>
+<div id="kart"><b>OPENDELEGATE</b><span>ZİHİN HARİTASI</span></div>
 <div id="ses-ipucu">tıkla</div>
 <div id="giris">
   <div class="kalp"><i></i><i></i><i></i><b></b></div>
-  <div class="giris-yazi"><h1>VEKİL'İN ZİHNİ UYANDIRILIYOR</h1><p id="giris-durum">nöronlar ısınıyor…</p></div>
+  <div class="giris-yazi"><h1>OPENDELEGATE'İN ZİHNİ UYANDIRILIYOR</h1><p id="giris-durum">nöronlar ısınıyor…</p></div>
   <div class="ilerleme"><i id="giris-ilerleme"></i></div>
 </div>
 
@@ -488,7 +488,7 @@ const cekirdekHalkalari = [];
   m.rotation.set(ex, 0, ez); cekirdek.add(m); cekirdekHalkalari.push(m);
 });
 const cekirdekEtiket = document.createElement('div');
-cekirdekEtiket.innerHTML = '<div class="cekirdek-etiket" title="OpenDelegate\'in beyni"><b>VEKİL</b><span id="toplam">kalıcı hafıza</span></div>';
+cekirdekEtiket.innerHTML = '<div class="cekirdek-etiket" title="OpenDelegate\'in beyni"><b>OPENDELEGATE</b><span id="toplam">kalıcı hafıza</span></div>';
 cekirdekEtiket.firstChild.addEventListener('click', (e) => { e.stopPropagation(); cekirdekSec(); });
 cekirdek.add(new CSS2DObject(cekirdekEtiket));
 const CEKIRDEK = { cekirdek: true };   // seçim/üzerine gelme için işaret nesnesi

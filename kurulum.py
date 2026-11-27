@@ -292,7 +292,7 @@ def pencere() -> int:
         tk.Label(sol, image=resim, bg="#000000", bd=0).pack(pady=(40, 12))
         sol.resim = resim  # type: ignore[attr-defined]
     except tk.TclError:
-        tk.Label(sol, text="VEKIL", fg=METIN, bg="#000000", font=("Segoe UI", 28, "bold")).pack(pady=80)
+        tk.Label(sol, text="OPENDELEGATE", fg=METIN, bg="#000000", font=("Segoe UI", 28, "bold")).pack(pady=80)
     tk.Label(sol, text="OpenDelegate", fg=METIN, bg="#000000", font=("Segoe UI", 20, "bold")).pack()
     tk.Label(sol, text="Kurulum sihirbazı", fg=SOLUK, bg="#000000", font=("Segoe UI", 10)).pack()
     adim_etiketi = tk.Label(sol, text="", fg=SOLUK, bg="#000000", font=("Segoe UI", 9))

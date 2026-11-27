@@ -235,7 +235,7 @@ class VideoVeButonlar(unittest.IsolatedAsyncioTestCase):
         satirlar = [[(b.text, b.callback_data) for b in r] for r in main.KOMUT_BUTONLARI.inline_keyboard]
         self.assertEqual([t for r in satirlar for t, _ in r],
                          ["🧠 Zihin haritası", "💾 Hafıza", "🖥 Masaüstü", "📊 Durum",
-                          "📰 Brifing", "📜 Grind", "📡 Pist", "📞 Ara", "📸 SS"])
+                          "📰 Brifing", "📜 Grind", "📡 Pist", "📞 Ara", "📸 SS", "📺 Uzak ekran"])
         for _, veri in (x for r in satirlar for x in r):
             self.assertIn(veri.split(":")[1], main._komut_haritasi())  # her butonun işleyicisi var
 

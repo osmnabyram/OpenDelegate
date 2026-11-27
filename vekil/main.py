@@ -81,6 +81,7 @@ import eklenti
 import takvim
 import dsml
 import harita
+import uzak_ekran
 import guvenlik
 import gorevler
 import gorsel
@@ -422,7 +423,8 @@ KOMUT_BUTONLARI = InlineKeyboardMarkup([
      InlineKeyboardButton("📜 Grind", callback_data="komut:grind")],
     [InlineKeyboardButton("📡 Pist", callback_data="komut:pist"),
      InlineKeyboardButton("📞 Ara", callback_data="komut:ara")],
-    [InlineKeyboardButton("📸 SS", callback_data="komut:ss")],
+    [InlineKeyboardButton("📸 SS", callback_data="komut:ss"),
+     InlineKeyboardButton("📺 Uzak ekran", callback_data="komut:uzak")],
 ])
 # /ss sorusu: hangi ekranın görüntüsü. Değer ajanın ekran_goruntusu 'ekran' argümanı (1 = sol/ana, 2 = sağ).
 SS_SECENEKLERI = (("hepsi", "Tüm ekran"), ("1", "Ana monitör (sol)"), ("2", "Sağ monitör"))
@@ -444,6 +446,8 @@ KOMUT_MENUSU = [
     BotCommand("brifing", "Sabah brifingi: ayarlar + deneme"),
     BotCommand("durum", "PC ajanı, OneDrive, hafıza durumu"),
     BotCommand("zihin", "Zihin haritası"),
+    BotCommand("uzak", "PC ekranını tarayıcıdan gör ve tıkla"),
+    BotCommand("uzakkapat", "Açık uzak ekran bağlantılarını kes"),
     BotCommand("hafiza", "Kalıcı hafızamda ne var"),
     BotCommand("yedek", "Hafızayı dosya olarak indir"),
     BotCommand("yonetim", "Yönetim sayfası: durum ve son işler"),
@@ -602,7 +606,7 @@ def _hedef_metni(tool_adi: str, a: dict[str, Any]) -> str:
 
 # Kullanıcıya giden bilgi satırları SADE Türkçe: araç adı, komut, tam yol, teknik terim YOK (Kullanıcının isteği).
 _SADE_EYLEM = {
-    "terminal_calistir": "Bilgisayarda bir işlem çalıştırıyorum", "dosya_ara": "Bilgisayarda dosya arıyorum",
+    "terminal_calistir": "Komut çalıştırıyorum", "dosya_ara": "Bilgisayarda dosya arıyorum",
     "hava_durumu": "Hava durumuna bakıyorum",
     "onedrive_tasi": "Buluttaki dosyayı taşıyorum", "zamanla": "Zamanlanmış işleri düzenliyorum",
     "dosya_yaz": "Dosyayı kaydediyorum", "dosya_oku": "Dosyayı okuyorum", "dosya_listele": "Klasöre bakıyorum",
@@ -671,12 +675,16 @@ def _terminal_acikla(komut: str) -> str:
         return "Node paketi işliyorum"
     if "restart" in k or "stop" in k or "start" in k:
         return "Servisi yeniden başlatıyorum"
-    return "Bilgisayarda işlem yapıyorum"
+    # Boş "bir işlem yapıyorum" yok: neyi çalıştırdığını söyle (program/dosya adı, yol ve argüman yok).
+    ilk = PureWindowsPath(komut.strip().strip('"&. ').split(maxsplit=1)[0].strip('"\'')).name if komut.strip() else ""
+    if ilk.lower().endswith((".exe", ".bat", ".cmd", ".ps1", ".msi")):
+        return f"{ilk} çalıştırıyorum"
+    return f"{ilk} komutunu çalıştırıyorum" if ilk else "Komut çalıştırıyorum"
 
 
 def _sade_eylem(tool_adi: str, argumanlar: dict[str, Any]) -> str:
     """'Dosyayı kaydediyorum (odev.py)' gibi: sadece dosya/program ADI, komut ya da tam yol değil."""
-    metin = _SADE_EYLEM.get(tool_adi, "Bir işlem yapıyorum")
+    metin = _SADE_EYLEM.get(tool_adi, tool_adi.replace("_", " "))
     ek = ""
     yol = str(argumanlar.get("yol") or argumanlar.get("hedef") or "")
     if tool_adi == "terminal_calistir":
@@ -1102,12 +1110,8 @@ async def tool_cagrisini_isle(
     elif risk == "orta":
         # 🟡 onaysız ama sessiz değil: tek satır bilgi (web'deki indir dahil). Log yukarıda yazıldı.
         await bot.send_message(chat_id, _kisa_ozet(ad, argumanlar, vekil, simge="🟡"), parse_mode=ParseMode.HTML)
-    elif tool.hedef not in ("web", "hafiza", "izleme", "ordu", "bilgisayar", "harita", "brifing", "yapilacak", "ses", "konu_takip", "hafiza_kontrol", "oz_degerlendirme", "spor_iptal", "spor_al", "gelisim_gecmisi", "komut_calistir",
-                            "zamanla", "telefon", "hava", "pc_guc", "eklenti", "takvim"):
-        # Web araştırması sessiz: kullanıcı sadece cevabı + Kaynaklar'ı görür (yine de eylem logu yazılır).
-        # Hafıza notu, iş bittikten sonra "🧠 not aldım" olarak gösterilir.
-        # bilgisayar_kullan: kendi "🖥 Bilgisayarı kullanıyorum" satırını basar.
-        await bot.send_message(chat_id, _kisa_ozet(ad, argumanlar, vekil), parse_mode=ParseMode.HTML)
+    # Düşük riskli (okuma/bakma) işler sessiz: boş "bir işlem yapıyorum" satırı yok (kota yemesin). Eylem logu yine yazılır.
+    # Web araştırması sessiz; hafıza notu iş bitince "🧠 not aldım" olarak gösterilir; bilgisayar_kullan kendi satırını basar.
 
     if tool.hedef == "ordu":
         basarili, sonuc = await _ordu_calistir(bot, chat_id, argumanlar)
@@ -1355,7 +1359,7 @@ async def ajan_turu(bot: Bot, chat_id: int, gecmis: list[dict[str, Any]]) -> Non
                 if tc.function.name in ("hafizaya_yaz", "hafizadan_sil"):
                     blok = None  # hafıza değişti: sonraki adımda tazele
                 if not sonuc.startswith("HATA: Bu çağrıyı (aynı tool"):
-                    takip.kaydet(tc, sonuc)
+                    sonuc += takip.kaydet(tc, sonuc)
             gecmis.append({"role": "tool", "tool_call_id": tc.id, "content": sonuc})
         olcum["toplam"] = time.monotonic() - olcum["bas"]
         if takip.durmali():
@@ -1718,7 +1722,7 @@ START_METNI = (
     "/kuyruk — PC kapalıyken sıraya alınan işler (/kuyruk iptal <id>)\n"
     "/izle — izlenen klasörler (/izle ekle <yol> [*.pdf], /izle kaldir <id>)\n"
     "/vekiller — vekil kadrosu (/vekiller ad <rol> <yeni ad>)\n"
-    "/masaustu — sanal masaüstleri (/masaustu temizle: vekil masaüstlerini kapat)\n"
+    "/masaustu — sanal masaüstleri (/masaustu temizle: OpenDelegate masaüstlerini kapat)\n"
     "ss (ya da /ss) — ekran görüntüsü: tüm ekran, sol (ana) ya da sağ monitör"
 )
 # Telegram HTML: baslik kalin, geri kalan metin kacisli (<anahtar> gibi seyler tag sanilmasin)
@@ -1893,6 +1897,7 @@ def _komut_haritasi() -> dict[str, Any]:
         "masaustu": komut_masaustu, "brifing": komut_brifing, "pist": komut_pist,
         "grind": komut_grind, "kuyruk": komut_kuyruk, "gecmis": komut_gecmis, "vekiller": komut_vekiller,
         "dur": komut_dur, "izle": komut_izle, "ara": komut_ara, "hiz": komut_hiz, "ss": komut_ss,
+        "uzak": komut_uzak,
     }
 
 
@@ -2069,6 +2074,60 @@ async def harita_gonder(bot: Bot, chat_id: int) -> tuple[bool, str]:
                   "en fazla tek kısa cümleyle 'butona dokun yeter' de.")
 
 
+async def komut_uzak(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/uzak -> PC ekranını tarayıcıdan görüp tıklama sayfasının bağlantısı (7 gün geçerli biletli: onaysız açar)."""
+    if not _yetkili(update):
+        return
+    bot, chat_id = context.bot, update.effective_chat.id
+    if not uzak_ekran.link():
+        await bot.send_message(chat_id, "Uzak ekran sadece sunucuda (WEBHOOK_URL tanımlıyken) çalışıyor efendim.")
+        return
+    link = uzak_ekran.link(uzak_ekran.bilet_uret())
+    if isinstance(bot, web_sohbet.WebBot):  # web sohbetinde düğme URL taşımaz: tıklanabilir bağlantı
+        await bot.send_message(chat_id, f'PC ekranınız hazır efendim.\n\n<a href="{html.escape(link, quote=True)}">Uzak ekranı aç</a>',
+                               parse_mode="HTML")
+        return
+    await bot.send_message(
+        chat_id, "PC ekranınız hazır efendim.",
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🖥 Uzak ekranı aç", url=link)]]),
+        link_preview_options=LinkPreviewOptions(is_disabled=True),
+    )
+
+
+async def komut_uzakkapat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/uzakkapat -> açık tüm uzak ekran oturumlarını ve biletleri iptal eder."""
+    if not _yetkili(update):
+        return
+    n = uzak_ekran.oturumlari_kes()
+    await context.bot.send_message(update.effective_chat.id,
+                                   f"Uzak ekran bağlantıları kesildi efendim ({n} açık oturum).")
+
+
+async def uzak_butonu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Uzak ekran bildirimindeki düğmeler: uzak:onay:<id>, uzak:red:<id>, uzak:kes."""
+    sorgu = update.callback_query
+    if sorgu is None:
+        return
+    if not _yetkili(update):
+        await sorgu.answer("Yetkisiz.", show_alert=True)
+        return
+    parcalar = (sorgu.data or "").split(":")
+    if parcalar[1:2] == ["kes"]:
+        n = uzak_ekran.oturumlari_kes()
+        sonuc = f"Tüm uzak ekran bağlantıları kesildi ({n})."
+    elif len(parcalar) == 3 and parcalar[1] in ("onay", "red"):
+        sonuc = uzak_ekran.onay_ver(parcalar[2], parcalar[1] == "onay")
+    else:
+        sonuc = "Geçersiz düğme."
+    await sorgu.answer(sonuc, show_alert=True)
+    try:
+        await sorgu.edit_message_reply_markup(reply_markup=None)  # düğmeler bir kez kullanılır
+    except Exception:  # noqa: BLE001 - eski/silinmiş mesaj zararsız
+        pass
+    if isinstance(context.bot, web_sohbet.WebBot):  # web'de answer() görünmez: sonucu sohbete yaz
+        await context.bot.send_message(update.effective_chat.id, sonuc)
+
+
 async def komut_harita(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """/harita ve /zihin -> zihin haritası butonları."""
     if not _yetkili(update):
@@ -2131,7 +2190,7 @@ async def komut_masaustu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         metin = f"⚠️ Sanal masaüstü kullanılamıyor: {neden}" if adlar is None else await masaustu.temizle_metni(adlar)
     else:
         _, metin = await masaustu.listele()
-        metin = metin.removeprefix("HATA: ") + "\n\nVekil masaüstlerini kapat ve sil: /masaustu temizle"
+        metin = metin.removeprefix("HATA: ") + "\n\nOpenDelegate masaüstlerini kapat ve sil: /masaustu temizle"
     await update.message.reply_text(metin)
 
 
@@ -2241,6 +2300,7 @@ def _web_komutlari() -> dict[str, Any]:
         "harita": komut_harita, "zihin": komut_harita, "kuyruk": komut_kuyruk, "grind": komut_grind,
         "ara": komut_ara, "hiz": komut_hiz, "izle": komut_izle, "vekiller": komut_vekiller, "dur": komut_dur,
         "ss": komut_ss, "masaustu": komut_masaustu, "pist": komut_pist,
+        "uzak": komut_uzak, "uzakkapat": komut_uzakkapat,
     }
 
 
@@ -2339,7 +2399,7 @@ async def web_dugme_isle(veri: str) -> None:
         return
     onek = veri.partition(":")[0]
     isleyici = {"onay": buton_tiklandi, "red": buton_tiklandi, "kadro": kadro_butonu, "masaustu": masaustu_butonu,
-                "ss": ss_butonu, "komut": komut_butonu}.get(onek)
+                "ss": ss_butonu, "komut": komut_butonu, "uzak": uzak_butonu}.get(onek)
     if isleyici is None or kilit.kilitli:
         return
     await isleyici(_web_guncelleme(callback_query=_WebSorgu(veri, mesaj)),
@@ -2367,6 +2427,9 @@ def uygulama_kur() -> Application:
     app.add_handler(CommandHandler("unut", komut_unut))
     app.add_handler(CommandHandler("ogrendiklerim", komut_ogrendiklerim))
     app.add_handler(CommandHandler(["harita", "zihin"], komut_harita))
+    app.add_handler(CommandHandler("uzak", komut_uzak))
+    app.add_handler(CommandHandler("uzakkapat", komut_uzakkapat))
+    app.add_handler(CallbackQueryHandler(uzak_butonu, pattern=r"^uzak:"))
     app.add_handler(CommandHandler("kuyruk", komut_kuyruk))
     app.add_handler(CommandHandler("grind", komut_grind))
     app.add_handler(CommandHandler("ara", komut_ara))
@@ -2392,6 +2455,22 @@ def uygulama_kur() -> Application:
 
 def web_uygulamasi(app: Application | None) -> Starlette:
     """Webhook, görev API'si ve /health endpoint'lerini sunan HTTP uygulaması."""
+
+    async def uzak_bildir(metin: str, butonlar: list[tuple[str, str]]) -> None:
+        """Uzak ekran bildirimi: web sohbetine (açıksa) ve Telegram'a (kuruluysa). Hiçbiri yoksa hata: onay istenemez."""
+        klavye = InlineKeyboardMarkup([[InlineKeyboardButton(ad, callback_data=veri) for ad, veri in butonlar]]) \
+            if butonlar else None
+        gitti = False
+        if config.web_acik():
+            await web_sohbet.web_bot.send_message(config.TELEGRAM_CHAT_ID, metin, reply_markup=klavye)
+            gitti = True
+        if app is not None:
+            await app.bot.send_message(config.TELEGRAM_CHAT_ID, metin, reply_markup=klavye)
+            gitti = True
+        if not gitti:
+            raise RuntimeError("bildirim kanalı yok")
+
+    uzak_ekran.bildirici_kur(uzak_bildir)
 
     async def telegram_webhook(request: Request) -> Response:
         if not _secret_esit(request.headers.get("X-Telegram-Bot-Api-Secret-Token", ""), config.WEBHOOK_SECRET):
@@ -2616,6 +2695,7 @@ def web_uygulamasi(app: Application | None) -> Starlette:
             Route("/seslendir/{token}", sesli_uc.seslendir, methods=["POST"]),
             Route("/sor/{token}", sesli_uc.sesli_sor, methods=["POST"]),
             Route("/telefon/{token}", telefon_ajan.telefon_adim, methods=["POST"]),
+            *uzak_ekran.rotalar(),
             Route("/harita/{token}", harita_sayfasi, methods=["GET"]),
             Route("/harita/{token}/veri", harita_verisi, methods=["GET"]),
             Route("/harita/{token}/muzik", harita_muzigi, methods=["GET", "HEAD"]),
@@ -3133,7 +3213,8 @@ async def calis(app: Application | None) -> None:
 
 def harita_log_maskesi_kur() -> None:
     """Zihin haritası token'ı hiçbir log satırına açık yazılmasın (kök + uvicorn handler'ları)."""
-    for filtre in (harita.TokenMaskeleyici(), guvenlik.SesliMaskeleyici(), guvenlik.SirMaskeleyici()):
+    for filtre in (harita.TokenMaskeleyici(), uzak_ekran.TokenMaskeleyici(), guvenlik.SesliMaskeleyici(),
+                   guvenlik.SirMaskeleyici()):
         for ad in ("", "uvicorn", "uvicorn.error", "uvicorn.access"):
             for h in logging.getLogger(ad).handlers:
                 if not any(type(f) is type(filtre) for f in h.filters):

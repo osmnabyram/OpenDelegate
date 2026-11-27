@@ -107,3 +107,24 @@ class Talimatlar(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AyniAracBahaneDongusu(unittest.TestCase):
+    @staticmethod
+    def _tc(ad, arg):
+        return types.SimpleNamespace(function=types.SimpleNamespace(name=ad, arguments=json.dumps(arg)))
+
+    def test_farkli_argumanla_4_hata_uyari_15_hata_durak(self):
+        t = disiplin.Takip()
+        notlar = [t.kaydet(self._tc("dosya_oku", {"yol": f"x{i}.txt"}), "HATA: yok") for i in range(15)]
+        self.assertEqual(notlar[:3], ["", "", ""])
+        self.assertIn("yaklaşımı DEĞİŞTİR", notlar[3])
+        self.assertTrue(t.durmali())
+
+    def test_duzeltip_yeniden_deneme_ceza_yemez(self):
+        t = disiplin.Takip()
+        for i in range(3):
+            t.kaydet(self._tc("terminal_calistir", {"komut": f"pytest {i}"}), "[çıkış kodu: 1]")
+        t.kaydet(self._tc("dosya_yaz", {"yol": "a.py"}), "tamam")
+        self.assertEqual(t.kaydet(self._tc("terminal_calistir", {"komut": "pytest"}), "[çıkış kodu: 1]"), "")
+        self.assertFalse(t.durmali())

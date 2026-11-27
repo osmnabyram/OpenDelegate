@@ -74,6 +74,8 @@ _SISTEM_DONGU = (
     "değiştireceksen önce tus('ctrl+a').\n"
     "- Kullanıcı iki monitör kullanır (solda bir iş, sağda bir iş). Sana hedef pencerenin olduğu monitör gösterilir; "
     "koordinatlar o görüntüye göredir. Diğer monitöre ve kullanıcının pencerelerine dokunma.\n"
+    "- Görevdeki öğe ekranda ZATEN görünüyorsa doğrudan onu tıkla; arama yapma, uygulama_ac ile yeniden açma. "
+    "Mesaj/yazı gönderdiysen ve ekranda göründüyse TEKRAR gönderme: bitti() çağır.\n"
     "- Beklediğin olmadıysa aynı şeyi tekrarlama; başka yol dene (klavye kısayolu, farklı öğe). Yeni pencere "
     "henüz açılmadıysa bekle() kullan.\n"
     "- Kullanıcı tam yetki verdi: mesaj gönder, enter'a bas, kaydet, form gönder — SORMADAN yap. TEK istisna PARA "
@@ -183,7 +185,7 @@ async def _gorsel(sistem: str, metin: str, resim: bytes, *, maks: int, araclar: 
     mesajlar = [{"role": "system", "content": sistem},
                 {"role": "user", "content": [{"type": "text", "text": metin},
                                              {"type": "image_url", "image_url": {"url": _resim_url(resim), "detail": "high"}}]}]
-    ortak: dict[str, Any] = {"model": config.GORSEL_MODEL, "temperature": 0.2, "messages": mesajlar}
+    ortak: dict[str, Any] = {"model": config.GORSEL_MODEL, "temperature": 0, "messages": mesajlar}
     hizli: dict[str, Any] = {"max_tokens": maks, "extra_body": _DUSUNME_KAPALI}
     yavas: dict[str, Any] = {"max_tokens": maks + 1500}  # düşünme modu cevap bütçesini de yer
     if araclar:
@@ -209,11 +211,34 @@ async def _isit() -> None:
         logger.debug("Model ısıtma başarısız", exc_info=True)
 
 
+_PLAN_SISTEM = (
+    "Bir Windows PC'yi fare/klavyeyle kullanacak ajan için görev planı yaz. 2-6 kısa, SIRALI adım; her adım tek "
+    "somut eylem (hangi uygulama, hangi kısayol/tık, ne yazılacak). Klavye kısayolunu tıklamaya tercih et. "
+    "Görevde olmayan hiçbir şey ekleme, yan iş yapma. Son adım: sonucu ekranda doğrulayıp bitir. Sadece "
+    "numaralı adımları yaz."
+)
+
+
+async def _plan_yap(gorev: str, aktif: dict[str, Any]) -> str:
+    """Görev başında TEK kez, düşünme AÇIK (görselsiz, kısa): ajanın tur tur rastgele dolanmasını keser.
+    Hata/zaman aşımı işi bozmaz: plansız devam edilir."""
+    try:
+        yanit = await asyncio.wait_for(_llm.chat.completions.create(
+            model=config.DEEPSEEK_MODEL, max_tokens=1500,
+            messages=[{"role": "system", "content": _PLAN_SISTEM},
+                      {"role": "user", "content": f"Görev: {gorev}\nÖndeki pencere: {_aktif_metni(aktif)}"}]), 25)
+        return (yanit.choices[0].message.content or "").strip()[:900]
+    except Exception:  # noqa: BLE001
+        logger.debug("Plan yapılamadı", exc_info=True)
+        return ""
+
+
 async def _sonraki_eylem(gorev: str, gecmis: list[str], aktif: dict[str, Any], resim: bytes,
-                         monitor_metni: str = "") -> Any:
+                         monitor_metni: str = "", plan: str = "") -> Any:
     kullanici = (
         f"Görev: {gorev}\n"
-        f"Aktif (hedef) pencere: {_aktif_metni(aktif)}\n"
+        + (f"Plan (sıradaki adıma uy, sapma):\n{plan}\n" if plan else "")
+        + f"Aktif (hedef) pencere: {_aktif_metni(aktif)}\n"
         + monitor_metni
         + ("Şimdiye kadar:\n" + "\n".join(f"- {g}" for g in gecmis[-14:]) if gecmis else "Henüz eylem yapmadın.")
         + "\nGüncel ekran aşağıda. Sıradaki eylemi seç."
@@ -277,9 +302,17 @@ def _grup_imzasi(toplu: list[dict[str, Any]]) -> tuple[Any, ...] | None:
                 return None
         elif e.get("tur") == "yaz":
             imza.append(("yaz", str(e.get("metin"))))
+        elif e.get("tur") == "tus":
+            imza.append(("tus", str(e.get("tuslar"))))  # "yaz + enter" tekrarı da yakalansın
         else:
             return None
-    return tuple(imza) or None
+    return tuple(imza) if any(i[0] in ("tikla", "yaz") for i in imza) else None
+
+
+def _yazilan_metinler(toplu: list[dict[str, Any]]) -> set[str]:
+    """Gruptaki anlamlı (>=4 karakter, şifre değil) yazılar: aynı mesajın tekrar gönderilmesini yakalamak için."""
+    return {str(e.get("metin")).strip() for e in toplu
+            if e.get("tur") == "yaz" and not e.get("sifre") and len(str(e.get("metin")).strip()) >= 4}
 
 
 def _maskele(arg: dict[str, Any]) -> dict[str, Any]:
@@ -371,6 +404,8 @@ async def _dongu(bildirim: _Bildirim, gorev: str, onay_sor: OnaySor, iptal_mi: I
     son_imza: tuple[Any, ...] | None = None  # son ÇALIŞTIRILAN grubun imzası (tekrar freni)
     son_degismedi = False  # son çalıştırılan grup ekranı (neredeyse) hiç değiştirmedi mi
     engellenen = 0
+    plan = await _plan_yap(gorev, durum.get("aktif") or {})
+    yazilanlar: list[set[str]] = []  # son çalıştırılan grupların yazıları (aynı mesaj 3 kez gitmesin)
     for tur in range(1, config.MAKS_PC_TUR + 1):
         if iptal_mi():
             return True, "Kullanıcı 'dur' dedi; bilgisayar kullanmayı bıraktım. Yaptıklarım: " + _yapilanlar(gecmis)
@@ -386,7 +421,7 @@ async def _dongu(bildirim: _Bildirim, gorev: str, onay_sor: OnaySor, iptal_mi: I
                                   "Yaptıklarım: " + _yapilanlar(gecmis) + ". Nasıl devam edeyim?")
 
         try:
-            mesaj = await _sonraki_eylem(gorev, gecmis, aktif, resim, _monitor_metni(durum))
+            mesaj = await _sonraki_eylem(gorev, gecmis, aktif, resim, _monitor_metni(durum), plan)
         except Exception as e:  # noqa: BLE001
             logger.warning("Eylem seçilemedi: %s: %s", type(e).__name__, str(e)[:200])
             return bool(gecmis), f"HATA: Model eylem seçemedi ({type(e).__name__}). O ana kadar: " + _yapilanlar(gecmis)
@@ -443,6 +478,16 @@ async def _dongu(bildirim: _Bildirim, gorev: str, onay_sor: OnaySor, iptal_mi: I
 
         # Tekrar freni: aynı tık/yazı grubu az önce yapıldı ve ekran DEĞİŞMEDİYSE tekrar çalıştırma
         # (Gemini kutusuna 20 kez tıklama vakası). Model notu görüp başka yol seçsin; 2. kez olursa dur.
+        tekrar_yazi = _yazilan_metinler(toplu) & set().union(*yazilanlar[-3:])
+        if tekrar_yazi:
+            # Yazı gönderilince ekran değişir; o yüzden "ekran değişmedi" şartı aranmaz.
+            engellenen += 1
+            if engellenen >= 2:
+                return bool(gecmis), ("Aynı yazıyı tekrar tekrar göndermeye başladım; takıldım. "
+                                      "Yaptıklarım: " + _yapilanlar(gecmis) + ". Nasıl devam edeyim?")
+            gecmis.append(f"⛔ TEKRAR ENGELLENDİ: '{sorted(tekrar_yazi)[0][:60]}' zaten yazıldı/gönderildi. "
+                          "Ekrana bak: göründüyse iş tamam, bitti() çağır. Görünmüyorsa BAŞKA bir yol dene.")
+            continue
         imza = _grup_imzasi(toplu)
         if imza is not None and imza == son_imza and son_degismedi:
             engellenen += 1
@@ -453,6 +498,7 @@ async def _dongu(bildirim: _Bildirim, gorev: str, onay_sor: OnaySor, iptal_mi: I
                           "kutusuna tıkladıysan zaten odaklandı: tıklama, şimdi yaz(). Değilse BAŞKA bir yol dene.")
             continue
         engellenen = 0
+        yazilanlar.append(_yazilan_metinler(toplu))
 
         yeni, hata = await _adim(toplu, ekran, hedef)
         if yeni is None:

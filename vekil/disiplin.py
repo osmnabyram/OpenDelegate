@@ -28,10 +28,17 @@ KURAL = """Çalışma disiplini (her vekil için geçerli) — OTONOM ÇALIŞ:
   "[Bilinenler]" bloğundakileri tekrar sorgulama. Recursive taramaya EN DAR kökten başla.
 - Başarısız bir çağrıyı HİÇBİR ŞEY değiştirmeden aynen tekrar etme: önce sebebini düzelt (dosyayı düzelt, başka
   komut/yol/argüman dene), sonra tekrar çalıştır. Düzelttikten sonra aynı komutu yeniden çalıştırmak serbest.
+- Test/derleme/çalıştırma HATA verirse iş BİTMEMİŞTİR: durup kullanıcıya dönme. Hata mesajını oku, kodu düzelt, testi
+  yeniden çalıştır; yeşil olana (ya da gerçek bir engele toslayana) kadar sürdür. Yeşil görmeden "bitti" deme.
+- Aynı yolu küçük bahanelerle (argümanı biraz değiştirip) tekrar tekrar deneme: iki denemede ilerleme yoksa
+  YAKLAŞIMI değiştir (başka araç/yöntem, webde_ara, hatanın asıl sebebine in). İlerleme yoksa bunu fark et.
+- Dürüst rapor: iş yarım kaldıysa ya da test geçmiyorsa ilk cümle "Bitmedi." olsun, sonra neyin yapıldığını, neyin
+  kaldığını ve somut sebebi söyle. Üstü kapalı konuşma, "büyük ölçüde tamam" ya da "neredeyse" deme.
 - İş bitince kısa rapor: ne yaptın, sonuç ne, (varsa) yapamadığın ve somut sebebi."""
 
 DURAK_TALIMATI = (
-    "[DURAK] Bu turda tool kullanamazsın. {neden} {kime} TEK kısa mesaj yaz: ne yaptın / neyi bitirdin, neyin "
+    "[DURAK] Bu turda tool kullanamazsın. {neden} {kime} TEK kısa mesaj yaz; İLK CÜMLE net olarak \"Bitmedi.\" "
+    "(ya da iş gerçekten bittiyse \"Bitti.\") olsun, üstü kapalı konuşma. Sonra: ne yaptın / neyi bitirdin, neyin "
     "eksik kaldığı ve somut sebebi (gerçek hata mesajıyla), bir sonraki somut adımın ne olacağı. 'Nasıl "
     "ilerleyelim?', 'Devam edeyim mi?' gibi SORU SORMA; 'devam' yazılırsa kaldığın yerden sürdüreceğini söyle. "
     "Sadece kullanıcıdan gelmesi şart bir şey (şifre, erişim, karar) varsa onu net iste. Sonuç uydurma."
@@ -99,6 +106,8 @@ DEGISTIREN = frozenset({
 ARAMA = frozenset({"dosya_ara", "dosya_listele", "onedrive_listele", "onedrive_ara", "webde_ara"})
 ENGEL_DURAK = 3  # aynı başarısız çağrıyı hiçbir şey değiştirmeden 3 kez daha denemeye kalkarsa: kısırdöngü
 ARAMA_DURAK = 6  # üst üste 6 boş arama
+AYNI_ARAC_UYARI = 4  # aynı tool, farklı argümanlarla üst üste 4 başarısız: yaklaşımı değiştir uyarısı
+AYNI_ARAC_DURAK = 15  # 15 başarısız: bahane döngüsü, dur (10 farklı komut denemek meşru keşif sayılır)
 
 
 class Takip:
@@ -112,6 +121,7 @@ class Takip:
         self.basarisiz: dict[str, int] = {}  # değişiklik yapılmadan başarısız olmuş çağrılar
         self.engellenen: dict[str, int] = {}
         self.ardisik_bos_arama = 0
+        self.ardisik_hata: dict[str, int] = {}  # tool adı -> üst üste başarısız sayısı (argüman fark etmez)
         self.durak_nedeni = ""
 
     def engelle(self, tool_call: Any) -> str | None:
@@ -128,21 +138,34 @@ class Takip:
             "dene, gerekirse webde_ara ile hatayı araştır), sonra tekrar çalıştır."
         )
 
-    def kaydet(self, tool_call: Any, sonuc: str) -> None:
+    def kaydet(self, tool_call: Any, sonuc: str) -> str:
+        """Sonucu işler. Dönen metin (çoğu zaman boş) tool sonucunun sonuna eklenecek uyarıdır."""
         ad = tool_call.function.name
         k = _anahtar(ad, tool_call.function.arguments)
+        uyari = ""
         if bos_mu(sonuc):
+            self.ardisik_hata[ad] = self.ardisik_hata.get(ad, 0) + 1
+            n = self.ardisik_hata[ad]
+            if n >= AYNI_ARAC_DURAK and not self.durak_nedeni and ad not in ARAMA:
+                self.durak_nedeni = f"Aynı aracı ({ad}) farklı bahanelerle {n} kez üst üste başarısız denedin."
+            elif n >= AYNI_ARAC_UYARI and ad not in ARAMA:
+                uyari = (f"\n[UYARI: {ad} üst üste {n} kez başarısız oldu. Aynı yolu küçük değişikliklerle denemeyi "
+                         "bırak: yaklaşımı DEĞİŞTİR (başka araç/yöntem, webde_ara, hatanın asıl sebebi). Çıkmıyorsa "
+                         "dürüstçe 'Bitmedi' de.]")
             self.basarisiz[k] = self.basarisiz.get(k, 0) + 1
             if ad in ARAMA:
                 self.ardisik_bos_arama += 1
                 if self.ardisik_bos_arama >= ARAMA_DURAK and not self.durak_nedeni:
                     self.durak_nedeni = f"Üst üste {ARAMA_DURAK} arama boş döndü."
-            return
+            return uyari
+        self.ardisik_hata[ad] = 0
         if ad in ARAMA:
             self.ardisik_bos_arama = 0
         if ad in DEGISTIREN:  # durum değişti: önceki başarısız çağrıları yeniden denemek artık anlamlı
             self.basarisiz.clear()
             self.engellenen.clear()
+            self.ardisik_hata.clear()  # durum değişti (ör. kod düzeltildi): test-düzelt döngüsü ceza yemez
+        return ""
 
     def durmali(self) -> str:
         return self.durak_nedeni

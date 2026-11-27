@@ -376,7 +376,7 @@ async def isci_calistir(
             else:
                 sonuc = takip.engelle(tc) or await tool_isle(bot, chat_id, tc, isci.ad, izinli)
                 if not sonuc.startswith("HATA: Bu çağrıyı (aynı tool"):
-                    takip.kaydet(tc, sonuc)
+                    sonuc += takip.kaydet(tc, sonuc)
             mesajlar.append({"role": "tool", "tool_call_id": tc.id, "content": sonuc})
         if takip.durmali():
             return False, await _isci_durak(isci, mesajlar, semalar, llm_cagir, takip.durmali(), son_metin)
