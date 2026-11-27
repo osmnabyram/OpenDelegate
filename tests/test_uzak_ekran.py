@@ -72,7 +72,10 @@ class Adres(Hazir):
         self.assertEqual(r.status_code, 200)
         self.assertIn("frame-ancestors 'none'", r.headers["content-security-policy"])
         self.assertEqual(r.headers["x-frame-options"], "DENY")
-        self.assertIn(b"Sora", r.body)
+        self.assertIn(b"Silkscreen", r.body)
+        self.assertIn(b"data:image/png;base64,", r.body)  # OpenDelegate ikonu gömülü
+        self.assertNotIn(b"{{IKON}}", r.body)
+        self.assertNotIn(b"Vekil", r.body)
 
 
 class Baglanti(Hazir):

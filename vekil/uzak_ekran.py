@@ -45,6 +45,7 @@ import kilit
 logger = logging.getLogger(__name__)
 
 SAYFA_DOSYASI = Path(__file__).with_name("static") / "uzak.html"
+IKON_DOSYASI = Path(__file__).with_name("static") / "ikon-192.png"  # sayfaya data URI olarak gömülür (CSP: img-src data:)
 BASLIKLAR = {
     "Cache-Control": "no-store",
     "X-Robots-Tag": "noindex, nofollow",
@@ -473,11 +474,21 @@ async def eylem(request: Request) -> Response:
 _sayfa_onbellek: dict[str, tuple[float, str]] = {}
 
 
+def _ikon_uri() -> str:
+    """Marka ikonu data URI olarak (ayrı rota/CSP izni gerekmez). Dosya yoksa boş: sayfa ikonsuz açılır."""
+    try:
+        veri = IKON_DOSYASI.read_bytes()
+    except OSError:
+        return ""
+    tur = "image/png" if IKON_DOSYASI.suffix.lower() == ".png" else "image/jpeg"
+    return f"data:{tur};base64,{base64.b64encode(veri).decode()}"
+
+
 def _sayfa_metni() -> str:
     mtime = SAYFA_DOSYASI.stat().st_mtime
     kayit = _sayfa_onbellek.get("s")
     if not kayit or kayit[0] != mtime:
-        kayit = (mtime, SAYFA_DOSYASI.read_text(encoding="utf-8"))
+        kayit = (mtime, SAYFA_DOSYASI.read_text(encoding="utf-8").replace("{{IKON}}", _ikon_uri()))
         _sayfa_onbellek["s"] = kayit
     return kayit[1]
 
