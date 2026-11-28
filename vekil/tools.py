@@ -47,6 +47,13 @@ _OD_YOL = {
     "Boş bırakılırsa izinli kökler listelenir.",
 }
 
+
+def _telefon_parametreleri() -> dict[str, Any]:
+    """telefonda_yap: sesli uygulamanın telefon eylem şemasının aynısı (tek kaynak: arama.TELEFON_EYLEM_SEMASI)."""
+    import arama  # tools hafif kalsın diye burada; arama tools'u içe aktarmaz
+    return json.loads(json.dumps(arama.TELEFON_EYLEM_SEMASI["function"]["parameters"]))
+
+
 TOOLLAR: dict[str, Tool] = {
     t.ad: t
     for t in [
@@ -676,6 +683,20 @@ TOOLLAR: dict[str, Tool] = {
             },
         ),
         Tool(
+            ad="telefonda_yap",
+            hedef="telefon_is",
+            risk="düşük",
+            aciklama=(
+                "[Telefon] kullanıcının ANDROID telefonunda iş yapar (OpenDelegate uygulaması açık ve internete "
+                "bağlıysa): alarm, zamanlayıcı, uygulama açma, fener, rehberden arama, müzik/ses, ekranı kilitleme "
+                "(ekran_kilitle; 'telefonu kapat' da budur), WhatsApp mesajı (mesaj), bildirimleri okuma (bildirim_oku, "
+                "SADECE kullanıcı isterse) ve geri kalan her işi telefonun ekranından kendisi yapma (ekranda, gorev=tam "
+                "cümle). Kullanıcı sohbetten 'telefonda şunu yap' dediğinde kullan; bilgisayar işi için DEĞİL. Telefon "
+                "işi yapıp sonucu döner (ekrandan işler 1-2 dk sürebilir); sonucu kısaca söyle. Para/banka işi yapılmaz."
+            ),
+            parametreler=_telefon_parametreleri(),
+        ),
+        Tool(
             ad="telefonla_ara",
             hedef="telefon",
             risk="düşük",
@@ -916,7 +937,7 @@ def risk_degerlendir(ad: str, argumanlar: dict[str, Any]) -> str:
         return "orta"
 
     if ad in ("webde_ara", "webde_oku", "hafizaya_yaz", "izleme_yonet", "ses", "konu_takip", "hafiza_kontrol", "oz_degerlendirme", "gelisim_gecmisi", "komut_calistir", "gorev_dagit", "bilgisayar_kullan", "zihin_haritasi",
-              "brifing_ayarla", "yapilacak", "zamanla", "telefonla_ara", "hava_durumu", "pc_guc", "takvim_bak"):
+              "brifing_ayarla", "yapilacak", "zamanla", "telefonla_ara", "telefonda_yap", "hava_durumu", "pc_guc", "takvim_bak"):
         return risk  # internetten okur / kendi hafızasına yazar; PC/OneDrive yoluna dokunmaz
     yazan = ad in ("dosya_yaz", "onedrive_yukle", "indir")
     if yazan:

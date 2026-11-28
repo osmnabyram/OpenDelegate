@@ -68,8 +68,11 @@ class VekilService : Service() {
         const val ACTION_KAPAT = "com.opendelegate.app.KAPAT"   // dinlemeyi tamamen kapat
         const val EXTRA_DENEME_WAV = "deneme_wav"          // sadece adb denemesi: mikrofon yerine bu ses
         // Sunucu buna göre telefonda iş yaptırır: 2 = alarm, fener...; 3 = ekranı da kullanır (mesaj, her iş).
-        const val SURUM = 3
+        const val SURUM = 4  // 4: "kapat" komutu (panel_kapat) ve sohbetten telefona iş (uzun yoklama + sonuç)
         private const val AJAN_MAKS_ADIM = 25  // ekrandan iş: en çok bu kadar adım (sunucu da sınırlar)
+        private const val TELEFON_UZUN_YOKLAMA_SN = 25  // sunucu iş yoksa bu kadar bekletir (okuma zaman aşımı 60 sn)
+        private const val TELEFON_GOREV_ARALIK_MS = 20_000L  // uzun yoklamayı bilmeyen sunucuda yoklama sıklığı
+        private const val TELEFON_GOREV_HATA_BEKLE_MS = 15_000L
 
         @Volatile var durum: Durum = Durum.KAPALI
             private set
@@ -109,6 +112,7 @@ class VekilService : Service() {
     @Volatile private var bekleyenMedya: List<String> = emptyList()  // cevap okununca yapılacak müzik komutları
     @Volatile private var bekleyenIsler: List<JSONObject> = emptyList()  // cevap okununca: mesaj, ekranda
     @Volatile private var devamDinle = false  // OpenDelegate soru sordu: cevabı uyanma cümlesi beklemeden dinle
+    @Volatile private var panelKapatIstendi = false  // efendim "kapat" dedi: panel kapansın, tekrar dinlenmesin
     @Volatile private var ajanDur = false     // ekrandan iş yaparken durdur'a basıldı
     @Volatile private var bekleyenYazi: String? = null  // panelden yazılan soru: sıradaki tur bununla
     @Volatile private var bekleyenSesEki: String? = null  // yazıdan sese geçildi: bu metne devam dinlenecek
@@ -141,7 +145,8 @@ class VekilService : Service() {
         super.onCreate()
         kanalOlustur()
         panel = Panel(this, mic = ::panelMic, kapatildi = ::panelKapandi,
-            yaziyaGec = ::panelYaziyaGec, yaziGonder = ::panelYaziGonder, sesEkle = ::panelSesEkle)
+            yaziyaGec = ::panelYaziyaGec, yaziGonder = ::panelYaziGonder, sesEkle = ::panelSesEkle,
+            servisiKapat = ::servisiKapat)
         startForeground(BILDIRIM_ID, bildirimOlustur("> BASLATILIYOR..."))
         // Ekran kapalıyken işlemci uyumasın; yoksa mikrofon döngüsü ve HTTP isteği duruyor.
         uyanik = getSystemService(android.os.PowerManager::class.java)
@@ -149,6 +154,7 @@ class VekilService : Service() {
             .apply { setReferenceCounted(false); acquire() }
         guncelle(Durum.BASLATILIYOR)
         scope.launch { modeli_yukle() }
+        scope.launch { telefonGoreviDongusu() }
     }
 
     // Sistem servisi öldürürse yeniden başlatsın (hep açık kalsın).
@@ -223,6 +229,16 @@ class VekilService : Service() {
         ajanDur = true
         aktifCagri?.cancel()
         sesiKes()
+    }
+
+    /** Paneldeki güç düğmesi: uygulamadaki AKTİF/KAPALI anahtarını kapatmakla aynı (kendiliğinden açılmaz). */
+    private fun servisiKapat() {
+        Log.i(TAG, "Panelden kapatıldı")
+        Config.kapatildiYaz(this, true)
+        android.widget.Toast.makeText(this, "OpenDelegate kapatıldı. Açmak için uygulamaya girin.",
+            android.widget.Toast.LENGTH_SHORT).show()
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
     }
 
     private fun sesiKes() {
@@ -474,6 +490,13 @@ class VekilService : Service() {
             }
         } ?: return
         if (iptal) return
+        if (panelKapatIstendi) {
+            // "kapat": panel kapanır; OpenDelegate soru sormuş olsa bile tekrar dinlemeye açılmaz (uyanma kelimesi bekler).
+            panelKapatIstendi = false
+            devamDinle = false
+            panel.kapat()
+            return
+        }
         if (cevap.sorun != null) {
             // Telefondaki iş yapılamadı: "kurdum" diyen cevabı okuma, neyin olmadığını göster.
             panel.bosta(cevap.sorun)
@@ -569,6 +592,88 @@ class VekilService : Service() {
             }
         }
         return "Çok uzun sürdü efendim, yarıda bıraktım."
+    }
+
+    /**
+     * Sunucudaki bekleyen işleri UZUN YOKLAMAYLA sorar (sunucu en çok TELEFON_UZUN_YOKLAMA_SN bekletir,
+     * iş gelince hemen döner): sohbetteki OpenDelegate'in telefona verdiği işler (alarm, fener, ekranda iş...).
+     * Sadece boştayken alır: efendimle konuşurken araya girmez.
+     */
+    private suspend fun telefonGoreviDongusu() {
+        while (true) {
+            if (durum != Durum.BEKLIYOR) { delay(2_000L); continue }
+            val bas = android.os.SystemClock.elapsedRealtime()
+            val is_ = telefonGoreviSor()
+            if (is_ == null) { delay(TELEFON_GOREV_HATA_BEKLE_MS); continue }  // ağ/sunucu hatası
+            val id = is_.optString("id")
+            val eylem = is_.optJSONObject("eylem")
+            if (id.isNotBlank() && eylem != null) { sohbetIsi(id, eylem); continue }
+            // Uzun yoklamayı bilmeyen eski sunucu hemen boş döner: o zaman seyrek sor (döngü dönmesin).
+            if (android.os.SystemClock.elapsedRealtime() - bas < 3_000L) delay(TELEFON_GOREV_ARALIK_MS)
+        }
+    }
+
+    /** Sohbetteki OpenDelegate'in telefona verdiği iş: yapar, sonucu sunucuya yollar (sohbette efendime o yazar). */
+    private suspend fun sohbetIsi(id: String, eylem: JSONObject) {
+        while (durum != Durum.BEKLIYOR) delay(500L)  // tam o an konuşma başladıysa bitsin
+        val tur = eylem.optString("eylem")
+        Log.i(TAG, "Sohbetten telefon işi: $tur")
+        iptal = false
+        ajanDur = false
+        val panelli = tur in setOf("ekranda", "mesaj", "uygulama_ac")  // kilit açma ve durdur düğmesi panelde
+        guncelle(Durum.CALISIYOR)
+        bildirimGuncelle("> TELEFONDA CALISIYOR...")
+        if (panelli) panel.calisiyorAc("Sohbetten gelen iş")
+        val sonuc = try {
+            when (tur) {
+                "ekranda" -> kilidiAcBekle() ?: ekranAjani(eylem.optString("gorev"))
+                "mesaj" -> kilidiAcBekle() ?: Eylem.mesajGonder(this, eylem.optString("kisi"), eylem.optString("metin"))
+                "bildirim_oku" -> BildirimDinleyici.ozet(this)
+                "medya" -> { Eylem.medya(this, eylem.optString("komut")); "Yaptım efendim." }
+                else -> {
+                    val json = JSONArray().put(eylem).toString()
+                    val kilitSorun = if (Eylem.uygulamaAcilacak(json)) kilidiAcBekle() else null
+                    kilitSorun ?: Eylem.yap(applicationContext, json) ?: "Yaptım efendim."
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Sohbet işi hatası: $e")
+            "Telefonda bunu yaparken bir hata oldu efendim."
+        }
+        sonucGonder(id, sonuc)
+        if (panelli) panel.bosta(sonuc)
+        bekliyor()
+    }
+
+    private fun sonucGonder(id: String, sonuc: String) {
+        val ctx = applicationContext
+        val govde = JSONObject().put("id", id).put("sonuc", sonuc.take(3000))
+        val istek = Request.Builder().url("${Config.renderUrl(ctx)}/telefon/sonuc/${Config.sesliToken(ctx)}")
+            .post(govde.toString().toRequestBody("application/json".toMediaType()))
+            .build()
+        try {
+            http.newCall(istek).execute().close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Telefon işinin sonucu gönderilemedi: $e")
+        }
+    }
+
+    /** Bekleyen iş: {"id", "eylem": {...}}; yoksa {}. Hata: null. */
+    private fun telefonGoreviSor(): JSONObject? {
+        val ctx = applicationContext
+        if (!Config.tamam(ctx)) return null
+        val istek = Request.Builder()
+            .url("${Config.renderUrl(ctx)}/telefon/gorev/${Config.sesliToken(ctx)}?bekle=$TELEFON_UZUN_YOKLAMA_SN")
+            .header("X-Vekil-Surum", SURUM.toString())
+            .build()
+        return try {
+            http.newCall(istek).execute().use { y ->
+                if (!y.isSuccessful) null else JSONObject(y.body?.string().orEmpty())
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Telefon görevi sorgu hatası: $e")
+            null
+        }
     }
 
     private fun ajanIstegi(gorev: String, ekran: String, yapilanlar: List<String>, adim: Int): JSONObject? {
@@ -746,6 +851,8 @@ class VekilService : Service() {
                 val eylemler = basligi_coz(yanit.header("X-Eylem"))
                 val mp3 = yanit.body?.bytes()
                 Log.i(TAG, "Soru: $soru | Cevap: $cevap | Eylem: $eylemler")
+                panelKapatIstendi = eylemler.isNotEmpty() && Eylem.panelKapat(eylemler)
+                if (panelKapatIstendi) return Cevap(ByteArray(0), null, "")  // "kapat": gösterme, okuma
                 if (soru.isNotEmpty() || cevap.isNotEmpty()) gecmise_ekle(soru, cevap)
                 panel.konusuyor(soru, cevap)
                 // Cevap okunmadan yap: "alarmı kurdum" dendiğinde kurulmuş olsun.

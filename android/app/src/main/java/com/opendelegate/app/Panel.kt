@@ -52,6 +52,7 @@ class Panel(
     private val yaziyaGec: () -> Unit,
     private val yaziGonder: (String) -> Unit,
     private val sesEkle: (String) -> Unit,
+    private val servisiKapat: () -> Unit = {},
 ) {
     enum class Hal { DINLIYOR, DUSUNUYOR, KONUSUYOR, CALISIYOR, BOSTA }
 
@@ -141,6 +142,14 @@ class Panel(
     /** OpenDelegate telefonda ekrandan iş yapıyor; [adim] o an ne yaptığı. Mikrofon düğmesi "durdur" olur. */
     fun calisiyor(adim: String) = ana.post {
         if (!acikOlmali) return@post
+        cevapYazi = adim
+        hal = Hal.CALISIYOR
+        halUygula()
+    }
+
+    /** [calisiyor] gibi ama panel henüz kapalıysa (sohbetten gelen iş, kullanıcının sesiyle değil) önce açar. */
+    fun calisiyorAc(adim: String) = ana.post {
+        ac()
         cevapYazi = adim
         hal = Hal.CALISIYOR
         halUygula()
@@ -534,6 +543,11 @@ class Panel(
         val v = LayoutInflater.from(c).inflate(R.layout.panel, ust, false)
         v.findViewById<TextView>(R.id.pCevap).setTextIsSelectable(true)
         v.findViewById<View>(R.id.pKapat).setOnClickListener { kullaniciKapatti() }
+        // Güç: OpenDelegate'i tamamen kapatır (yanlış uyanıp duruyorsa uygulamaya girmeden). Önce iş/ses kesilir.
+        v.findViewById<View>(R.id.pGuc).setOnClickListener {
+            kullaniciKapatti()
+            servisiKapat()
+        }
         v.findViewById<View>(R.id.pMic).setOnClickListener {
             if (yaziModunda && hal != Hal.KONUSUYOR && hal != Hal.CALISIYOR) yaziyiGonder() else mic()
         }

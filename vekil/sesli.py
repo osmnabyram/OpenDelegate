@@ -126,9 +126,19 @@ async def sesli_sor(request: Request) -> Response:
     return await _cevapla(request, metin, sessiz=sessiz)
 
 
+def kapat_komutu_mu(metin: str) -> bool:
+    """Tek başına "kapat": paneli kapat, tekrar dinleme. Model çağrılmaz.
+    "Telefonu kapat" gibi nesneli istekler buna GİRMEZ: onları model anlar (ekran_kilitle)."""
+    sade = re.sub(r"[^\w\s]", " ", metin.lower()).split()
+    return bool(sade) and all(k == "kapat" for k in sade) and len(sade) <= 2
+
+
 async def _cevapla(request: Request, metin: str, sessiz: bool) -> Response:
     """Sesli ve yazılı sorunun ortak yolu: beyin → (ses) → başlıklarla cevap."""
     logger.info("uygulama sorgusu: %s", metin[:80])
+    if _surum(request) >= 4 and kapat_komutu_mu(metin):
+        return Response(b"", media_type="audio/mpeg", headers={
+            "X-Metin": quote(metin), "X-Cevap": "", "X-Eylem": quote(json.dumps([{"eylem": "panel_kapat"}]))})
 
     ara = beyin() if beyin is not None else None
     if ara is None:

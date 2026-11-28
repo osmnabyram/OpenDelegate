@@ -45,6 +45,9 @@ object Eylem {
     /** Uygulama açılacaksa true: açmadan ÖNCE telefonun kilidi açılmış olmalı (VekilService bekler). */
     fun uygulamaAcilacak(json: String): Boolean = liste(json).any { it.optString("eylem") == "uygulama_ac" }
 
+    /** Sunucu "kapat" komutunu tanıdı: panel kapansın, soru sorulmuş olsa bile tekrar dinlenmesin. */
+    fun panelKapat(json: String): Boolean = liste(json).any { it.optString("eylem") == "panel_kapat" }
+
     fun medyaKomutlari(json: String): List<String> =
         liste(json).filter { it.optString("eylem") == "medya" }.map { it.optString("komut") }
 
@@ -128,7 +131,7 @@ object Eylem {
             ?: "Telefonu kullanma izni kapalı efendim, ekranı kilitleyemedim."
         "ara" -> ara(ctx, e.optString("kisi"))
         "ses" -> ses(ctx, e.optString("yon"))
-        "medya", "mesaj", "ekranda", "bildirim_oku" -> null  // cevap okunduktan sonra (VekilService)
+        "medya", "mesaj", "ekranda", "bildirim_oku", "panel_kapat" -> null  // cevap okunduktan sonra (VekilService)
         else -> null     // yeni sunucu, eski uygulama: bilmediğini sessizce geç
     }
 

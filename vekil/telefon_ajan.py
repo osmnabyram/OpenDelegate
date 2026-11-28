@@ -6,12 +6,21 @@ kaydır, geri...), uygulama yapar, yeni ekranı yollar. Sunucu durumsuz: yapıla
 
 POST /telefon/{token}  {"gorev": str, "ekran": str, "gecmis": [str], "adim": int}
   -> {"bitti": false, "eylemler": [...], "dusunce": str}  ya da  {"bitti": true, "sonuc": str, "basarili": bool}
+
+Sohbetten telefona iş: sohbetteki OpenDelegate telefona_gonder() ile işi kuyruğa koyar ve sonucu bekler.
+Uygulama (sürüm 4+) GET /telefon/gorev/{token}?bekle=25 ile UZUN YOKLAR (iş gelince hemen döner), işi yapar,
+POST /telefon/sonuc/{token} {"id", "sonuc"} ile sonucu yollar; OpenDelegate sohbette kullanıcıya o yazar.
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import secrets
+import time
+from collections import deque
+from dataclasses import dataclass, field
 from typing import Any
 
 from starlette.requests import Request
@@ -151,3 +160,135 @@ async def telefon_adim(request: Request) -> Response:
     sonuc = cevap_coz(mesaj)
     logger.info("telefon ajan adım %s: %s", adim, json.dumps(sonuc, ensure_ascii=False)[:300])
     return JSONResponse(sonuc)
+
+# --------------------------------------------------------------------------
+# Sohbet -> telefon iş kuyruğu
+# --------------------------------------------------------------------------
+
+UZUN_YOKLAMA_SN = 25.0
+CEVRIMICI_SN = 75.0       # son yoklamadan bu kadar geçtiyse telefon bağlı sayılmaz (uygulama kapalı / internet yok)
+ALINMA_SN = 60.0          # telefon işi bu sürede almazsa vazgeçilir
+SONUC_SN = 300.0          # ekrandan iş uzun sürebilir (25 adıma kadar)
+ISLI_SURUM = 4            # sohbet işlerini (ve sonuç yollamayı) bilen uygulama sürümü
+# Son yoklama eskiyse hemen "bağlı değil" deme: sunucu yeni açıldıysa (güncelleme) telefon ilk kez en geç
+# ~40 sn'de sorar (eski sunucudaki uzun yoklama + hata beklemesi).
+BAGLANTI_BEKLE_SN = 45.0
+
+
+@dataclass
+class _TelefonIsi:
+    id: str
+    eylem: dict[str, Any]
+    sonuc: asyncio.Future = field(repr=False)
+    alindi: bool = False
+
+
+_isler: dict[str, _TelefonIsi] = {}
+_sira: deque[str] = deque()
+_yeni_is: asyncio.Event | None = None
+_son_yoklama = 0.0
+_son_surum = 0
+
+
+def _olay() -> asyncio.Event:
+    global _yeni_is
+    if _yeni_is is None:
+        _yeni_is = asyncio.Event()
+    return _yeni_is
+
+
+def cevrimici() -> bool:
+    """Telefon uygulaması son CEVRIMICI_SN içinde yokladı mı (ve sohbet işlerini biliyor mu)?"""
+    return time.monotonic() - _son_yoklama < CEVRIMICI_SN and _son_surum >= ISLI_SURUM
+
+
+def _sonraki_is() -> _TelefonIsi | None:
+    while _sira:
+        i = _isler.get(_sira.popleft())
+        if i is not None and not i.sonuc.done():
+            i.alindi = True
+            return i
+    return None
+
+
+async def telefona_gonder(eylem: dict[str, Any]) -> tuple[bool, str]:
+    """İşi telefona verir, sonucunu bekler. (başarılı, modele dönecek metin). Hata fırlatmaz."""
+    bekle_bitis = time.monotonic() + BAGLANTI_BEKLE_SN
+    while time.monotonic() - _son_yoklama >= CEVRIMICI_SN:
+        if time.monotonic() > bekle_bitis:
+            return False, ("Telefon şu an bağlı değil (OpenDelegate uygulaması kapalı, telefon internetsiz ya da "
+                           "kapalı). Kullanıcıya sade dille söyle; uygulamayı açarsa tekrar deneyebilirsin.")
+        await asyncio.sleep(0.5)
+    if _son_surum < ISLI_SURUM:
+        return False, "Telefondaki OpenDelegate uygulaması eski; bu iş için yeni sürümün kurulması gerek. Kullanıcıya söyle."
+    i = _TelefonIsi(id=secrets.token_urlsafe(9), eylem=eylem, sonuc=asyncio.get_running_loop().create_future())
+    _isler[i.id] = i
+    _sira.append(i.id)
+    _olay().set()
+    try:
+        bitis = time.monotonic() + ALINMA_SN
+        while not i.alindi:
+            if time.monotonic() > bitis:
+                return False, "Telefon işi zamanında almadı (meşgul ya da bağlantı koptu). Kullanıcıya söyle."
+            await asyncio.sleep(0.5)
+        try:
+            return True, str(await asyncio.wait_for(asyncio.shield(i.sonuc), SONUC_SN))
+        except asyncio.TimeoutError:
+            return False, "Telefon işi aldı ama sonucu zamanında gelmedi; iş sürüyor ya da yarıda kalmış olabilir."
+    finally:
+        _isler.pop(i.id, None)
+        try:
+            _sira.remove(i.id)
+        except ValueError:
+            pass
+
+
+async def telefon_gorevi(request: Request) -> Response:
+    """Telefon yoklar: sohbetten gelen bekleyen iş var mı ({"id", "eylem"}, sadece sürüm 4+)?
+    ?bekle=N: iş yoksa N sn'ye kadar bekletir; yoksa {}."""
+    global _son_yoklama, _son_surum
+    if not guvenlik.token_esit(request.path_params["token"], config.SESLI_TOKEN):
+        return Response("yetkisiz", status_code=401)
+    if not guvenlik.uygulama_siniri.izin_var():
+        return Response("çok sık istek", status_code=429)
+    _son_yoklama = time.monotonic()
+    _son_surum = sesli._surum(request)
+    try:
+        bekle = max(0.0, min(float(request.query_params.get("bekle") or 0), UZUN_YOKLAMA_SN))
+    except ValueError:
+        bekle = 0.0
+    bitis = time.monotonic() + bekle
+    while True:
+        olay = _olay()
+        olay.clear()  # kontrolden ÖNCE: arada gelen iş olayı kaçmasın
+        if _son_surum >= ISLI_SURUM and (i := _sonraki_is()) is not None:
+            return JSONResponse({"id": i.id, "eylem": i.eylem})
+        kalan = bitis - time.monotonic()
+        if kalan <= 0:
+            return JSONResponse({})
+        try:
+            await asyncio.wait_for(olay.wait(), min(kalan, 5.0))
+        except asyncio.TimeoutError:
+            pass
+        _son_yoklama = time.monotonic()
+
+
+async def telefon_sonucu(request: Request) -> Response:
+    """Uygulama sohbet işinin sonucunu yollar: {"id": str, "sonuc": str}."""
+    if not guvenlik.token_esit(request.path_params["token"], config.SESLI_TOKEN):
+        return Response("yetkisiz", status_code=401)
+    if not guvenlik.uygulama_siniri.izin_var():
+        return Response("çok sık istek", status_code=429)
+    if guvenlik.govde_cok_buyuk(request, 20_000):
+        return Response("istek çok büyük", status_code=413)
+    try:
+        veri = await request.json()
+        kimlik = str(veri.get("id") or "")
+        sonuc = str(veri.get("sonuc") or "").strip()[:3000]
+    except (ValueError, TypeError, AttributeError):
+        return Response("bozuk istek", status_code=400)
+    i = _isler.get(kimlik)
+    if i is None or i.sonuc.done():
+        return JSONResponse({"tamam": False})
+    i.sonuc.set_result(sonuc or "Yaptım efendim.")
+    return JSONResponse({"tamam": True})

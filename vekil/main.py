@@ -141,6 +141,9 @@ Niyeti bağlamdan anla — anahtar kelime bekleme:
   gibi aciliyet -> acil hatırlatma. "arayarak hatırlat / o saatte ara beni" ya da kaçırılmaması gereken ÖNEMLİ
   bir hatırlatma -> zamanla(ara=true): saatinde kullanıcı telefonla aranır. Önemli/acil bir şey olunca (iş patladı,
   kaçırmaması gereken bir durum) kullanıcı istemese de kendi kararınla telefonla_ara kullan; önemsiz şeyde arama.
+  "Telefonda alarm kur / feneri aç / telefonu kilitle (kapat) / telefondan X'e WhatsApp yaz / telefonda şunu yap /
+  telefona bağlanıp X'i aç" -> telefonda_yap (kullanıcının telefonundaki OpenDelegate uygulaması yapar, sonucu sana
+  döner). Bilgisayar işi DEĞİL. Uygulama açmak: telefonda_yap(eylem=uygulama_ac).
   Emin olamadığında en makul yorumu yap ve ne anladığını cevapta kısaca söyle.
 
 Dürüstlük — doğruluk tondan önce gelir:
@@ -1132,6 +1135,12 @@ async def tool_cagrisini_isle(
         basarili, sonuc = await yapilacaklar.ayarla(argumanlar)
     elif tool.hedef == "hava":
         basarili, sonuc = await _hava_sorgula(argumanlar)
+    elif tool.hedef == "telefon_is":
+        # Sohbetten telefona iş: aynı doğrulama/güvenlik kapısı (banka, ödeme) sesli uygulamayla ortak.
+        eylem, sonuc = arama.telefon_eylemi(argumanlar)
+        basarili = False
+        if eylem is not None:
+            basarili, sonuc = await telefon_ajan.telefona_gonder(eylem)
     elif tool.hedef == "telefon":
         basarili, sonuc = (await arama_ornegi.ayarla(argumanlar)) if arama_ornegi else (
             False, "Telefon araması kapalı (Twilio bilgileri Render'da eksik ya da OpenDelegate yeni açılıyor).")
@@ -2695,6 +2704,8 @@ def web_uygulamasi(app: Application | None) -> Starlette:
             Route("/seslendir/{token}", sesli_uc.seslendir, methods=["POST"]),
             Route("/sor/{token}", sesli_uc.sesli_sor, methods=["POST"]),
             Route("/telefon/{token}", telefon_ajan.telefon_adim, methods=["POST"]),
+            Route("/telefon/gorev/{token}", telefon_ajan.telefon_gorevi, methods=["GET"]),
+            Route("/telefon/sonuc/{token}", telefon_ajan.telefon_sonucu, methods=["POST"]),
             *uzak_ekran.rotalar(),
             Route("/harita/{token}", harita_sayfasi, methods=["GET"]),
             Route("/harita/{token}/veri", harita_verisi, methods=["GET"]),

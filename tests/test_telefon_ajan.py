@@ -4,6 +4,7 @@ Kullanıcı 21.11: "WhatsApp'tan şuna mesaj yaz, alarmı sil... her şeye eriş
 seçer; bozuk eylem uygulamaya gitmez, ödeme gibi adımlarda durması talimatta yazılı.
 """
 
+import asyncio
 import json
 import unittest
 from types import SimpleNamespace
@@ -161,3 +162,93 @@ class GuvenlikKapilari(unittest.TestCase):
         self.assertTrue(guvenlik.token_esit("abc", "abc"))
         self.assertFalse(guvenlik.token_esit("abd", "abc"))
         self.assertFalse(guvenlik.token_esit("", ""))
+
+
+class SohbettenTelefona(unittest.TestCase):
+    """Sohbetteki OpenDelegate işi kuyruğa koyar; uygulama uzun yoklamayla alır, sonucu yollar."""
+
+    def setUp(self):
+        for y in (mock.patch.object(telefon_ajan.config, "SESLI_TOKEN", "tok"),
+                  mock.patch.object(telefon_ajan, "ALINMA_SN", 3.0),
+                  mock.patch.object(telefon_ajan, "BAGLANTI_BEKLE_SN", 1.0),
+                  mock.patch.object(telefon_ajan, "_yeni_is", None)):
+            y.start()
+            self.addCleanup(y.stop)
+        telefon_ajan._isler.clear()
+        telefon_ajan._sira.clear()
+        telefon_ajan._son_yoklama = 0.0
+        telefon_ajan._son_surum = 0
+
+    @staticmethod
+    def _istek(surum=4, bekle="2", govde=None, token="tok"):
+        async def json_oku():
+            return govde
+        return SimpleNamespace(path_params={"token": token}, query_params={"bekle": bekle},
+                               headers={"x-vekil-surum": str(surum)}, json=json_oku)
+
+    def test_bagli_degilse_kisa_beklemeden_sonra_soyler(self):
+        ok, metin = asyncio.run(telefon_ajan.telefona_gonder({"eylem": "fener", "acik": True}))
+        self.assertFalse(ok)
+        self.assertIn("bağlı değil", metin)
+
+    def test_is_gider_sonuc_doner(self):
+        async def senaryo():
+            await telefon_ajan.telefon_gorevi(self._istek(bekle="0"))  # telefon bir kez yokladı: bağlı
+            gonder = asyncio.create_task(telefon_ajan.telefona_gonder({"eylem": "alarm", "saat": 7, "dakika": 30}))
+            y = await telefon_ajan.telefon_gorevi(self._istek(bekle="5"))  # uzun yoklama işi hemen alır
+            is_ = json.loads(y.body)
+            self.assertEqual(is_["eylem"]["eylem"], "alarm")
+            s = await telefon_ajan.telefon_sonucu(self._istek(govde={"id": is_["id"], "sonuc": "Alarm kuruldu."}))
+            self.assertTrue(json.loads(s.body)["tamam"])
+            return await gonder
+        self.assertEqual(asyncio.run(senaryo()), (True, "Alarm kuruldu."))
+        self.assertEqual(telefon_ajan._isler, {})
+
+    def test_yeni_acilan_sunucu_ilk_yoklamayi_bekler(self):
+        async def senaryo():
+            gonder = asyncio.create_task(telefon_ajan.telefona_gonder({"eylem": "fener", "acik": True}))
+            await asyncio.sleep(0.2)
+            y = await telefon_ajan.telefon_gorevi(self._istek(bekle="5"))
+            is_ = json.loads(y.body)
+            await telefon_ajan.telefon_sonucu(self._istek(govde={"id": is_["id"], "sonuc": "Fener açıldı."}))
+            return await gonder
+        self.assertEqual(asyncio.run(senaryo()), (True, "Fener açıldı."))
+
+    def test_eski_uygulama_is_almaz(self):
+        async def senaryo():
+            await telefon_ajan.telefon_gorevi(self._istek(surum=3, bekle="0"))
+            return await telefon_ajan.telefona_gonder({"eylem": "fener", "acik": True})
+        ok, metin = asyncio.run(senaryo())
+        self.assertFalse(ok)
+        self.assertIn("eski", metin)
+
+    def test_telefon_almazsa_vazgecer_ve_yetkisiz_reddedilir(self):
+        async def senaryo():
+            await telefon_ajan.telefon_gorevi(self._istek(bekle="0"))
+            return await telefon_ajan.telefona_gonder({"eylem": "fener", "acik": False})
+        ok, metin = asyncio.run(senaryo())
+        self.assertFalse(ok)
+        self.assertIn("almadı", metin)
+        y = asyncio.run(telefon_ajan.telefon_gorevi(self._istek(token="yanlis")))
+        self.assertEqual(y.status_code, 401)
+
+    def test_musteri_metninde_vekil_yok(self):
+        import inspect
+        self.assertNotIn("Vekil", inspect.getsource(telefon_ajan.telefona_gonder))
+
+
+class KapatKomutu(unittest.TestCase):
+    def test_sadece_tek_basina_kapat(self):
+        for m in ("Kapat.", "kapat", "Kapat, kapat!"):
+            self.assertTrue(sesli.kapat_komutu_mu(m), m)
+        for m in ("Telefonu kapat.", "bilgisayarı kapat", "feneri kapat", "kapatır mısın", ""):
+            self.assertFalse(sesli.kapat_komutu_mu(m), m)
+
+
+class SohbetAraci(unittest.TestCase):
+    def test_arac_tanimli_ve_dusuk_riskli(self):
+        import tools
+        t = tools.TOOLLAR["telefonda_yap"]
+        self.assertEqual(t.hedef, "telefon_is")
+        self.assertIn("ekran_kilitle", t.parametreler["properties"]["eylem"]["enum"])
+        self.assertEqual(tools.risk_degerlendir("telefonda_yap", {"eylem": "fener"}), "düşük")

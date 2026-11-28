@@ -40,6 +40,18 @@
                     android:textColor="@color/accent"
                     android:textSize="11sp" />
 
+                <!-- OpenDelegate'i tamamen kapat (uygulamadaki AKTİF/KAPALI anahtarıyla aynı); açmak için uygulamaya girilir -->
+                <ImageView
+                    android:id="@+id/pGuc"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="OpenDelegate'i kapat"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_guc"
+                    android:tint="@color/fg2" />
+
                 <ImageView
                     android:id="@+id/pKapat"
                     android:layout_width="36dp"
