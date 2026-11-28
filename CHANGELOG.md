@@ -20,6 +20,7 @@ Biçim: [Keep a Changelog](https://keepachangelog.com/). Sürümler [Releases](h
 - Web Push: sekme kapalıyken "Yeni mesaj" bildirimi (içerik taşımaz), PWA kurulumu için manifest ve ikonlar. Gerekli paket: `pywebpush`. / Web Push: a "new message" notification while the tab is closed (carries no text), a manifest and icons for PWA install. Required package: `pywebpush`.
 
 ### Düzeltildi / Fixed
+- Telefonda ekrandan iş yaparken uygulamanın kendi dokunuşları paneli kapatıp işi yarıda bırakıyordu; iş sürerken panelin dışına dokunmak artık işi kesmez (durdur/kapat düğmesi çalışır). Telefonun "yapamadım" cevapları artık hata sayılır; üst üste iki başarısız telefon işinden sonra asistan durur ve sebebi söyler, ilgisiz denemelere sapmaz. / While working on the phone screen, the app's own taps closed the panel and cut the job short; tapping outside the panel no longer stops a running job (the stop/close buttons still do). The phone's "could not do it" replies now count as failures; after two failed phone jobs in a row the assistant stops and explains instead of wandering into unrelated attempts.
 - Model hesabının bakiyesi bitince (HTTP 402) ham hata yerine anlaşılır mesaj gösterilir. / When the model account runs out of balance (HTTP 402) a clear message is shown instead of the raw error.
 - Asistan, ekran görüntüsü gelmediyse ya da araç hata verdiyse gördüğünü uydurmaz; "göremedim" der. / When no screenshot arrived or the tool failed, the assistant no longer invents what it sees; it says it could not see.
 
