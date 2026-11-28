@@ -60,6 +60,14 @@ class Kisirdongu(unittest.TestCase):
         calistir(t, c, DERLEME_HATASI)
         self.assertIn("tekrar tekrar", t.durmali())  # 3. engel: gerçek kısırdöngü
 
+    def test_engellenen_cagri_basarisiz_sayilmaz(self):
+        # main/ordu engel metnini ENGELLENDI ile tanır ve kaydet()'e vermez (eskiden metin uyuşmuyordu).
+        t = disiplin.Takip()
+        c = cagri("terminal_calistir", komut="python odev.py")
+        calistir(t, c, DERLEME_HATASI)
+        self.assertTrue(t.engelle(c).startswith(disiplin.ENGELLENDI))
+        self.assertTrue(disiplin.bos_mu(disiplin.ENGELLENDI))  # kaydet()'e verilseydi hata sayılırdı
+
     def test_okuma_basarili_olsa_da_engel_kalkmaz(self):
         t = disiplin.Takip()
         c = cagri("terminal_calistir", komut="python odev.py")

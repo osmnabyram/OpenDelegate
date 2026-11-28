@@ -45,9 +45,6 @@ class Uyandirma(_Taban):
         self.assertTrue(acildi)
         self.assertEqual(self.bildirimler, [])
 
-    async def test_her_zaman_kurulu(self):
-        self.assertTrue(uyandirma.hazir())
-
     async def test_ajan_zamaninda_baglanirsa_acilir(self):
         async def gec_baglan():
             await asyncio.sleep(0.02)

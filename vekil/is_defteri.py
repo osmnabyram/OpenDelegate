@@ -33,8 +33,7 @@ async def calistir(argumanlar: dict[str, Any]) -> tuple[bool, str]:
 
 
 def _simdi() -> str:
-    from datetime import datetime
-    return datetime.now().isoformat(timespec="seconds")
+    return hafiza._simdi()  # Türkiye saati (sunucu saati UTC)
 
 
 def _ekle(argumanlar: dict[str, Any]) -> str:

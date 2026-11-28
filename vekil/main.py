@@ -46,7 +46,7 @@ from pathlib import PureWindowsPath
 from typing import Any, Awaitable, TypeVar
 
 import uvicorn
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, BadRequestError
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.requests import Request
@@ -566,10 +566,10 @@ async def _hafiza_blogu(chat_id: int) -> str:
     return "\n\n".join(p for p in parcalar if p)
 
 
-def _durum_satiri() -> str:
+def _durum_satiri(simdi: datetime | None = None) -> str:
     ajan = "ÇEVRİMİÇİ" if gorevler.ajan_cevrimici() else "ÇEVRİMDIŞI (PC kapalı ya da ajan.py çalışmıyor)"
     od = "bağlı" if onedrive.bagli_mi() else "BAĞLI DEĞİL"
-    simdi = datetime.now(zamanlayici.TR)
+    simdi = simdi or datetime.now(zamanlayici.TR)
     son_soru = konu_takip.son_soru_satiri() if konu_takip is not None else ""
     return (f"[Anlık durum] Şu an: {gun_yaz(simdi.date())} {simdi.year}, saat {simdi:%H:%M} (Türkiye). "
             f"PC ajanı: {ajan}. OneDrive: {od}." + (f" {son_soru}" if son_soru else ""))
@@ -1223,12 +1223,14 @@ async def _model(bot: Bot, chat_id: int, mesajlar: list[dict[str, Any]], semalar
     ek = {"tool_choice": "none"} if araclar_kapali else {}
     for deneme in range(2):
         _iptal_kontrol(chat_id)
-        yanit = await _yaziyor_iken(
-            bot, chat_id,
-            llm.chat.completions.create(
-                model=config.DEEPSEEK_MODEL, messages=mesajlar, tools=semalar, temperature=0.3, **ek
-            ),
-        )
+        istek = dict(model=config.DEEPSEEK_MODEL, messages=mesajlar, tools=semalar, temperature=0.3, **ek)
+        try:
+            # Düşünme kapalı: bilgisayar döngüsünde ölçüldü ~3x hızlı, isabet aynı.
+            yanit = await _yaziyor_iken(
+                bot, chat_id, llm.chat.completions.create(**istek, extra_body=brifing.DUSUNME_KAPALI))
+        except BadRequestError as e:  # sağlayıcı reddederse eskisi gibi (düşünme açık) dene
+            logger.warning("Düşünmesiz çağrı reddedildi, varsayılanla deneniyor: %s", str(e)[:120])
+            yanit = await _yaziyor_iken(bot, chat_id, llm.chat.completions.create(**istek))
         # DeepSeek bazen tool çağrısını DSML düz metni olarak sızdırır: gerçek çağrıya çevir (bkz. dsml.py).
         mesaj, sizdi = dsml.onar(yanit.choices[0].message)
         if not sizdi:
@@ -1309,11 +1311,15 @@ async def ajan_turu(bot: Bot, chat_id: int, gecmis: list[dict[str, Any]]) -> Non
     son_gorunur = time.monotonic()  # Kullanıcıya en son bir şey yazıldığı an (sessiz kalmasın)
     olcum = _hiz_baslat(son_kullanici)
     blok: str | None = None
+    # Saat tur başında bir kez: dakika her değiştiğinde sistem mesajı değişip DeepSeek'in önbelleği (aynı başlangıç)
+    # boşa gidiyor, uzun işte tüm geçmiş her adımda baştan işleniyordu. PC/OneDrive durumu yine her adımda güncel.
+    tur_saati = datetime.now(zamanlayici.TR)
     for _ in range(config.MAKS_ADIM):
         if blok is None:  # hız: her adımda DB'ye gitme; sadece ilk adımda ve hafıza değişince (hafizaya_yaz/sil)
             blok = await _hafiza_blogu(chat_id)
         sistem = (
-            SYSTEM_PROMPT + ("\n" + blok + "\n" if blok else "") + "\n" + ordu.prompt_satiri() + "\n" + _durum_satiri()
+            SYSTEM_PROMPT + ("\n" + blok + "\n" if blok else "") + "\n" + ordu.prompt_satiri() + "\n"
+            + _durum_satiri(tur_saati)
             + config.DIL_TALIMATI
             + ("\n\n" + bilinen if bilinen else "")
         )
@@ -1367,7 +1373,7 @@ async def ajan_turu(bot: Bot, chat_id: int, gecmis: list[dict[str, Any]]) -> Non
                 olcum["araclar"].append((tc.function.name, time.monotonic() - bas))
                 if tc.function.name in ("hafizaya_yaz", "hafizadan_sil"):
                     blok = None  # hafıza değişti: sonraki adımda tazele
-                if not sonuc.startswith("HATA: Bu çağrıyı (aynı tool"):
+                if not sonuc.startswith(disiplin.ENGELLENDI):
                     sonuc += takip.kaydet(tc, sonuc)
             gecmis.append({"role": "tool", "tool_call_id": tc.id, "content": sonuc})
         olcum["toplam"] = time.monotonic() - olcum["bas"]
@@ -2901,9 +2907,11 @@ def arama_kur(bot: Bot, gonder: Any) -> None:
                 await hafiza.mesaj_kaydet(chat_id, "assistant", metin)
         _arka_plan(ekle())
 
+    arama_tokeni = arama.token_turet(config.ANA_SIR)
+    guvenlik.SesliMaskeleyici.ek.append(arama_tokeni)  # Twilio yolları (/arama/<token>/...) logda açık yazılmasın
     arama_ornegi = arama.Arama(
         hat=arama.TwilioHat(config.TWILIO_ACCOUNT_SID, config.TWILIO_AUTH_TOKEN, config.TWILIO_NUMARA),
-        taban_url=config.WEBHOOK_URL, token=arama.token_turet(config.ANA_SIR),
+        taban_url=config.WEBHOOK_URL, token=arama_tokeni,
         auth_token=config.TWILIO_AUTH_TOKEN, kullanici=config.KULLANICI_TELEFON, dusun=dusun,
         sistem=lambda: _hafiza_blogu(chat_id),
         araclar={**{ad: (lambda a, ad=ad: _telefon_tur(a, ad)) for ad in adlar}, "isi_yap": isi_yap},
@@ -3014,6 +3022,9 @@ async def _haftalik_rapor(bot: Bot) -> None:
     Sıradan davranış dersleri (haftada en çok 2) onaysız kural olur, güvenlik/para konuları olmaz
     (oz_degerlendirme.otomatik_uygun). Kullanıcı o hafta 'sus' dediyse atlanır."""
     simdi = datetime.now(zamanlayici.TR)
+    silinen = await hafiza.eski_eylemleri_sil()  # rapor susturulsa da: veritabanı sınırsız büyümesin
+    if silinen:
+        logger.info("haftalık temizlik: %d eski eylem kaydı silindi", silinen)
     if oz_degerlendirme.sus_mu(await zamanlayici.ayar_oku(oz_degerlendirme.SUS_ANAHTAR), simdi):
         logger.info("haftalık rapor: Kullanıcı bu hafta 'sus' dedi, atlandı")
         return

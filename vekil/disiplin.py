@@ -109,6 +109,9 @@ ARAMA_DURAK = 6  # üst üste 6 boş arama
 AYNI_ARAC_UYARI = 4  # aynı tool, farklı argümanlarla üst üste 4 başarısız: yaklaşımı değiştir uyarısı
 AYNI_ARAC_DURAK = 15  # 15 başarısız: bahane döngüsü, dur (10 farklı komut denemek meşru keşif sayılır)
 # Gerçek telefonda deneme-yanılma yapılmaz (açık sohbeti/aramayı bozabilir): üst üste 2 başarısızda dur, söyle.
+# engelle()'nin döndüğü metnin başı. Döngüler bununla tanır ve engellenen çağrıyı başarısız SAYMAZ (eskiden
+# main/ordu "Bu çağrıyı" diye arıyordu, metin "Bu çağrı" idi: kontrol hiç tutmuyordu).
+ENGELLENDI = "HATA: Bu çağrı (aynı tool, aynı argümanlar)"
 TELEFON = frozenset({"telefonda_yap"})
 TELEFON_DURAK = 2
 
@@ -136,7 +139,7 @@ class Takip:
         if self.engellenen[k] >= ENGEL_DURAK and not self.durak_nedeni:
             self.durak_nedeni = "Aynı başarısız çağrıyı hiçbir şey değiştirmeden tekrar tekrar denedin."
         return (
-            "HATA: Bu çağrı (aynı tool, aynı argümanlar) az önce başarısız oldu ve arada hiçbir şey değişmedi; aynen "
+            ENGELLENDI + " az önce başarısız oldu ve arada hiçbir şey değişmedi; aynen "
             "tekrar ÇALIŞTIRILMADI. Önce sebebini düzelt (hata mesajını oku; dosyayı düzelt, başka komut/yol/argüman "
             "dene, gerekirse webde_ara ile hatayı araştır), sonra tekrar çalıştır."
         )

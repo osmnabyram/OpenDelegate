@@ -351,6 +351,15 @@ class VekilService : Service() {
                 gurultu[gurultuSira] = rms
                 gurultuSira = (gurultuSira + 1) % GURULTU_PENCERE
 
+                // Sohbetten gelen iş ekranda sürerken uyanma yok: sesli tur paneli devralıp "boşta"ya düşürüyor,
+                // uygulamanın sonraki tıklaması paneli kapatıp işi yarıda bırakıyordu. Durdurmak: panel düğmesi.
+                if (durum == Durum.CALISIYOR) {
+                    if (beslendi) { taniyici.reset(); beslendi = false }
+                    acikKalan = 0
+                    onceki = null
+                    continue
+                }
+
                 // Pil: sessiz ortamda Vosk'u boşuna çalıştırma. Ortam sesinin 2 katını aşan ses varken ve
                 // sonrasında ~2,5 sn beslenir; ses başlarken bir önceki parça da verilir ki "vekil"in başı
                 // kaçmasın. İlk ~5 sn (ortam sesi öğrenilirken) ve elle tetiklemede hep beslenir.
@@ -645,16 +654,20 @@ class VekilService : Service() {
         bekliyor()
     }
 
-    private fun sonucGonder(id: String, sonuc: String) {
+    /** Sonuç kaybolursa sohbetteki OpenDelegate 5 dk boşuna bekler: ağ bir anlık koptuysa bir kez daha dener. */
+    private suspend fun sonucGonder(id: String, sonuc: String) {
         val ctx = applicationContext
         val govde = JSONObject().put("id", id).put("sonuc", sonuc.take(3000))
         val istek = Request.Builder().url("${Config.renderUrl(ctx)}/telefon/sonuc/${Config.sesliToken(ctx)}")
             .post(govde.toString().toRequestBody("application/json".toMediaType()))
             .build()
-        try {
-            http.newCall(istek).execute().close()
-        } catch (e: Exception) {
-            Log.e(TAG, "Telefon işinin sonucu gönderilemedi: $e")
+        for (deneme in 1..2) {
+            try {
+                http.newCall(istek).execute().use { y -> if (y.isSuccessful) return }
+            } catch (e: Exception) {
+                Log.e(TAG, "Telefon işinin sonucu gönderilemedi ($deneme/2): $e")
+            }
+            if (deneme == 1) delay(2_000L)
         }
     }
 

@@ -62,9 +62,21 @@ async def url_guvenli(url: str) -> None:
     except socket.gaierror:
         raise AgHatasi(f"Alan adı çözülemedi: {p.hostname}")
     for *_, sockaddr in adresler:
-        ip = ipaddress.ip_address(sockaddr[0])
-        if not ip.is_global:
-            raise AgHatasi("Bu adres iç ağa/yerel ağa çıkıyor, oraya gitmem.")
+        _genel_mi(sockaddr[0])
+
+
+def _genel_mi(adres: str) -> None:
+    if not ipaddress.ip_address(adres.split("%")[0]).is_global:  # "%": IPv6 bölge eki (fe80::1%eth0)
+        raise AgHatasi("Bu adres iç ağa/yerel ağa çıkıyor, oraya gitmem.")
+
+
+def _baglanilan_genel_mi(yanit: httpx.Response) -> None:
+    """Gerçekten bağlanılan IP de genel mi? url_guvenli ile bağlantı arasında DNS cevabı değişirse (DNS rebinding:
+    önce genel IP, sonra 127.0.0.1) iç adresin cevabı OKUNMADAN kesilir. Adres bilinmiyorsa (sahte transport) geç."""
+    akis = yanit.extensions.get("network_stream")
+    adres = akis.get_extra_info("server_addr") if akis is not None else None
+    if adres:
+        _genel_mi(str(adres[0]))
 
 
 def _dosya_adi(url: str, disposition: str | None) -> str:
@@ -84,6 +96,7 @@ async def indir(url: str, limit: int, zaman_asimi: float = 60) -> Indirilen:
         for _ in range(MAKS_YONLENDIRME + 1):
             await url_guvenli(url)  # her yönlendirmede yeniden kontrol
             async with istemci.stream("GET", url, headers={"User-Agent": TARAYICI}) as yanit:
+                _baglanilan_genel_mi(yanit)
                 if yanit.is_redirect and "location" in yanit.headers:
                     url = urljoin(url, yanit.headers["location"])
                     continue

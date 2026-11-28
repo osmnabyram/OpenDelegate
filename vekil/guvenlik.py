@@ -26,15 +26,22 @@ def token_esit(gelen: str, beklenen: str) -> bool:
 
 
 class SesliMaskeleyici(logging.Filter):
+    """Yol içindeki token'lar (uvicorn erişim logu) açık yazılmasın: sesli uygulama + `ek` (ör. Twilio arama yolu)."""
+
+    ek: list[str] = []  # açılışta eklenir (main: arama token'ı)
+
     def filter(self, kayit: logging.LogRecord) -> bool:
-        t = config.SESLI_TOKEN
-        if t:
+        tokenlar = [t for t in (config.SESLI_TOKEN, *self.ek) if t]
+        if tokenlar:
             try:
                 mesaj = kayit.getMessage()
             except Exception:  # noqa: BLE001
                 return True
-            if t in mesaj:
-                kayit.msg, kayit.args = mesaj.replace(t, t[:4] + "…"), ()
+            yeni = mesaj
+            for t in tokenlar:
+                yeni = yeni.replace(t, t[:4] + "…")
+            if yeni != mesaj:
+                kayit.msg, kayit.args = yeni, ()
         return True
 
 

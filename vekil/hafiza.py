@@ -34,6 +34,7 @@ from datetime import datetime, timedelta
 from typing import Any, Callable, TypeVar
 
 import config
+import zamanlayici  # sadece TR saat dilimi (zamanlayici üst düzeyde hafiza'yı içe aktarmaz)
 
 logger = logging.getLogger("vekil.hafiza")
 
@@ -234,8 +235,13 @@ def _sessiz(varsayilan: T) -> Callable[[Callable[..., T]], Callable[..., Any]]:
     return sarmala
 
 
+def _simdi_dt() -> datetime:
+    """Türkiye saati, saat dilimi bilgisiz. Sunucu (Render) saati UTC: kayıtlar 3 saat geride yazılıyordu."""
+    return datetime.now(zamanlayici.TR).replace(tzinfo=None)
+
+
 def _simdi() -> str:
-    return datetime.now().isoformat(timespec="seconds")
+    return _simdi_dt().isoformat(timespec="seconds")
 
 
 # --------------------------------------------------------------------------
@@ -321,10 +327,23 @@ def eylem_olustur(chat_id: int, tool: str, argumanlar: dict[str, Any], risk: str
     s = _calistir(
         "INSERT INTO eylemler (zaman, chat_id, tool, argumanlar, risk, durum) "
         "VALUES (%s, %s, %s, %s, %s, 'bekliyor') RETURNING id",
-        (_simdi(), chat_id, tool, json.dumps(argumanlar, ensure_ascii=False), risk),
+        (_simdi(), chat_id, tool, json.dumps(argumanlar, ensure_ascii=False)[:EYLEM_ARG_SINIRI], risk),
         sonuc="tek",
     )
     return int(s["id"]) if s else -1
+
+
+# Eylem kaydı sadece iz/rapor içindir (geri okunup çalıştırılmaz): dosya_yaz'ın tüm içeriği satır başına yüzlerce KB
+# tutuyordu, Neon ücretsiz 0,5 GB dolunca yeni hafıza sessizce yazılamazdı. Kırpılır, eskiler silinir.
+EYLEM_ARG_SINIRI = 2000
+EYLEM_OMRU_GUN = 90
+
+
+@_sessiz(0)
+def eski_eylemleri_sil(gun: int = EYLEM_OMRU_GUN) -> int:
+    """`gun`den eski eylem kayıtlarını siler (haftalık). Silinen satır sayısı."""
+    sinir = (_simdi_dt() - timedelta(days=gun)).isoformat(timespec="seconds")
+    return _calistir("DELETE FROM eylemler WHERE zaman < %s", (sinir,), sonuc="sayi")
 
 
 @_sessiz(None)
@@ -458,7 +477,7 @@ def istatistik(gun: int = 7, son: int = 15) -> dict[str, Any] | None:
 
     Eylem argümanları ve sonuçları DÖNMEZ (sayfaya sızmasın): yalnızca araç adı, risk, durum, zaman.
     """
-    bas = (datetime.now() - timedelta(days=gun)).isoformat(timespec="seconds")
+    bas = (_simdi_dt() - timedelta(days=gun)).isoformat(timespec="seconds")
     sayi = lambda sql, p=(): (_calistir(sql, p, sonuc="tek") or {}).get("n", 0)  # noqa: E731
     return {
         "bilgi_turleri": {
@@ -581,7 +600,7 @@ def kuyruk_iptal(gorev_id: int) -> bool:
 @_sessiz([])
 def kuyruk_bayatlari_isaretle(saat: int) -> list[dict[str, Any]]:
     """`saat`ten uzun bekleyen işleri çalıştırmadan 'suresi_doldu' yapar ve döner (bayat onay çalışmasın)."""
-    sinir = (datetime.now() - timedelta(hours=saat)).isoformat(timespec="seconds")
+    sinir = (_simdi_dt() - timedelta(hours=saat)).isoformat(timespec="seconds")
     satirlar = _calistir(
         "SELECT id, olusturuldu, chat_id, tur, payload FROM bekleyen_gorevler WHERE durum = 'bekliyor' "
         "AND olusturuldu < %s ORDER BY id",

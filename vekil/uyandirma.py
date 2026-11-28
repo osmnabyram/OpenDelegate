@@ -54,11 +54,6 @@ async def _sessiz(bildir: Bildir | None, metin: str) -> None:
         logger.warning("Uyandırma bilgisi gönderilemedi: %s", type(e).__name__)
 
 
-def hazir() -> bool:
-    """Uzaktan açma her zaman kurulu: priz Tapo app'ten kullanıcı tarafından manuel açılıyor."""
-    return True
-
-
 async def pc_uyandir(bildir: Bildir | None = None) -> tuple[bool, str]:
     """Ajan bağlanana kadar bekler (priz manuel; OpenDelegate elektriğe dokunmaz).
     (açıldı_mı, modele dönecek metin). Exception fırlatmaz ('dur' hariç: CancelledError yayılır)."""
