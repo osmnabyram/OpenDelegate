@@ -108,6 +108,9 @@ ENGEL_DURAK = 3  # aynı başarısız çağrıyı hiçbir şey değiştirmeden 3
 ARAMA_DURAK = 6  # üst üste 6 boş arama
 AYNI_ARAC_UYARI = 4  # aynı tool, farklı argümanlarla üst üste 4 başarısız: yaklaşımı değiştir uyarısı
 AYNI_ARAC_DURAK = 15  # 15 başarısız: bahane döngüsü, dur (10 farklı komut denemek meşru keşif sayılır)
+# Gerçek telefonda deneme-yanılma yapılmaz (açık sohbeti/aramayı bozabilir): üst üste 2 başarısızda dur, söyle.
+TELEFON = frozenset({"telefonda_yap"})
+TELEFON_DURAK = 2
 
 
 class Takip:
@@ -146,7 +149,9 @@ class Takip:
         if bos_mu(sonuc):
             self.ardisik_hata[ad] = self.ardisik_hata.get(ad, 0) + 1
             n = self.ardisik_hata[ad]
-            if n >= AYNI_ARAC_DURAK and not self.durak_nedeni and ad not in ARAMA:
+            if ad in TELEFON and n >= TELEFON_DURAK and not self.durak_nedeni:
+                self.durak_nedeni = f"Telefondaki iş üst üste {n} kez olmadı; gerçek telefonda deneme-yanılma yapma."
+            elif n >= AYNI_ARAC_DURAK and not self.durak_nedeni and ad not in ARAMA:
                 self.durak_nedeni = f"Aynı aracı ({ad}) farklı bahanelerle {n} kez üst üste başarısız denedin."
             elif n >= AYNI_ARAC_UYARI and ad not in ARAMA:
                 uyari = (f"\n[UYARI: {ad} üst üste {n} kez başarısız oldu. Aynı yolu küçük değişikliklerle denemeyi "

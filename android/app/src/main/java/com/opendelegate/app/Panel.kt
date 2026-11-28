@@ -261,8 +261,12 @@ class Panel(
         }
     }
 
-    /** Panelin dışına dokunuldu: X'e basmış gibi kapat (yanlış uyanmada da çalışsın). */
-    fun disariDokunuldu() = kullaniciKapatti()
+    /** Panelin dışına dokunuldu: X'e basmış gibi kapat (yanlış uyanmada da çalışsın). OpenDelegate ekranda iş
+     *  yaparken kapatmaz: kendi tıklamaları da "dışarı dokunma" sayılıyor, iş her tıklamada yarıda kalıyordu.
+     *  O sırada durdurmak için paneldeki durdur ya da X. */
+    fun disariDokunuldu() {
+        if (hal != Hal.CALISIYOR) kullaniciKapatti()
+    }
 
     fun kullaniciKapatti() {
         kaldir()

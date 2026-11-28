@@ -202,6 +202,22 @@ def cevrimici() -> bool:
     return time.monotonic() - _son_yoklama < CEVRIMICI_SN and _son_surum >= ISLI_SURUM
 
 
+# Uygulamanın "yapamadım" cümleleri (VekilService). Başarı sayılınca model "tekrar deniyorum" diye dolanıp
+# ilgisiz işlere sapıyordu. HATA olarak döner; disiplin.Takip sayar ve frenler.
+_YARIM_KALDI = ("Sunucuya ulaşamadım", "Çok uzun sürdü", "Kilit açılmadığı", "Telefonu kullanmam için izin",
+                "Telefonda bunu yaparken bir hata")
+
+
+def _sonucu_yorumla(metin: str) -> tuple[bool, str]:
+    if metin.startswith("Durdurdum"):
+        return False, ("HATA: Telefondaki iş durduruldu (kullanıcı paneldeki durdur ya da kapat düğmesine bastı). "
+                       "Tekrar DENEME, başka yoldan da deneme: kullanıcıya kısaca söyle, ne derse onu yap.")
+    if metin.startswith(_YARIM_KALDI):
+        return False, (f"HATA: Telefon işi yarıda kaldı: {metin} En fazla bir kez daha dene; ilgisiz işlerle "
+                       "teşhise girme. Olmazsa kullanıcıya sebebiyle söyle.")
+    return True, metin
+
+
 def _sonraki_is() -> _TelefonIsi | None:
     while _sira:
         i = _isler.get(_sira.popleft())
@@ -216,11 +232,12 @@ async def telefona_gonder(eylem: dict[str, Any]) -> tuple[bool, str]:
     bekle_bitis = time.monotonic() + BAGLANTI_BEKLE_SN
     while time.monotonic() - _son_yoklama >= CEVRIMICI_SN:
         if time.monotonic() > bekle_bitis:
-            return False, ("Telefon şu an bağlı değil (OpenDelegate uygulaması kapalı, telefon internetsiz ya da "
-                           "kapalı). Kullanıcıya sade dille söyle; uygulamayı açarsa tekrar deneyebilirsin.")
+            return False, ("HATA: Telefon şu an bağlı değil (OpenDelegate uygulaması kapalı, telefon internetsiz "
+                           "ya da kapalı). Kullanıcıya sade dille söyle; uygulamayı açarsa tekrar deneyebilirsin.")
         await asyncio.sleep(0.5)
     if _son_surum < ISLI_SURUM:
-        return False, "Telefondaki OpenDelegate uygulaması eski; bu iş için yeni sürümün kurulması gerek. Kullanıcıya söyle."
+        return False, ("HATA: Telefondaki OpenDelegate uygulaması eski; bu iş için yeni sürümün kurulması gerek. "
+                       "Kullanıcıya söyle.")
     i = _TelefonIsi(id=secrets.token_urlsafe(9), eylem=eylem, sonuc=asyncio.get_running_loop().create_future())
     _isler[i.id] = i
     _sira.append(i.id)
@@ -229,12 +246,13 @@ async def telefona_gonder(eylem: dict[str, Any]) -> tuple[bool, str]:
         bitis = time.monotonic() + ALINMA_SN
         while not i.alindi:
             if time.monotonic() > bitis:
-                return False, "Telefon işi zamanında almadı (meşgul ya da bağlantı koptu). Kullanıcıya söyle."
+                return False, "HATA: Telefon işi zamanında almadı (meşgul ya da bağlantı koptu). Kullanıcıya söyle."
             await asyncio.sleep(0.5)
         try:
-            return True, str(await asyncio.wait_for(asyncio.shield(i.sonuc), SONUC_SN))
+            return _sonucu_yorumla(str(await asyncio.wait_for(asyncio.shield(i.sonuc), SONUC_SN)))
         except asyncio.TimeoutError:
-            return False, "Telefon işi aldı ama sonucu zamanında gelmedi; iş sürüyor ya da yarıda kalmış olabilir."
+            return False, ("HATA: Telefon işi aldı ama sonucu zamanında gelmedi; iş sürüyor ya da yarıda kalmış "
+                           "olabilir. Tekrar verme, kullanıcıya söyle.")
     finally:
         _isler.pop(i.id, None)
         try:

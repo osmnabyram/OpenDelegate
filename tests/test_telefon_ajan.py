@@ -214,6 +214,24 @@ class SohbettenTelefona(unittest.TestCase):
             return await gonder
         self.assertEqual(asyncio.run(senaryo()), (True, "Fener açıldı."))
 
+    def test_yarim_kalan_is_hata_doner(self):
+        self.assertEqual(telefon_ajan._sonucu_yorumla("Alarm kuruldu."), (True, "Alarm kuruldu."))
+        for metin in ("Durdurdum efendim.", "Sunucuya ulaşamadım efendim, iş yarıda kaldı.",
+                      "Kilit açılmadığı için yapamadım efendim."):
+            ok, sonuc = telefon_ajan._sonucu_yorumla(metin)
+            self.assertFalse(ok, metin)
+            self.assertTrue(sonuc.startswith("HATA"), metin)
+        self.assertIn("DENEME", telefon_ajan._sonucu_yorumla("Durdurdum efendim.")[1])
+
+    def test_iki_basarisiz_telefon_isinde_durur(self):
+        import disiplin
+        takip = disiplin.Takip()
+        for gorev in ("arşive gir", "arşivlenmiş sohbetleri aç"):
+            tc = SimpleNamespace(function=SimpleNamespace(
+                name="telefonda_yap", arguments=json.dumps({"eylem": "ekranda", "gorev": gorev})))
+            takip.kaydet(tc, telefon_ajan._sonucu_yorumla("Sunucuya ulaşamadım efendim, iş yarıda kaldı.")[1])
+        self.assertIn("Telefon", takip.durmali())
+
     def test_eski_uygulama_is_almaz(self):
         async def senaryo():
             await telefon_ajan.telefon_gorevi(self._istek(surum=3, bekle="0"))
